@@ -140,7 +140,7 @@
           <!-- Hidden photo file input -->
           <input type="file" id="photoFileInput" accept="image/*" multiple style="display:none" onchange="handlePhotoUpload(this.files)"/>
           <textarea class="msg-input" id="msgInput" placeholder="Type a message…" rows="1"
-            oninput="autoResize(this);toggleSend()"
+            oninput="autoResize(this);toggleSend();onInputChange()"
             onkeydown="handleKey(event)"></textarea>
           <!-- Send button — shown when text typed -->
           <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled style="display:none">
@@ -482,12 +482,23 @@ const QUICK_REPLIES=[
   'Is this still available?','Can we meet today?','I\'ll take it!','What\'s your lowest price?','Can you deliver?','Send more photos',
 ];
 
-let activeConv=null,activeTab='all',msgs={},chatSocket=null;
+let activeConv=null,activeTab='all',msgs={},chatSocket=null,presenceSocket=null;
+// userId → 'online' | 'offline'  (keyed by the OTHER user's id)
+const onlineStatus={};
 
 /* ── INIT ── */
 async function init(){
   await fetchConversations();
-  // Check if redirected from "Message Seller" in reels
+
+  // Opened from "Message Seller" on dashboard — conv_id stored in sessionStorage
+  const openConvId = sessionStorage.getItem('pu-open-conv');
+  if(openConvId){
+    sessionStorage.removeItem('pu-open-conv');
+    const conv = CONVS.find(c=>String(c.id)===String(openConvId));
+    if(conv){openConv(conv);return;}
+  }
+
+  // Opened from reels / other pages via localStorage username redirect
   const pendingChat = localStorage.getItem('pu-chat-open');
   if(pendingChat){
     localStorage.removeItem('pu-chat-open');
@@ -502,22 +513,75 @@ async function init(){
         });
         const d = await res.json();
         if(d.status==='success'){
-          // Refresh conv list so the new conv appears, then open it
           await fetchConversations();
-          const conv = CONVS.find(c=>c.id===d.conv_id);
+          const conv = CONVS.find(c=>String(c.id)===String(d.conv_id));
           if(conv){openConv(conv);return;}
         }
       }
     }catch(e){console.error('pu-chat-open error',e);}
   }
+
+  // Connect presence socket
+  connectPresence();
+
   // On desktop, auto-open first conv
   if(window.innerWidth>=768 && CONVS.length > 0) openConv(CONVS[0]);
+}
+
+function connectPresence(){
+  const protocol=window.location.protocol==='https:'?'wss':'ws';
+  presenceSocket=new WebSocket(`${protocol}://${window.location.host}/ws/presence/`);
+
+  presenceSocket.onmessage=function(e){
+    try{
+      const data=JSON.parse(e.data);
+      if(data.type!=='presence')return;
+      const uid=data.user_id;
+      const status=data.status; // 'online' | 'offline'
+      onlineStatus[uid]=status;
+
+      // Update conversation list entry for this user
+      CONVS.forEach(c=>{
+        // We need to match conv to user — store username→userId map
+        if(c._other_user_id===uid){
+          c.status=status;
+        }
+      });
+      renderConvList(document.getElementById('srchInput').value);
+
+      // Update open chat header if the active conv is with this user
+      if(activeConv&&activeConv._other_user_id===uid){
+        const statusEl=document.getElementById('chatStatus');
+        const isOnline=status==='online';
+        statusEl.textContent=isOnline?'Online · Active now':'Last seen recently';
+        statusEl.className='chat-status'+(isOnline?'':' away');
+      }
+    }catch(e){}
+  };
+
+  presenceSocket.onclose=function(){
+    // Reconnect after 5 s if page is still visible
+    setTimeout(()=>{if(document.visibilityState!=='hidden')connectPresence();},5000);
+  };
+
+  // Keep-alive ping every 30 s
+  setInterval(()=>{
+    if(presenceSocket&&presenceSocket.readyState===WebSocket.OPEN)
+      presenceSocket.send('ping');
+  },30000);
 }
 
 async function fetchConversations(){
   try{
     const res = await fetch('/chat/api/conversations/');
     CONVS = await res.json();
+    // Seed real-time presence from our local map, keep _other_user_id for matching
+    CONVS.forEach(c=>{
+      c._other_user_id = c.other_user_id;
+      if(c._other_user_id && onlineStatus[c._other_user_id]){
+        c.status = onlineStatus[c._other_user_id];
+      }
+    });
     renderConvList();
   }catch(e){console.error('Failed to fetch convs', e);}
 }
@@ -541,6 +605,24 @@ function connectWebSocket(cid){
 
   chatSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
+
+    // ── Typing indicator ──
+    if(data.type === 'typing'){
+      if(data.sender_id !== currentUserId){
+        if(data.is_typing) showTyping(); else removeTyping();
+      }
+      return;
+    }
+
+    // ── Recording indicator ──
+    if(data.type === 'recording'){
+      if(data.sender_id !== currentUserId){
+        if(data.is_recording) showRecording(); else removeTyping();
+      }
+      return;
+    }
+
+    // ── Normal chat message ──
     const m = {
       from: data.sender_id === currentUserId ? 'out' : 'in',
       text: data.message,
@@ -548,21 +630,23 @@ function connectWebSocket(cid){
       voice_url: data.voice_url,
       meetup_spot: data.meetup_spot,
       meetup_time: data.meetup_time,
-      time: data.timestamp
+      time: data.timestamp,
     };
     if(!msgs[cid]) msgs[cid]=[];
-    
-    // Optimistic UI: resolve pending messages
-    if (m.from === 'out' && m.text) {
-        const pendingIdx = msgs[cid].findIndex(msg => msg.pending && msg.text === m.text);
-        if (pendingIdx !== -1) {
-            msgs[cid][pendingIdx] = m; // Replace with server-confirmed message
-            if(activeConv?.id === cid) renderMsgs(cid);
-            fetchConversations();
-            return;
-        }
+
+    // Resolve optimistic pending message
+    if(m.from === 'out' && m.text){
+      const pendingIdx = msgs[cid].findIndex(msg => msg.pending && msg.text === m.text);
+      if(pendingIdx !== -1){
+        msgs[cid][pendingIdx] = m;
+        if(activeConv?.id === cid) renderMsgs(cid);
+        fetchConversations();
+        return;
+      }
     }
 
+    // Incoming message — remove any typing/recording indicator first
+    removeTyping();
     msgs[cid].push(m);
     if(activeConv?.id === cid) renderMsgs(cid);
     fetchConversations();
@@ -590,23 +674,26 @@ function renderConvList(filter='',tab=activeTab){
   }
   list.innerHTML=data.map(c=>{
     const lastMsg=msgs[c.id]?.[msgs[c.id].length-1];
-    const preview=lastMsg?(lastMsg.text||(lastMsg.offer?`Offer: ${lastMsg.offer.amount}`:`Meetup at ${lastMsg.meetup?.spot}`))||'':'';
+    const preview=lastMsg?(lastMsg.text||(lastMsg.image_url?'📷 Photo':lastMsg.voice_url?'🎤 Voice note':lastMsg.offer?`Offer: ${lastMsg.offer.amount}`:lastMsg.meetup_spot?`📍 ${lastMsg.meetup_spot}`:''))||'':'';
     const isUnread=c.badge>0;
+    const avatarHTML=c.avatar_url
+      ?`<img src="${c.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`
+      :AV_SVG;
     return `<div class="conv${activeConv?.id===c.id?' active':''}" onclick="openConvById('${c.id}')" id="cv${c.id}">
-      <div class="conv-av ${c.avCls}">
-        <span class="conv-av-txt">${AV_SVG}</span>
+      <div class="conv-av">
+        ${avatarHTML}
         ${c.status==='online'?'<div class="online-dot"></div>':''}
       </div>
       <div class="conv-body">
         <div class="conv-top">
-          <div class="conv-name">${c.name}</div>
+          <div class="conv-name">${escHtml(c.name)}</div>
           <div class="conv-time">${c.time}</div>
         </div>
         <div class="conv-bottom">
-          <div class="conv-preview${isUnread?' unread':''}">${preview}</div>
+          <div class="conv-preview${isUnread?' unread':''}">${escHtml(preview)}</div>
           ${c.badge?`<div class="conv-badge">${c.badge}</div>`:''}
         </div>
-        <div class="conv-listing-tag">${c.listingEmoji} ${c.listing}</div>
+        <div class="conv-listing-tag">${c.listingEmoji} ${escHtml(c.listing)}</div>
       </div>
     </div>`;
   }).join('');
@@ -634,15 +721,16 @@ function openConv(c){
   renderConvList(document.getElementById('srchInput').value);
 
   // Update header
-  document.getElementById('chatAv').innerHTML=AV_SVG;
-  document.getElementById('chatAv').className='chat-av '+c.avCls;
+  const chatAvEl=document.getElementById('chatAv');
+  chatAvEl.className='chat-av';
+  chatAvEl.innerHTML=c.avatar_url
+    ?`<img src="${c.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`
+    :AV_SVG;
   document.getElementById('chatName').textContent=c.name;
   const statusEl=document.getElementById('chatStatus');
-  const myOnline=localStorage.getItem('pu-online-status')!=='offline';
-  const theirOnline=c.status==='online';
-  const showOnline=theirOnline&&myOnline;
-  statusEl.textContent=showOnline?'Online · Active now':'Last seen recently';
-  statusEl.className='chat-status'+(showOnline?'':' away');
+  const theirOnline=(c._other_user_id&&onlineStatus[c._other_user_id]==='online')||c.status==='online';
+  statusEl.textContent=theirOnline?'Online · Active now':'Last seen recently';
+  statusEl.className='chat-status'+(theirOnline?'':' away');
 
   // Listing banner
   document.getElementById('lbImg').textContent=c.listingEmoji;
@@ -676,9 +764,6 @@ function openConv(c){
 
   // Scroll to bottom
   setTimeout(()=>{const m=document.getElementById('msgArea');m.scrollTop=m.scrollHeight;},60);
-
-  // Simulate typing
-  setTimeout(()=>showTyping(),2500);
 }
 
 function showLeft(){
@@ -820,21 +905,60 @@ function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-/* ── TYPING INDICATOR ── */
+/* ── TYPING / RECORDING INDICATORS (incoming — shown for the OTHER user) ── */
 let typingTimeout=null;
+
 function showTyping(){
-  if(!activeConv)return;
+  removeTyping();
   const area=document.getElementById('msgArea');
   const t=document.createElement('div');
   t.className='msg in';t.id='typingIndicator';
   t.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
   area.appendChild(t);
   area.scrollTop=area.scrollHeight;
-  typingTimeout=setTimeout(removeTyping,2800);
+  // Auto-hide after 4 s in case we miss the stop signal
+  typingTimeout=setTimeout(removeTyping,4000);
 }
+
+function showRecording(){
+  removeTyping();
+  const area=document.getElementById('msgArea');
+  const t=document.createElement('div');
+  t.className='msg in';t.id='typingIndicator';
+  t.innerHTML='<div class="typing recording-indicator"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-right:4px"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M19 10a7 7 0 01-14 0"/><line x1="12" y1="19" x2="12" y2="23"/></svg><span></span><span></span><span></span></div>';
+  area.appendChild(t);
+  area.scrollTop=area.scrollHeight;
+  typingTimeout=setTimeout(removeTyping,6000);
+}
+
 function removeTyping(){
+  clearTimeout(typingTimeout);
   const t=document.getElementById('typingIndicator');
   if(t)t.remove();
+}
+
+/* ── SEND TYPING SIGNAL (outgoing — tells the other user we're typing) ── */
+let _typingSent=false,_typingStopTimer=null;
+
+function sendTypingSignal(isTyping){
+  if(!chatSocket||chatSocket.readyState!==WebSocket.OPEN)return;
+  chatSocket.send(JSON.stringify({type:'typing',is_typing:isTyping}));
+}
+
+function onInputChange(){
+  const hasText=document.getElementById('msgInput').value.length>0;
+  if(hasText&&!_typingSent){
+    _typingSent=true;
+    sendTypingSignal(true);
+  }
+  clearTimeout(_typingStopTimer);
+  if(hasText){
+    // Stop signal after 3 s of no keystrokes
+    _typingStopTimer=setTimeout(()=>{_typingSent=false;sendTypingSignal(false);},3000);
+  } else {
+    _typingSent=false;
+    sendTypingSignal(false);
+  }
 }
 
 /* ── QUICK CHIPS ── */
@@ -864,9 +988,10 @@ function sendMessage(){
   renderConvList(document.getElementById('srchInput').value);
   inp.value='';inp.style.height='';
   toggleSend();
-  // Show typing response
-  clearTimeout(typingTimeout);
-  setTimeout(showTyping,800);
+  // Stop outgoing typing signal when message is sent
+  _typingSent=false;
+  clearTimeout(_typingStopTimer);
+  sendTypingSignal(false);
 }
 
 function handleKey(e){
@@ -938,8 +1063,6 @@ function sendPhotos(){
   document.getElementById('photoPreviewModal').classList.remove('open');
   renderMsgs(activeConv.id);
   renderConvList(document.getElementById('srchInput').value);
-  clearTimeout(typingTimeout);
-  setTimeout(showTyping,900);
 }
 
 function closePhotoPreview(e){
@@ -996,12 +1119,13 @@ function confirmSchedule(){
 /* ══════════════════════════════════════
    NEW CONVERSATION SEARCH
 ══════════════════════════════════════ */
-const ALL_USERS=[];
+let _searchTimer = null;
 
 function openNewChat(){
   document.getElementById('ncSearchInput').value='';
   document.getElementById('ncResults').innerHTML='';
-  renderSuggested();
+  document.getElementById('ncSuggested').parentElement.style.display='block';
+  document.getElementById('ncSuggested').innerHTML='';
   document.getElementById('newChatModal').classList.add('open');
   setTimeout(()=>document.getElementById('ncSearchInput').focus(),300);
 }
@@ -1011,55 +1135,70 @@ function closeNewChat(e){
     document.getElementById('newChatModal').classList.remove('open');
 }
 
-function renderSuggested(){
-  const el=document.getElementById('ncSuggested');
-  el.innerHTML=ALL_USERS.slice(0,5).map(u=>userRowHTML(u)).join('');
-}
-
 function searchUsers(q){
   const res=document.getElementById('ncResults');
   const sug=document.getElementById('ncSuggested');
-  if(!q.trim()){res.innerHTML='';sug.parentElement.style.display='block';return;}
-  sug.parentElement.style.display='none';
-  const hits=ALL_USERS.filter(u=>
-    u.name.toLowerCase().includes(q.toLowerCase())||
-    u.username.toLowerCase().includes(q.replace('@','').toLowerCase())
-  );
-  if(!hits.length){
-    res.innerHTML=`<div style="text-align:center;padding:1.5rem;color:var(--m);font-size:.85rem">No users found for "${q}"</div>`;
+  clearTimeout(_searchTimer);
+  if(!q.trim()){
+    res.innerHTML='';
+    sug.parentElement.style.display='block';
     return;
   }
-  res.innerHTML=hits.map(u=>userRowHTML(u)).join('');
+  sug.parentElement.style.display='none';
+  res.innerHTML='<div style="text-align:center;padding:1rem;color:var(--m);font-size:.84rem">Searching…</div>';
+  _searchTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch(`/chat/api/search-users/?q=${encodeURIComponent(q.replace('@',''))}`);
+      const users=await r.json();
+      if(!users.length){
+        res.innerHTML=`<div style="text-align:center;padding:1.5rem;color:var(--m);font-size:.85rem">No users found for "${escHtml(q)}"</div>`;
+        return;
+      }
+      res.innerHTML=users.map(u=>userRowHTML(u)).join('');
+    }catch(e){
+      res.innerHTML='<div style="text-align:center;padding:1rem;color:var(--red);font-size:.84rem">Search failed — try again</div>';
+    }
+  },350);
 }
 
 function userRowHTML(u){
-  return `<div class="nc-user" onclick="startChat(${JSON.stringify(u).replace(/"/g,'&quot;')})">
-    <div class="nc-av ${u.avCls}">${AV_SVG}</div>
+  const avatarHTML = u.avatar_url
+    ? `<img src="${u.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`
+    : AV_SVG;
+  const convId = u.conv_id || u.convId || null;
+  return `<div class="nc-user" onclick='startChat(${JSON.stringify({id:u.id,name:u.name,username:u.username,avatar_url:u.avatar_url||'',convId:convId})})'>
+    <div class="nc-av">${avatarHTML}</div>
     <div class="nc-info">
-      <div class="nc-name">${u.name}</div>
-      <div class="nc-uname">@${u.username}</div>
+      <div class="nc-name">${escHtml(u.name)}</div>
+      <div class="nc-uname">@${escHtml(u.username)}</div>
     </div>
-    ${u.convId?'<span style="font-size:.7rem;color:var(--a2);background:rgba(91,229,197,.1);padding:.15rem .5rem;border-radius:5px">Active</span>':''}
+    ${convId?'<span style="font-size:.7rem;color:var(--a);background:rgba(232,201,106,.12);padding:.15rem .5rem;border-radius:5px">Chat</span>':''}
   </div>`;
 }
 
-function startChat(user){
+async function startChat(user){
   document.getElementById('newChatModal').classList.remove('open');
-  // If existing conv, open it
+  // If existing conv, open it directly
   if(user.convId){
-    const c=CONVS.find(x=>x.id===user.convId);
-    if(c){openConv(c);return;}
+    const existing=CONVS.find(x=>String(x.id)===String(user.convId));
+    if(existing){openConv(existing);return;}
   }
-  // Create new conversation stub
-  const newConv={
-    id:Date.now(),name:user.name,initials:user.initials,avCls:user.avCls||'',
-    role:'buyer',listing:'New conversation',listingEmoji:'',price:'',
-    time:'Now',badge:0,type:'buying',status:'away',messages:[]
-  };
-  CONVS.unshift(newConv);
-  msgs[newConv.id]=[];
-  renderConvList('');
-  openConv(newConv);
+  // Create or retrieve a direct conversation via backend
+  try{
+    const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';
+    const res=await fetch('/chat/api/start-direct/',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+      body:JSON.stringify({username:user.username})
+    });
+    const d=await res.json();
+    if(d.status==='success'){
+      await fetchConversations();
+      const conv=CONVS.find(c=>String(c.id)===String(d.conv_id));
+      if(conv){openConv(conv);return;}
+    }
+  }catch(e){console.error('startChat error',e);}
+  showToast('Could not open conversation — try again');
 }
 
 /* ══════════════════════════════════════
@@ -1334,6 +1473,9 @@ async function startRecording(){
   source.connect(analyserNode);
 
   recChunks=[];waveformAmps=[];
+  // Tell the other person we're recording
+  if(chatSocket&&chatSocket.readyState===WebSocket.OPEN)
+    chatSocket.send(JSON.stringify({type:'recording',is_recording:true}));
   const mime=getSupportedMime();
   mediaRecorder=new MediaRecorder(recStream,{mimeType:mime});
   mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)recChunks.push(e.data);};
@@ -1414,6 +1556,9 @@ function stopAndSend(){
     sendVoiceNote(url,duration,normalised);
   };
 
+  // Tell the other person we stopped recording
+  if(chatSocket&&chatSocket.readyState===WebSocket.OPEN)
+    chatSocket.send(JSON.stringify({type:'recording',is_recording:false}));
   // Stop recorder — triggers onstop after final ondataavailable
   mediaRecorder.stop();
   // Cleanup UI immediately; mic/stream released here
@@ -1422,6 +1567,8 @@ function stopAndSend(){
 
 /* ── CANCEL ── */
 function cancelRecording(){
+  if(chatSocket&&chatSocket.readyState===WebSocket.OPEN)
+    chatSocket.send(JSON.stringify({type:'recording',is_recording:false}));
   if(mediaRecorder&&mediaRecorder.state!=='inactive'){
     mediaRecorder.ondataavailable=null;
     mediaRecorder.onstop=null;
@@ -1456,8 +1603,6 @@ function sendVoiceNote(url,duration,waveform){
   if(ci)ci.time='Just now';
   renderMsgs(activeConv.id);
   renderConvList(document.getElementById('srchInput').value);
-  clearTimeout(typingTimeout);
-  setTimeout(showTyping,900);
 }
 
 /* ── PLAYBACK ── */
@@ -1875,49 +2020,14 @@ window.addEventListener('resize',()=>{
 /* ── START ── */
 init();
 
-/* ── SYNC PROFILE FROM localStorage (name, avatar, online status) ── */
-function applyProfileToChat(){
-  try{
-    const p=JSON.parse(localStorage.getItem('pu-profile'))||{};
-    const online=localStorage.getItem('pu-online-status')!=='offline';
-
-    // Update left panel header logo subtitle with user's own online indicator
-    const logo=document.querySelector('.left-logo');
-    if(logo){
-      // Remove any existing status dot from logo
-      const existing=logo.querySelector('.self-online-dot');
-      if(existing)existing.remove();
-      if(online){
-        const dot=document.createElement('span');
-        dot.className='self-online-dot';
-        dot.style.cssText='display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-left:.4rem;vertical-align:middle;flex-shrink:0';
-        logo.appendChild(dot);
-      }
-    }
-
-    // If active conv is open, re-apply the header status (in case user just toggled online)
-    if(activeConv){
-      const statusEl=document.getElementById('chatStatus');
-      if(statusEl){
-        const theirOnline=activeConv.status==='online';
-        const showOnline=theirOnline&&online;
-        statusEl.textContent=showOnline?'Online · Active now':'Last seen recently';
-        statusEl.className='chat-status'+(showOnline?'':' away');
-      }
-    }
-
-    // Re-render conv list so online dots on other users stay correct
-    renderConvList(document.getElementById('srchInput')?.value||'');
-
-  }catch(e){}
-}
-
-applyProfileToChat();
-
-// Live-sync when profile.html changes the status (same browser, different tab)
-window.addEventListener('storage',e=>{
-  if(e.key==='pu-profile-updated'||e.key==='pu-online-status')applyProfileToChat();
-});
+// Show own online dot in the header (we're always online while on this page)
+(function(){
+  const logo=document.querySelector('.left-logo');
+  if(!logo)return;
+  const dot=document.createElement('span');
+  dot.style.cssText='display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-left:.4rem;vertical-align:middle;flex-shrink:0';
+  logo.appendChild(dot);
+})();
 </script>
 <script>(function(){
   if(!('serviceWorker' in navigator))return;

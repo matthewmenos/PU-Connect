@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.contrib.auth.models import User
+from django.db.models import Q
 import json
 from .models import Conversation, Message, PushSubscription
 
@@ -27,17 +28,30 @@ def get_conversations(request):
     for c in convs:
         other_user = c.participants.exclude(id=request.user.id).first()
         last_msg = c.messages.last()
+        avatar_url = ''
+        try:
+            if other_user:
+                avatar_url = other_user.profile.avatar_url or ''
+        except Exception:
+            pass
+        # Determine if current user is buyer or seller relative to the listing
+        conv_type = 'buying'
+        if c.listing and c.listing.user == request.user:
+            conv_type = 'selling'
+        listing_emoji = '📦' if not c.listing or c.listing.listing_type != 'service' else '🛠️'
         data.append({
             'id': c.id,
-            'name': other_user.get_full_name() or other_user.username if other_user else "System",
-            'username': other_user.username if other_user else "system",
-            'initials': (other_user.username[:2] if other_user else "SY").upper(),
-            'listing': c.listing.title if c.listing else "General",
-            'listingEmoji': "product" if not c.listing else "service" if c.listing.listing_type == 'service' else "product",
-            'price': f"GH₵ {c.listing.price}" if c.listing else "",
-            'time': last_msg.timestamp.strftime("%I:%M %p") if last_msg else "New",
+            'name': other_user.get_full_name() or other_user.username if other_user else 'System',
+            'username': other_user.username if other_user else 'system',
+            'avatar_url': avatar_url,
+            'listing': c.listing.title if c.listing else 'General',
+            'listingEmoji': listing_emoji,
+            'price': f"GH₵ {c.listing.price}" if c.listing else '',
+            'time': last_msg.timestamp.strftime('%I:%M %p') if last_msg else 'New',
             'badge': c.messages.filter(is_read=False).exclude(sender=request.user).count(),
-            'status': 'online', # Mock for now
+            'type': conv_type,
+            'other_user_id': other_user.id if other_user else None,
+            'status': 'away',
         })
     return JsonResponse(data, safe=False)
 
@@ -117,6 +131,36 @@ def start_direct(request):
         return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@login_required
+def search_users(request):
+    """Search users by username or full name for starting a new conversation."""
+    q = request.GET.get('q', '').strip()
+    if not q or len(q) < 2:
+        return JsonResponse([], safe=False)
+    users = User.objects.filter(
+        Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q)
+    ).exclude(id=request.user.id).select_related('profile')[:10]
+    data = []
+    for u in users:
+        avatar_url = ''
+        try:
+            avatar_url = u.profile.avatar_url or ''
+        except Exception:
+            pass
+        existing_conv = (
+            Conversation.objects.filter(participants=request.user)
+            .filter(participants=u)
+            .first()
+        )
+        data.append({
+            'id': u.id,
+            'name': u.get_full_name() or u.username,
+            'username': u.username,
+            'avatar_url': avatar_url,
+            'conv_id': existing_conv.id if existing_conv else None,
+        })
+    return JsonResponse(data, safe=False)
 
 @login_required
 @require_POST

@@ -41,22 +41,46 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
             user = self.scope.get('user')
-            
+
             if not user or not user.is_authenticated:
-                print("Unauthorized attempt to send message")
                 return
 
-            # Save message to database
+            msg_type = data.get('type', 'message')
+
+            # ── Typing signal — broadcast, do not save ──
+            if msg_type == 'typing':
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'typing_signal',
+                        'sender_id': user.id,
+                        'is_typing': bool(data.get('is_typing')),
+                    }
+                )
+                return
+
+            # ── Recording signal — broadcast, do not save ──
+            if msg_type == 'recording':
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'recording_signal',
+                        'sender_id': user.id,
+                        'is_recording': bool(data.get('is_recording')),
+                    }
+                )
+                return
+
+            # ── Normal message ──
             saved_msg = await self.save_message(
-                user.id, 
-                data.get('message'), 
-                data.get('image_url'), 
+                user.id,
+                data.get('message'),
+                data.get('image_url'),
                 data.get('voice_url'),
                 data.get('meetup_spot'),
-                data.get('meetup_time')
+                data.get('meetup_time'),
             )
 
-            # Send message to room group
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -68,7 +92,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'meetup_time': data.get('meetup_time'),
                     'sender_id': user.id,
                     'sender_username': user.username,
-                    'timestamp': saved_msg.timestamp.strftime("%I:%M %p")
+                    'timestamp': saved_msg.timestamp.strftime("%I:%M %p"),
                 }
             )
         except Exception as e:
@@ -76,8 +100,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Receive message from room group
     async def chat_message(self, event):
-        # Send message to WebSocket
         await self.send(text_data=json.dumps({
+            'type': 'message',
             'message': event['message'],
             'image_url': event.get('image_url'),
             'voice_url': event.get('voice_url'),
@@ -85,7 +109,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'meetup_time': event.get('meetup_time'),
             'sender_id': event['sender_id'],
             'sender_username': event['sender_username'],
-            'timestamp': event['timestamp']
+            'timestamp': event['timestamp'],
+        }))
+
+    async def typing_signal(self, event):
+        if event['sender_id'] == self.scope['user'].id:
+            return  # don't echo back to the sender
+        await self.send(text_data=json.dumps({
+            'type': 'typing',
+            'sender_id': event['sender_id'],
+            'is_typing': event['is_typing'],
+        }))
+
+    async def recording_signal(self, event):
+        if event['sender_id'] == self.scope['user'].id:
+            return  # don't echo back to the sender
+        await self.send(text_data=json.dumps({
+            'type': 'recording',
+            'sender_id': event['sender_id'],
+            'is_recording': event['is_recording'],
         }))
 
     @database_sync_to_async

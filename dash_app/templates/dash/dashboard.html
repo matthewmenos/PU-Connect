@@ -350,7 +350,11 @@ async function startChat(listingId){
     const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';
     const res=await fetch('/chat/api/start/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({listing_id:listingId})});
     const d=await res.json();
-    if(d.conv_id||d.conversation_id) location.href='{% url "chat:chat" %}';
+    const convId=d.conv_id||d.conversation_id;
+    if(convId){
+      sessionStorage.setItem('pu-open-conv',convId);
+      location.href='{% url "chat:chat" %}';
+    }
   }catch(e){}
 }
 
