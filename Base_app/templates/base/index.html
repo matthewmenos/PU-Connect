@@ -1,24 +1,5 @@
-{% extends 'base/base.html' %}
+﻿{% extends 'base/base.html' %}
 {% load static %}
-<<<<<<< HEAD
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <a href="{% url 'base:home' %}" class="logo">PU-<span>Connect</span></a>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#0d0e11" id="themeColorMeta"/>
-  <title>PU-Connect — Campus Commerce, Reimagined</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="{% static "Base_app/css/index.css" %}">
-  <link rel="manifest" href="/static/manifest.json">
-  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="PU-Connect">
-</head>
-<body>
-=======
->>>>>>> deb2760f18d5604cf91abcb458a7f3c989188b88
 
 {% block structured_data %}
 <script type="application/ld+json">
@@ -194,21 +175,12 @@
     <div class="section-title">Everything Campus Life Needs</div>
   </div>
   <div class="cat-grid">
-<<<<<<< HEAD
-    <a href="dashboard-products.html#textbooks" class="cat-item reveal"><span class="cat-emoji"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span class="cat-name">Textbooks</span></a>
-    <a href="dashboard-products.html#electronics" class="cat-item reveal"><span class="cat-emoji"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span class="cat-name">Electronics</span></a>
-    <a href="dashboard-services.html" class="cat-item reveal"><span class="cat-emoji"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="0.5"/><circle cx="17.5" cy="10.5" r="0.5"/><circle cx="8.5" cy="7.5" r="0.5"/><circle cx="6.5" cy="12.5" r="0.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span><span class="cat-name">Services</span></a>
-    <a href="dashboard-products.html#fashion" class="cat-item reveal"><span class="cat-emoji"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg></span><span class="cat-name">Fashion</span></a>
-    <a href="dashboard-products.html#furniture" class="cat-item reveal"><span class="cat-emoji"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span><span class="cat-name">Furniture</span></a>
-    <a href="dashboard-products.html#food" class="cat-item reveal"><span class="cat-emoji"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span><span class="cat-name">Food &amp; Snacks</span></a>
-=======
     <a href="{% url 'Dash_app:dashboard' %}#textbooks" class="cat-item reveal"><span class="cat-emoji">📚</span><span class="cat-name">Textbooks</span></a>
     <a href="{% url 'Dash_app:dashboard' %}#electronics" class="cat-item reveal"><span class="cat-emoji">💻</span><span class="cat-name">Electronics</span></a>
     <a href="{% url 'Dash_app:dashboard'%}#services" class="cat-item reveal"><span class="cat-emoji">🎨</span><span class="cat-name">Services</span></a>
     <a href="{% url 'Dash_app:dashboard' %}#fashion" class="cat-item reveal"><span class="cat-emoji">👗</span><span class="cat-name">Fashion</span></a>
     <a href="{% url 'Dash_app:dashboard' %}#furniture" class="cat-item reveal"><span class="cat-emoji">🛋️</span><span class="cat-name">Furniture</span></a>
     <a href="{% url 'Dash_app:dashboard' %}#food" class="cat-item reveal"><span class="cat-emoji">🍱</span><span class="cat-name">Food &amp; Snacks</span></a>
->>>>>>> deb2760f18d5604cf91abcb458a7f3c989188b88
   </div>
 </section>
 
@@ -328,10 +300,4 @@
     });
   })();
 </script>
-<<<<<<< HEAD
-<script>(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});})();</script>
-</body>
-</html>
-=======
 {% endblock %}
->>>>>>> deb2760f18d5604cf91abcb458a7f3c989188b88

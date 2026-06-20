@@ -4,11 +4,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 import json
-<<<<<<< HEAD
 from .models import Conversation, Message, PushSubscription
-=======
-from .models import Conversation, Message, Notification
->>>>>>> deb2760f18d5604cf91abcb458a7f3c989188b88
 
 
 @login_required(login_url='auth:auth_view')
@@ -96,7 +92,6 @@ def start_conversation(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 @login_required
-<<<<<<< HEAD
 @require_POST
 def start_direct(request):
     """Start or retrieve a direct conversation with a user by username (no listing required)."""
@@ -154,61 +149,3 @@ def push_unsubscribe(request):
         return JsonResponse({'status': 'ok'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-=======
-def get_notifications(request):
-    """Returns all notifications for the current user."""
-    notifs = request.user.notifications.all()[:20]
-    data = []
-    from django.utils import timezone
-    now = timezone.now()
-    for n in notifs:
-        data.append({
-            'id': n.id,
-            'unread': not n.is_read,
-            'icon': "✉️" if n.type == 'message' else "🔔",
-            'bg': "rgba(232,201,106,.15)",
-            'title': n.title,
-            'desc': n.content,
-            'time': n.created_at.strftime("%I:%M %p") if n.created_at.date() == now.date() else n.created_at.strftime("%b %d"),
-            'link': n.link
-        })
-    return JsonResponse(data, safe=False)
-
-@login_required
-@require_POST
-def mark_notifications_read(request):
-    """Marks all notifications as read."""
-    request.user.notifications.filter(is_read=False).update(is_read=True)
-    return JsonResponse({'status': 'success'})
-
-@login_required
-@require_POST
-def save_push_subscription(request):
-    """Saves or updates a push notification subscription for the user."""
-    try:
-        from .models import PushSubscription
-        data = json.loads(request.body)
-        endpoint = data.get('endpoint')
-        auth = data.get('auth')
-        p256dh = data.get('p256dh')
-        
-        if not endpoint or not auth or not p256dh:
-            return JsonResponse({'status': 'error', 'message': 'Missing fields'}, status=400)
-            
-        subscription, created = PushSubscription.objects.update_or_create(
-            endpoint=endpoint,
-            defaults={
-                'user': request.user,
-                'auth': auth,
-                'p256dh': p256dh
-            }
-        )
-        return JsonResponse({'status': 'success'})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
-def get_vapid_public_key(request):
-    """Exposes the VAPID public key for frontend subscription."""
-    from django.conf import settings
-    return JsonResponse({'public_key': settings.VAPID_PUBLIC_KEY})
->>>>>>> deb2760f18d5604cf91abcb458a7f3c989188b88
