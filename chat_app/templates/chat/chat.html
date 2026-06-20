@@ -458,7 +458,7 @@
   window._applyTheme = applyTheme;
 })();
 
-async function uploadToCloudinary(file, resourceType) {
+async function uploadToR2(file, resourceType) {
   resourceType = resourceType || 'image';
   const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1];
   const presign = await fetch('/api/r2-presign/', {
@@ -913,7 +913,7 @@ function handlePhotoUpload(files){
   document.getElementById('photoPreviewModal').classList.add('open');
   document.getElementById('photoFileInput').value='';
   Promise.all(validFiles.map(f=>
-    uploadToCloudinary(f,'image').catch(err=>{console.error(err);return null;})
+    uploadToR2(f,'image').catch(err=>{console.error(err);return null;})
   )).then(urls=>{
     pendingPhotos=urls.filter(Boolean);
     if(!pendingPhotos.length){

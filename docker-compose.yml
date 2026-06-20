@@ -1,18 +1,4 @@
 services:
-  db:
-    image: postgres:15-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
 
@@ -21,11 +7,13 @@ services:
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
+      - sqlite_data:/var/data
     env_file:
       - .env
+    environment:
+      - DATA_DIR=/var/data
     depends_on:
-      db:
-        condition: service_healthy
+      - redis
     expose:
       - "8000"
 
@@ -55,6 +43,6 @@ services:
 
 volumes:
   static_volume:
-  postgres_data:
+  sqlite_data:
   certbot_www:
   certbot_conf:

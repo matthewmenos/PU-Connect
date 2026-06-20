@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -132,30 +131,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pu_mp.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# Database — two SQLite files
+# On GCP VM set DATA_DIR env var to a persistent path e.g. /var/data
+# Locally both files sit in the project root
+DATA_DIR = os.environ.get('DATA_DIR', BASE_DIR)
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASES = {
+    # Shared/public data: listings, profiles, categories, auth
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(DATA_DIR, 'global.db'),
+        'OPTIONS': {'timeout': 20},
+    },
+    # Private/user data: messages, conversations, wishlist, notifications, push subscriptions
+    'user_db': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(DATA_DIR, 'user.db'),
+        'OPTIONS': {'timeout': 20},
+    },
+}
 
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=False if DATABASE_URL.startswith('sqlite') else True
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'pu_mart_db',
-            'USER': 'postgres',
-            'PASSWORD': 'postgres_pass',
-            'HOST': 'db',
-            'PORT': '5432',
-        }
-    }
+DATABASE_ROUTERS = ['pu_mp.router.PURouter']
 
 
 

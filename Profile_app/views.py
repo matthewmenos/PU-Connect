@@ -1,4 +1,4 @@
-import django
+﻿import django
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -111,7 +111,7 @@ def complete_profile(request):
 @login_required(login_url='auth:auth_view')
 @require_POST
 def update_profile_api(request):
-    """Receives data and Cloudinary links to save in DB."""
+    """Receives data and R2 links to save in DB."""
     try:
         data = json.loads(request.body)
         user = request.user

@@ -124,7 +124,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-async function uploadToCloudinary(file, resourceType) {
+async function uploadToR2(file, resourceType) {
   resourceType = resourceType || 'image';
   const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1];
   const presign = await fetch('/api/r2-presign/', {
@@ -310,7 +310,7 @@ function publishReel(){
   const fill=document.getElementById('upfil');
   const lbl=document.getElementById('uplbl');
 
-  // Simulate progress while Cloudinary uploads
+  // Simulate progress while uploading to R2
   let pct=0;
   const steps=['Preparing…','Uploading to cloud…','Processing…','Almost done…'];
   const iv=setInterval(()=>{
@@ -319,8 +319,8 @@ function publishReel(){
     lbl.textContent=steps[Math.min(Math.floor(pct/25),3)];
   },300);
 
-  // Upload video file to Cloudinary
-  uploadToCloudinary(pendingFile,'video')
+  // Upload video file to R2
+  uploadToR2(pendingFile,'video')
     .then(cloudUrl=>{
       clearInterval(iv);
       fill.style.width='100%';

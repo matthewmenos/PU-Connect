@@ -262,7 +262,7 @@ function getCookie(name) {
   window._applyTheme = applyTheme;
 })();
 
-async function uploadToCloudinary(file, resourceType) {
+async function uploadToR2(file, resourceType) {
   resourceType = resourceType || 'image';
   const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1];
   const presign = await fetch('/api/r2-presign/', {
@@ -413,7 +413,7 @@ function addFiles(files){
   if(dzTitle) dzTitle.textContent='Uploading...';
   clrE('photos-em');
 
-  Promise.all(toUpload.map(f=>uploadToCloudinary(f,'image')))
+  Promise.all(toUpload.map(f=>uploadToR2(f,'image')))
     .then(urls=>{
       urls.forEach(url=>{ if(url){ imgs.push({src:url}); }});
       if(dzTitle) dzTitle.textContent='Tap to upload photos';
@@ -422,7 +422,7 @@ function addFiles(files){
     .catch(err=>{
       if(dzTitle) dzTitle.textContent='Tap to upload photos';
       sE('photos-em');
-      if(em)em.textContent='Upload failed: '+(err&&err.message?err.message:'Check your Cloudinary cloud name and preset.');
+      if(em)em.textContent='Upload failed. Please try again.;
     });
 }
 function renderImgs(){

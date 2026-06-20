@@ -3,9 +3,17 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Run migrations
-echo "Applying database migrations..."
-python manage.py migrate --noinput
+# Ensure data directory exists (GCP VM: set DATA_DIR=/var/data)
+if [ "$DATA_DIR" ]; then
+    mkdir -p "$DATA_DIR"
+fi
+
+# Run migrations on both databases
+echo "Applying migrations to global.db..."
+python manage.py migrate --database=default --noinput
+
+echo "Applying migrations to user.db..."
+python manage.py migrate --database=user_db --noinput
 
 # Create superuser if environment variables are set
 if [ "$DJANGO_SUPERUSER_USERNAME" ] && [ "$DJANGO_SUPERUSER_PASSWORD" ]; then
