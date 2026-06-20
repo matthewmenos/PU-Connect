@@ -37,6 +37,8 @@
 
   {% block extra_css %}{% endblock %}
 </head>
+<!-- Apply saved theme before paint to avoid flash -->
+<script>(function(){var t=localStorage.getItem('pu-theme');if(t)document.documentElement.setAttribute('data-theme',t);})();</script>
 <body>
 
 <!-- ── Service Worker + Push ── -->

@@ -42,8 +42,31 @@
 }
 .idx-links a:hover { color: var(--text); }
 
-.idx-actions { display: flex; gap: .5rem; margin-left: auto; }
+.idx-actions { display: flex; gap: .5rem; margin-left: auto; align-items: center; }
 .idx-login { display: none; }
+
+/* Theme toggle button */
+.idx-theme-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background .18s, border-color .18s, color .18s;
+  flex-shrink: 0;
+}
+.idx-theme-btn:hover { background: var(--border); color: var(--text); }
+
+/* Show sun in dark mode, moon in light mode */
+.idx-theme-btn .idx-sun  { display: none; }
+.idx-theme-btn .idx-moon { display: block; }
+[data-theme="dark"] .idx-theme-btn .idx-sun  { display: block; }
+[data-theme="dark"] .idx-theme-btn .idx-moon { display: none; }
 
 .idx-hamburger {
   display: none;
