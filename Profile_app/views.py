@@ -1,0 +1,186 @@
+import django
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Profile 
+from django.views.decorators.http import require_POST 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.views.decorators.cache import never_cache
+
+from django.contrib import messages
+from Listings_app.models import Listing 
+import json
+
+
+
+# Create your views here.
+
+@never_cache
+
+@login_required(login_url='auth:auth_view')
+def profile(request):
+    """
+    User Profile Page
+    GET /profile/
+    
+    Displays:
+    - User profile information
+    - Avatar and basic details
+    - Reputation and ratings
+    - Activity history
+    - Link to profile settings
+    """
+    context = {
+        'page_title': 'My Profile - PU-Marketplace',
+        'page_description': 'View and manage your profile information.',
+        # Add any additional context data needed for the profile page here
+    }
+    return render(request, 'profile/profile.html', context)
+
+@login_required(login_url='auth:auth_view')
+def settings(request):
+    """
+    Profile Settings Page
+    GET /profile/settings/
+    
+    Displays:
+    - Account settings
+    - Privacy settings
+    - Notification preferences
+    - Security settings
+    """
+    context = {
+        'page_title': 'Settings - PU-Marketplace',
+        'page_description': 'Manage your account settings.',
+    }
+    return render(request, 'profile/settings.html', context)
+
+
+
+
+
+@login_required(login_url='auth:auth_view')
+@never_cache
+def get_my_profile(request):
+    """Sends DB data to the frontend on load."""
+    
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    return JsonResponse({
+        'username': request.user.username,
+        'name': request.user.get_full_name() or request.user.username,
+        'bio': profile.bio or "",
+        'faculty': profile.faculty or "",
+        'location': profile.location or "",
+        'phone': profile.phone or "",
+        'avatarSrc': profile.avatar_url or "", # This is the unique image link
+    })
+    
+    return JsonResponse({
+        'username': request.user.username,
+        # 'name' is what kills the "KA" (Kadeer Ahmed) initials
+        'name': request.user.get_full_name() or request.user.username,
+        'bio': profile.bio or "",
+        'avatarSrc': profile.avatar_url or "", # Your Cloudinary or image link
+    })
+    
+   
+
+    # This line is the fix: it fetches the profile or creates one if missing
+  
+
+# Profile_app/views.py
+from .forms import PhoneForm
+
+@login_required(login_url='auth:auth_view')
+def complete_profile(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    
+    # If already set, redirect to main site or profile
+    if profile.phone:
+        return redirect('dashboard:dashboard')
+
+    if request.method == 'POST':
+        form = PhoneForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard:dashboard')
+        else:
+            messages.error(request, "Please enter a valid phone number.")
+    else:
+        form = PhoneForm(instance=profile)
+        
+    return render(request, 'profile/complete.html', {'form': form})
+
+
+
+
+
+
+
+
+
+@login_required(login_url='auth:auth_view')
+@require_POST
+def update_profile_api(request):
+    """Receives data and Cloudinary links to save in DB."""
+    try:
+        data = json.loads(request.body)
+        user = request.user
+        p, _ = Profile.objects.get_or_create(user=user)
+        
+        # 1. Update User model (Username & Full Name)
+        new_un = data.get('username', '').strip().replace('@','')
+        if new_un and new_un != user.username:
+            from django.contrib.auth.models import User
+            if User.objects.filter(username=new_un).exists():
+                return JsonResponse({'status': 'error', 'message': 'Username already taken'}, status=400)
+            user.username = new_un
+            
+        full_name = data.get('name', '').strip()
+        if full_name:
+            parts = full_name.split(' ', 1)
+            user.first_name = parts[0]
+            user.last_name = parts[1] if len(parts) > 1 else ''
+        
+        user.save()
+
+        # 2. Update Profile model
+        p.bio = data.get('bio', '')
+        p.faculty = data.get('faculty', '')
+        p.location = data.get('location', '')
+        p.phone = data.get('phone', '')
+        if data.get('avatarSrc'):
+            p.avatar_url = data.get('avatarSrc')
+        p.save()
+        
+        return JsonResponse({'status': 'success', 'username': user.username})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+# Ensure your Listing model is imported
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('auth:auth_view') # Standard redirect works for logout
+
+@login_required
+def deactivate_account(request):
+    if request.method == 'POST':
+        user = request.user
+        user.is_active = False
+        user.save()
+        logout(request)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'failed'}, status=400)
+
+@login_required
+def delete_account(request):
+    if request.method == 'POST':
+        user = request.user
+        user.delete() # This deletes listings too due to CASCADE
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'failed'}, status=400)
+

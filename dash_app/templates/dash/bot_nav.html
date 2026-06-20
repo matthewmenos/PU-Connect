@@ -1,0 +1,45 @@
+<nav class="botnav" id="bn">
+  <button class="ni {% if 'dashboard' in request.path and 'services' not in request.path and 'products' not in request.path %}on{% endif %}" onclick="setNi(this);location.href='{% url 'Dash_app:dashboard' %}'">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="nlbl">Home</span>
+  </button>
+  <button class="ni {% if 'search' in request.path %}on{% endif %}" onclick="setNi(this);location.href='{% url 'search:search' %}'">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span class="nlbl">Search</span>
+  </button>
+  <button class="nadd" onclick="location.href='{% url 'listings:create' %}'">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="ni {% if 'chat' in request.path %}on{% endif %}" onclick="setNi(this);location.href='{% if user.is_authenticated %}{% url 'chat:chat' %}{% else %}{% url 'auth:auth_view' %}{% endif %}'">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span class="nlbl">{% if user.is_authenticated %}Chat{% else %}Login{% endif %}</span>
+  </button>
+  <button class="ni {% if 'profile' in request.path %}on{% endif %}" onclick="setNi(this);location.href='{% if user.is_authenticated %}{% url 'profile:profile' %}{% else %}{% url 'auth:auth_view' %}{% endif %}'">
+    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span class="nlbl">{% if user.is_authenticated %}Profile{% else %}Account{% endif %}</span>
+  </button>
+</nav>
+
+<script>
+function setNi(btn){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  btn.classList.add('on');
+}
+(function(){
+  const BN=document.getElementById('bn');
+  let ly=0,tk=false;
+  if(BN){
+    window.addEventListener('scroll',()=>{
+      if(!tk){
+        requestAnimationFrame(()=>{
+          const y=window.scrollY;
+          if(y>ly+10&&y>80) BN.classList.add('hide');
+          else if(y<ly-10) BN.classList.remove('hide');
+          ly=y;tk=false;
+        });
+        tk=true;
+      }
+    },{passive:true});
+  }
+})();
+</script>

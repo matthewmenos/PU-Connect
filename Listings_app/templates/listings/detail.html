@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    
+    <!-- Standard Meta Tags -->
+    <meta name="description" content="{{ page_description }}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ full_url }}">
+    <meta property="og:title" content="{{ page_title }}">
+    <meta property="og:description" content="{{ page_description }}">
+    <meta property="og:image" content="{{ image_url }}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ full_url }}">
+    <meta property="twitter:title" content="{{ page_title }}">
+    <meta property="twitter:description" content="{{ page_description }}">
+    <meta property="twitter:image" content="{{ image_url }}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #0d0e11;
+            --card: #16181d;
+            --t: #ffffff;
+            --m: #a0a0a0;
+            --a: #e8c96a;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--t);
+            font-family: 'DM Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--card);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .img-wrap {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #222;
+        }
+        .img-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .content {
+            padding: 1.5rem;
+        }
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+        .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--a);
+            margin-bottom: 1rem;
+        }
+        .desc {
+            font-size: 0.9rem;
+            color: var(--m);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: var(--a);
+            color: #0d0e11;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 700;
+            border-radius: 12px;
+            transition: transform 0.2s;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .logo {
+            text-align: center;
+            margin-top: 2rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 1.2rem;
+            color: var(--t);
+        }
+        .logo span { color: var(--a); }
+    </style>
+</head>
+<body>
+    <div style="width: 100%;">
+        <div class="container">
+            <div class="img-wrap">
+                <img src="{{ image_url }}" alt="{{ listing.title }}">
+            </div>
+            <div class="content">
+                <div class="title">{{ listing.title }}</div>
+                <div class="price">GH₵ {{ listing.price }}</div>
+                <div class="desc">{{ listing.description }}</div>
+                <a href="{% url 'Dash_app:dashboard' %}" class="btn" id="viewOnDash">View in Marketplace</a>
+            </div>
+        </div>
+        <div class="logo">PU-<span>Connect</span></div>
+    </div>
+
+    <script>
+        // Store the listing ID so the dashboard can auto-open it
+        document.getElementById('viewOnDash').onclick = function() {
+            localStorage.setItem('pu-open-listing', '{{ listing.id }}');
+        };
+    </script>
+</body>
+</html>

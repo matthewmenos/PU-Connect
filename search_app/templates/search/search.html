@@ -1,0 +1,289 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#0d0e11" id="themeColorMeta"/>
+<title>Search — PU-Connect</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{% static 'search_app/css/search.css' %}">
+  <link rel="stylesheet" href="{% static 'dash_app/css/dashboard.css' %}">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PU-Connect">
+  <style>
+    /* Override search specific grid to match dashboard spacing */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    @media(max-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; } }
+  </style>
+<body>
+
+<!-- ── TOP NAV ── -->
+<nav class="tnav">
+  <button class="back-btn" onclick="history.back()" title="Back">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
+  </button>
+
+  <div class="search-wrap" id="searchWrap">
+    <span class="s-ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+    <input
+      type="text"
+      id="searchInput"
+      class="search-input"
+      placeholder="Search products, services, people…"
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+      autofocus
+    />
+    <button class="s-clear" id="clearBtn" onclick="clearSearch()" title="Clear">✕</button>
+    <!-- Suggestions dropdown -->
+    <div class="suggestions-drop" id="sugDrop"></div>
+  </div>
+
+  <button class="thbtn" id="thbtn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+</nav>
+
+<!-- ── MAIN CONTENT ── -->
+<div class="wrap">
+
+  <!-- ── TRENDING (shown when no query) ── -->
+  <div id="trendingSection">
+    <div class="trending-wrap">
+      <div class="trending-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> Trending on Campus</div>
+      <div class="trending-pills" id="trendingPills">
+        <!-- populated by JS -->
+      </div>
+    </div>
+    <div class="trending-wrap">
+      <div class="trending-title"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/><circle cx="12" cy="12" r="4"/></svg> Browse Categories</div>
+      <div class="trending-pills" id="categoryPills">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SEARCH RESULTS (shown when query active) ── -->
+  <div id="resultsSection" style="display:none">
+
+    <!-- Type tabs -->
+    <div class="type-tabs" id="typeTabs">
+      <button class="ttab on" data-type="all"      onclick="switchType('all',this)">All</button>
+      <button class="ttab"    data-type="products"  onclick="switchType('products',this)">Products<span class="cnt" id="cnt-products">0</span></button>
+      <button class="ttab"    data-type="services"  onclick="switchType('services',this)">Services<span class="cnt" id="cnt-services">0</span></button>
+      <button class="ttab"    data-type="users"     onclick="switchType('users',this)">People<span class="cnt" id="cnt-users">0</span></button>
+    </div>
+
+    <!-- Result meta -->
+    <div class="result-meta" id="resultMeta"></div>
+
+    <!-- Results container -->
+    <div id="resultsContainer"></div>
+
+  </div>
+
+</div><!-- /wrap -->
+
+{% include 'search/load_listings.html' %}
+
+<script>
+'use strict';
+
+const CATEGORIES = [
+  {label:'Electronics', cat:'electronics'},
+  {label:'Textbooks',   cat:'textbooks'},
+  {label:'Fashion',     cat:'fashion'},
+  {label:'Food',        cat:'food'},
+  {label:'Design',      cat:'design'},
+  {label:'Tutoring',    cat:'tutoring'},
+];
+
+/* ════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════ */
+let ALL_LISTINGS = []; // Pre-loaded from API
+let state = {
+  query:      '',
+  activeType: 'all',
+  results:    { products:[], services:[], users:[], total:0 },
+  loading:    false,
+  error:      null,
+};
+
+/* ════════════════════════════════════════════════
+   THEME
+════════════════════════════════════════════════ */
+const H=document.documentElement, TB=document.getElementById('thbtn');
+let dark=localStorage.getItem('pu-theme')!=='light';
+function applyTheme(d){H.setAttribute('data-theme',d?'dark':'light');TB.innerHTML=d?'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';dark=d;localStorage.setItem('pu-theme',d?'dark':'light');const m=document.getElementById('themeColorMeta');if(m)m.setAttribute('content',d?'#0d0e11':'#f0ede8');}
+applyTheme(dark);
+TB.addEventListener('click',()=>applyTheme(!dark));
+
+/* ════════════════════════════════════════════════
+   INIT — pre-load data + read URL param
+════════════════════════════════════════════════ */
+(async function init(){
+  renderCategories();
+  
+  // 1. Fetch all listings once
+  try {
+    const res = await fetch('/listings/api/all/');
+    ALL_LISTINGS = await res.json();
+  } catch(e) { console.error('Failed to load search data', e); }
+
+  // 2. Handle URL Query
+  const urlQ = new URLSearchParams(location.search).get('q');
+  if(urlQ && urlQ.trim()){
+    const inp = document.getElementById('searchInput');
+    inp.value = urlQ.trim();
+    runSearch(urlQ.trim());
+  }
+
+  // 3. Events
+  document.getElementById('searchInput').addEventListener('input', onInput);
+  document.getElementById('searchInput').addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ closeSuggestions(); runSearch(e.target.value.trim()); }
+    if(e.key==='Escape'){ closeSuggestions(); }
+  });
+  document.addEventListener('click', e=>{
+    if(!document.getElementById('searchWrap').contains(e.target)) closeSuggestions();
+  });
+})();
+
+function onInput(e){
+  const q = e.target.value.trim();
+  state.query = q;
+
+  const url = new URL(location.href);
+  if(q) url.searchParams.set('q', q);
+  else url.searchParams.delete('q');
+  history.replaceState(null,'',url);
+
+  if(!q){
+    showTrending();
+    closeSuggestions();
+    return;
+  }
+
+  // Live search as user types
+  runSearch(q);
+}
+
+function runSearch(q){
+  if(!q) return;
+  q = q.toLowerCase();
+
+  state.loading = true;
+  showResultsSection();
+
+  // Client-side filtering logic
+  const score = l => {
+    const t  = (l.title||'').toLowerCase();
+    const d  = (l.description||'').toLowerCase();
+    const c  = (l.category||'').toLowerCase();
+    if(t.includes(q)) return 3;
+    if(c.includes(q)) return 2;
+    if(d.includes(q)) return 1;
+    return 0;
+  };
+
+  const matches = ALL_LISTINGS
+    .filter(l => score(l) > 0)
+    .sort((a,b) => score(b) - score(a));
+
+  const type = state.activeType;
+  const products = matches.filter(l => (l.listing_type||l.type) === 'product' || !l.type);
+  const services = matches.filter(l => (l.listing_type||l.type) === 'service');
+
+  state.results = {
+    products: (type==='all'||type==='products') ? products : [],
+    services: (type==='all'||type==='services') ? services : [],
+    users: [], // User search could be added later
+    total: products.length + services.length
+  };
+
+  state.loading = false;
+  renderResults();
+  updateTabCounts(products.length, services.length);
+}
+
+function renderResults(){
+  const {products, services, total} = state.results;
+  const container = document.getElementById('resultsContainer');
+  const meta = document.getElementById('resultMeta');
+
+  meta.innerHTML = `<strong>${total}</strong> result${total!==1?'s':''} for "<strong>${escH(state.query)}</strong>"`;
+
+  if(total === 0){
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="empty-title">No results for "${escH(state.query)}"</div>
+      <div class="empty-sub">Try searching for something else like "laptop" or "tutor"</div>
+    </div>`;
+    return;
+  }
+
+  let html = '';
+  if(products.length > 0){
+    html += `<div class="sec-head"><h2>Products</h2></div><div class="grid">${products.map(listingCardHTML).join('')}</div>`;
+  }
+  if(services.length > 0){
+    html += `<div class="sec-head"><h2>Services</h2></div><div class="grid">${services.map(listingCardHTML).join('')}</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function updateTabCounts(p, s){
+  document.getElementById('cnt-products').textContent = p;
+  document.getElementById('cnt-services').textContent = s;
+}
+
+function switchType(type, btn){
+  document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  state.activeType = type;
+  if(state.query) runSearch(state.query);
+}
+
+function renderCategories(){
+  document.getElementById('categoryPills').innerHTML = CATEGORIES.map(c=>`
+    <button class="trend-pill" onclick="selectSuggestion('${escH(c.label.split(' ').slice(1).join(' '))}')">
+      ${escH(c.label)}
+    </button>`).join('');
+}
+
+function selectSuggestion(q){
+  const inp = document.getElementById('searchInput');
+  inp.value = q;
+  runSearch(q);
+}
+
+function showTrending(){
+  document.getElementById('trendingSection').style.display='block';
+  document.getElementById('resultsSection').style.display='none';
+}
+function showResultsSection(){
+  document.getElementById('trendingSection').style.display='none';
+  document.getElementById('resultsSection').style.display='block';
+}
+function clearSearch(){
+  document.getElementById('searchInput').value='';
+  state.query='';
+  showTrending();
+}
+function closeSuggestions(){}
+async function loadTrending(){}
+
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function highlightQuery(text){
+  if(!state.query) return text;
+  const re = new RegExp(`(${state.query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return text.replace(re, '<mark style="background:rgba(232,201,106,.28);border-radius:2px;color:var(--a)">$1</mark>');
+}
+</script>
+<script>(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.register('/sw.js',{scope:'/'}).then(reg=>{if(!('Notification' in window)||!('PushManager' in window))return;if(Notification.permission==='denied')return;Notification.requestPermission().then(p=>{if(p!=='granted')return;const vapidKey='{{ VAPID_PUBLIC_KEY }}';if(!vapidKey)return;reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_u8(vapidKey)}).then(sub=>{const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';fetch('/chat/api/push-subscribe/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(sub.toJSON())});}).catch(()=>{});});}).catch(()=>{});function _u8(b64){const p=(b64+'='.repeat((4-b64.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');const r=atob(p);const o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o;}})();</script>
+</body>
+</html>

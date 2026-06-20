@@ -1,0 +1,14 @@
+db.sqlite3
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db        
+<<<<<<< HEAD
+.env
+=======
+.aider*
+.env
+.env
+.claude/
+>>>>>>> deb2760f18d5604cf91abcb458a7f3c989188b88

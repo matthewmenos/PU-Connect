@@ -1,0 +1,47 @@
+<aside class="sb" id="sb">
+  <div class="sbh">
+    <div class="sbl">PU-<span>Connect</span></div>
+    <button class="sbx" onclick="closeSb()">✕</button>
+  </div>
+  
+  <div class="sbsec">Navigate</div>
+  <ul class="sbul">
+    <li><a href="{% url 'Dash_app:dashboard' %}" {% if active_page == 'dashboard' %}class="act"{% endif %}><span class="ico"></span>Dashboard</a></li>
+    {% if user.is_authenticated %}
+    <li><a href="{% url 'listings:wishlist' %}" {% if active_page == 'wishlist' %}class="act"{% endif %}><span class="ico"></span>Wishlist</a></li>
+    <li><a href="{% url 'listings:listings' %}" {% if active_page == 'listings' %}class="act"{% endif %}><span class="ico"></span>My Listings</a></li>
+    {% endif %}
+
+  </ul>
+
+  <div class="sbd"></div>
+  <div class="sbsec">Account</div>
+  <ul class="sbul">
+    {% if user.is_authenticated %}
+    <li><a href="{% url 'profile:profile' %}" {% if active_page == 'profile' %}class="act"{% endif %}><span class="ico"></span>Profile</a></li>
+    {% else %}
+    <li><a href="{% url 'auth:auth_view' %}"><span class="ico"></span>Log In / Sign Up</a></li>
+    {% endif %}
+  </ul>
+
+  <div class="sbd"></div>
+  <div class="sbsec">Info</div>
+  <ul class="sbul">
+    <li><a href="{% url 'base:about' %}" {% if active_page == 'about' %}class="act"{% endif %}><span class="ico"></span>About Us</a></li>
+    <li><a href="{% url 'base:safety' %}" {% if active_page == 'safety' %}class="act"{% endif %}><span class="ico"></span>Safety</a></li>
+    <li><a href="{% url 'base:help' %}" {% if active_page == 'help' %}class="act"{% endif %}><span class="ico"></span>Help Centre</a></li>
+    <li><a href="{% url 'base:privacy' %}" {% if active_page == 'privacy' %}class="act"{% endif %}><span class="ico"></span>Privacy Policy</a></li>
+    <li><a href="{% url 'base:terms' %}" {% if active_page == 'terms' %}class="act"{% endif %}><span class="ico"></span>Terms &amp; Conditions</a></li>
+  </ul>
+
+  <div class="sbd"></div>
+  <ul class="sbul">
+    {% if user.is_authenticated %}
+    <li><a href="{% url 'auth:auth_view' %}" style="color:var(--red)"><span class="ico"></span>Log Out</a></li>
+    {% else %}
+    <li><a href="{% url 'auth:auth_view' %}" style="color:var(--a)"><span class="ico"></span>Get Started</a></li>
+    {% endif %}
+  </ul>
+  
+  <div class="sbft">© 2026 PU-Connect<br>Built for campus, by students.</div>
+</aside>

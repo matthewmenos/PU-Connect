@@ -1,0 +1,119 @@
+
+
+
+
+
+
+
+
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% if page_title %}{{ page_title }}{% else %}PU-Connect — Campus Marketplace{% endif %}</title>
+  <meta name="description" content="{% if page_description %}{{ page_description }}{% else %}The ultimate campus marketplace for university students. Buy, sell, and trade safely on campus.{% endif %}">
+  <meta name="keywords" content="campus marketplace, university buy and sell, student trade, PU-Connect, campus commerce">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:title" content="{% if page_title %}{{ page_title }}{% else %}PU-Connect{% endif %}">
+  <meta property="og:description" content="{{ page_description }}">
+  <meta property="og:image" content="{% static 'manifest.json' %}"> <!-- Replace with a real OG image if available -->
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+  <meta property="twitter:title" content="{% if page_title %}{{ page_title }}{% else %}PU-Connect{% endif %}">
+  <meta property="twitter:description" content="{{ page_description }}">
+  <meta property="twitter:image" content="{% static 'manifest.json' %}">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  
+  <link rel="stylesheet" href="{% static 'Base_app/css/index.css' %}">
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PU-Connect">
+  
+  {% block extra_css %}{% endblock %}
+
+  {% block structured_data %}{% endblock %}
+</head>
+<body>
+<<<<<<< HEAD
+<script>(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.register('/sw.js',{scope:'/'}).then(reg=>{if(!('Notification' in window)||!('PushManager' in window))return;if(Notification.permission==='denied')return;Notification.requestPermission().then(p=>{if(p!=='granted')return;const vapidKey='{{ VAPID_PUBLIC_KEY }}';if(!vapidKey)return;reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_u8(vapidKey)}).then(sub=>{const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';fetch('/chat/api/push-subscribe/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(sub.toJSON())});}).catch(()=>{});});}).catch(()=>{});function _u8(b64){const p=(b64+'='.repeat((4-b64.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');const r=atob(p);const o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o;}})();</script>
+=======
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('PWA Service Worker Registered'));
+  }
+</script>
+>>>>>>> deb2760f18d5604cf91abcb458a7f3c989188b88
+    <nav>
+  <a href="{% url 'base:home' %}" class="logo">PU-<span>Connect</span></a>
+  
+  <ul>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it Works</a></li>
+    <li><a href="{% url 'auth:auth_view' %}" class="nav-cta">Get Started</a></li>
+  </ul>
+</nav>
+
+
+
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features">Features</a>
+  <a href="#how">How it Works</a>
+  <a href="{% url 'auth:auth_view' %}">Get Started →</a>
+</div>
+
+
+{% block content %}
+{% endblock %}
+
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">PU-<span>Connect</span></div>
+    <div class="footer-links">
+      {% include 'base/footer.html' %}
+    </div>
+    <div class="footer-copy">© 2026 PU-Connect. All rights reserved.</div>
+  </div>
+</footer>
+
+
+
+<script>
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    mobileMenu.classList.toggle('open');
+  });
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
