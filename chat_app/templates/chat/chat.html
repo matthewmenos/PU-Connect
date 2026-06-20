@@ -628,6 +628,7 @@ function connectWebSocket(cid){
       text: data.message,
       image_url: data.image_url,
       voice_url: data.voice_url,
+      voice_duration: data.voice_duration || 0,
       meetup_spot: data.meetup_spot,
       meetup_time: data.meetup_time,
       time: data.timestamp,
@@ -864,23 +865,44 @@ function renderMsgs(cid){
         ?`<div class="img-bubble" onclick="previewFullImg('${imgs[0]}')"><img src="${imgs[0]}" alt="photo"/></div>`
         :`<div class="img-bubble-grid${imgs.length>=2?' cols2':''}">${imgs.map(src=>`<img src="${src}" alt="photo" onclick="previewFullImg('${src}')">`).join('')}</div>`;
       inner=`${actionBtn}${replyQuote}${imgHTML}`;
-    } else if(m.voice){
-      const id=m.voice.stableId;
-      const bars=m.voice.waveform||[];
-      if(id&&m.voice.url&&!vnAudioMap[id]){
-        vnAudioMap[id]={url:m.voice.url,duration:m.voice.duration,waveform:bars};
+    } else if(m.voice || m.voice_url){
+      // Normalise: local recorded note uses m.voice; server-delivered uses m.voice_url
+      let id, url, duration, waveform;
+      if(m.voice){
+        id = m.voice.stableId;
+        url = m.voice.url;
+        duration = m.voice.duration || 0;
+        waveform = m.voice.waveform || [];
+        if(id && url && !vnAudioMap[id])
+          vnAudioMap[id] = {url, duration, waveform};
+      } else {
+        // Server-side voice_url — assign a stable id based on position
+        id = 'srv-'+cid+'-'+idx;
+        url = m.voice_url;
+        duration = m.voice_duration || 0;
+        waveform = m.voice_waveform || generateFlatWaveform(28);
+        if(!vnAudioMap[id])
+          vnAudioMap[id] = {url, duration, waveform};
       }
-      const barHTML=bars.map(h=>`<div class="vn-bar" style="height:${h}px"></div>`).join('');
+      const bars = vnAudioMap[id].waveform;
+      const barHTML = bars.map(h=>`<div class="vn-bar" style="height:${Math.max(3,h)}px"></div>`).join('');
       inner=`${actionBtn}<div class="vn-bubble">
         <button class="vn-play" id="play-${id}" onclick="playVoice('${id}')" title="Play / Pause">
-          <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:#0d0e11;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-left:1px"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         </button>
         <div class="vn-info">
-          <div class="vn-bars" id="bars-${id}">${barHTML}</div>
-          <div class="vn-progress-wrap" onclick="seekVoice(event,'${id}')">
-            <div class="vn-progress" id="prog-${id}"></div>
+          <div class="vn-seek" id="seek-${id}" onclick="seekVoice(event,'${id}')" onmousemove="vnSeekHover(event,'${id}')" onmouseleave="vnSeekLeave('${id}')">
+            <div class="vn-bars" id="bars-${id}">${barHTML}</div>
+            <div class="vn-seek-tooltip" id="tip-${id}"></div>
           </div>
-          <div class="vn-dur" id="dur-${id}">${fmtDur(m.voice.duration)}</div>
+          <div class="vn-progress-wrap" id="pwrap-${id}" onclick="seekVoice(event,'${id}')">
+            <div class="vn-progress" id="prog-${id}"></div>
+            <div class="vn-progress-thumb" id="thumb-${id}"></div>
+          </div>
+          <div class="vn-footer">
+            <span class="vn-dur" id="dur-${id}">${duration?fmtDur(duration):'0:00'}</span>
+            <span class="vn-speed" id="spd-${id}" onclick="cycleSpeed('${id}')" title="Playback speed">1×</span>
+          </div>
         </div>
       </div>`;
     } else if(m.from==='system'){
@@ -1605,36 +1627,52 @@ function sendVoiceNote(url,duration,waveform){
   renderConvList(document.getElementById('srchInput').value);
 }
 
-/* ── PLAYBACK ── */
+/* ══════════════════════════════════════
+   VOICE NOTE PLAYBACK ENGINE
+══════════════════════════════════════ */
+
+const VN_SPEEDS = [1, 1.5, 2, 0.5];
+
+function generateFlatWaveform(n){
+  // Placeholder bars when no waveform data is available (server messages)
+  return Array.from({length:n},(_,i)=>Math.round(5+Math.sin(i/2.5)*4+Math.random()*6));
+}
+
 function playVoice(id){
   const data=vnAudioMap[id];
-  if(!data){showToast('Voice note not ready — try again');return;}
+  if(!data){showToast('Voice note not ready');return;}
 
-  /* ── Case 1: same note currently playing → PAUSE ── */
+  // Same note playing → pause
   if(currentVnId===id&&currentAudio&&!currentAudio.paused){
     currentAudio.pause();
-    // onpause handler will set play icon
     return;
   }
 
-  /* ── Case 2: same note paused mid-way → RESUME ── */
+  // Same note paused → resume
   if(currentVnId===id&&currentAudio&&currentAudio.paused&&currentAudio.currentTime>0){
+    currentAudio.playbackRate=data._speed||1;
     currentAudio.play().catch(()=>showToast('Playback failed'));
     setPauseIcon(id);
     animateVnProgress(id);
     return;
   }
 
-  /* ── Case 3: different note playing → stop it, then start new one ── */
+  // Different note playing → reset it first
   if(currentAudio&&!currentAudio.paused){
     currentAudio.pause();
     if(currentVnId&&currentVnId!==id)resetVnUI(currentVnId);
   }
 
-  /* ── Case 4: fresh play ── */
+  // Fresh play
   const audio=new Audio(data.url);
+  audio.playbackRate=data._speed||1;
   currentAudio=audio;
   currentVnId=id;
+
+  // Restore playback position if user scrubbed while paused
+  if(data._resumeAt){
+    audio.addEventListener('loadedmetadata',()=>{audio.currentTime=data._resumeAt;},{ once:true });
+  }
 
   audio.addEventListener('canplay',()=>{
     audio.play().catch(()=>{
@@ -1646,17 +1684,23 @@ function playVoice(id){
 
   audio.addEventListener('play',()=>{
     setPauseIcon(id);
+    document.getElementById('pwrap-'+id)?.classList.add('playing');
     animateVnProgress(id);
   },{once:true});
 
   audio.onpause=()=>{
     setPlayIcon(id);
+    document.getElementById('pwrap-'+id)?.classList.remove('playing');
     if(data._raf){cancelAnimationFrame(data._raf);data._raf=null;}
+    // Remember position for resume
+    if(!audio.ended) data._resumeAt=audio.currentTime;
   };
 
   audio.onended=()=>{
     setPlayIcon(id);
+    document.getElementById('pwrap-'+id)?.classList.remove('playing');
     if(data._raf){cancelAnimationFrame(data._raf);data._raf=null;}
+    data._resumeAt=0;
     const prog=document.getElementById('prog-'+id);
     const durEl=document.getElementById('dur-'+id);
     if(prog)prog.style.width='0%';
@@ -1666,7 +1710,7 @@ function playVoice(id){
   };
 
   audio.onerror=()=>{
-    showToast('Could not play voice note');
+    showToast('Could not load voice note');
     setPlayIcon(id);
     currentAudio=null;currentVnId=null;
   };
@@ -1681,12 +1725,19 @@ function animateVnProgress(id){
 
   function frame(){
     if(!audio||audio.paused||audio.ended)return;
-    const pct=audio.duration?((audio.currentTime/audio.duration)*100):0;
+    const dur=audio.duration||data.duration||1;
+    const pct=(audio.currentTime/dur)*100;
+
     const prog=document.getElementById('prog-'+id);
+    const thumb=document.getElementById('thumb-'+id);
     const durEl=document.getElementById('dur-'+id);
     const barsEl=document.getElementById('bars-'+id);
-    if(prog)prog.style.width=pct+'%';
-    if(durEl)durEl.textContent=fmtDur(audio.currentTime);
+
+    if(prog){prog.style.width=pct+'%';}
+    if(thumb){thumb.style.left=pct+'%';}
+    // Show remaining time during playback
+    if(durEl)durEl.textContent='-'+fmtDur(Math.max(0,dur-audio.currentTime));
+
     if(barsEl){
       const bars=barsEl.querySelectorAll('.vn-bar');
       const playedCount=Math.round((pct/100)*bars.length);
@@ -1699,24 +1750,64 @@ function animateVnProgress(id){
 
 function seekVoice(e,id){
   const data=vnAudioMap[id];
-  if(!data||!currentAudio||currentVnId!==id)return;
+  if(!data)return;
   const rect=e.currentTarget.getBoundingClientRect();
   const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
-  if(currentAudio.duration)currentAudio.currentTime=pct*currentAudio.duration;
+  if(currentAudio&&currentVnId===id&&currentAudio.duration){
+    currentAudio.currentTime=pct*currentAudio.duration;
+  } else {
+    // Note not loaded yet — just remember position and start playing from there
+    const dur=data.duration||0;
+    data._resumeAt=pct*dur;
+    playVoice(id);
+  }
 }
 
-// Use stableId not DOM id for icon/state updates
+function vnSeekHover(e,id){
+  const data=vnAudioMap[id];
+  if(!data)return;
+  const tip=document.getElementById('tip-'+id);
+  if(!tip)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  const dur=data.duration||(currentAudio&&currentVnId===id?currentAudio.duration:0)||0;
+  tip.textContent=fmtDur(pct*dur);
+  tip.style.left=Math.round(pct*rect.width)+'px';
+  tip.style.display='block';
+}
+
+function vnSeekLeave(id){
+  const tip=document.getElementById('tip-'+id);
+  if(tip)tip.style.display='none';
+}
+
+/* ── SPEED CONTROL ── */
+function cycleSpeed(id){
+  const data=vnAudioMap[id];
+  if(!data)return;
+  const speeds=VN_SPEEDS;
+  const cur=data._speed||1;
+  const next=speeds[(speeds.indexOf(cur)+1)%speeds.length];
+  data._speed=next;
+  const btn=document.getElementById('spd-'+id);
+  if(btn){
+    btn.textContent=next+'×';
+    btn.classList.toggle('active',next!==1);
+  }
+  if(currentAudio&&currentVnId===id)currentAudio.playbackRate=next;
+}
+
 function setPlayIcon(id){
   const btn=document.getElementById('play-'+id);
   if(!btn)return;
   btn.classList.remove('playing');
-  btn.innerHTML='<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:#0d0e11;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;margin-left:1px"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  btn.innerHTML='<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
 }
 function setPauseIcon(id){
   const btn=document.getElementById('play-'+id);
   if(!btn)return;
   btn.classList.add('playing');
-  btn.innerHTML='<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:#0d0e11;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/></svg>';
+  btn.innerHTML='<svg viewBox="0 0 24 24"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/></svg>';
 }
 function resetVnUI(id){
   setPlayIcon(id);
@@ -1726,6 +1817,7 @@ function resetVnUI(id){
   if(prog)prog.style.width='0%';
   if(dur&&data)dur.textContent=fmtDur(data.duration);
   resetVnBars(id);
+  document.getElementById('pwrap-'+id)?.classList.remove('playing');
 }
 function resetVnBars(id){
   const barsEl=document.getElementById('bars-'+id);
@@ -1939,15 +2031,27 @@ function sendPhotos(){
 
 function sendVoiceNote(url,duration,waveform){
   if(!activeConv)return;
+
+  // Optimistic local bubble so sender sees it immediately
+  const stableId='vn'+(++vnCounter);
+  vnAudioMap[stableId]={url,duration,waveform};
+  const now=new Date();
+  const time=now.toLocaleTimeString('en-GH',{hour:'numeric',minute:'2-digit',hour12:true});
+  msgs[activeConv.id].push({from:'out',voice:{stableId,url,duration,waveform},time});
+  const ci=CONVS.find(x=>x.id===activeConv.id);
+  if(ci)ci.time='Just now';
+  renderMsgs(activeConv.id);
+  renderConvList(document.getElementById('srchInput').value);
+
   if(chatSocket && chatSocket.readyState === WebSocket.OPEN){
     chatSocket.send(JSON.stringify({
       message: null,
       image_url: null,
-      voice_url: url
-      // duration & waveform not yet in DB schema but could be added
+      voice_url: url,
+      voice_duration: duration,
     }));
   } else {
-    showToast('Not connected');
+    showToast('Not connected — voice note saved locally');
   }
 }
 

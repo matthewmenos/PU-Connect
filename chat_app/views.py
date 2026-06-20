@@ -68,6 +68,7 @@ def get_messages(request, conv_id):
                 'text': m.text,
                 'image_url': m.image_url,
                 'voice_url': m.voice_url,
+                'voice_duration': m.voice_duration if hasattr(m, 'voice_duration') else 0,
                 'meetup_spot': m.meetup_spot,
                 'meetup_time': m.meetup_time if m.meetup_time else None,
                 'time': m.timestamp.strftime("%I:%M %p"),

@@ -31,6 +31,7 @@ class Message(models.Model):
     text = models.TextField(blank=True, null=True)
     image_url = models.URLField(blank=True, null=True, max_length=500)
     voice_url = models.URLField(blank=True, null=True, max_length=500)
+    voice_duration = models.PositiveIntegerField(default=0)
     meetup_spot = models.CharField(max_length=255, blank=True, null=True)
     meetup_time = models.CharField(max_length=100, blank=True, null=True)
     

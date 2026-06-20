@@ -77,6 +77,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 data.get('message'),
                 data.get('image_url'),
                 data.get('voice_url'),
+                data.get('voice_duration', 0),
                 data.get('meetup_spot'),
                 data.get('meetup_time'),
             )
@@ -88,6 +89,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'message': data.get('message'),
                     'image_url': data.get('image_url'),
                     'voice_url': data.get('voice_url'),
+                    'voice_duration': data.get('voice_duration'),
                     'meetup_spot': data.get('meetup_spot'),
                     'meetup_time': data.get('meetup_time'),
                     'sender_id': user.id,
@@ -105,6 +107,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message': event['message'],
             'image_url': event.get('image_url'),
             'voice_url': event.get('voice_url'),
+            'voice_duration': event.get('voice_duration'),
             'meetup_spot': event.get('meetup_spot'),
             'meetup_time': event.get('meetup_time'),
             'sender_id': event['sender_id'],
@@ -131,18 +134,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     @database_sync_to_async
-    def save_message(self, sender_id, text, image_url, voice_url, meetup_spot, meetup_time):
+    def save_message(self, sender_id, text, image_url, voice_url, voice_duration, meetup_spot, meetup_time):
         user = User.objects.get(id=sender_id)
         conv = Conversation.objects.get(id=self.conv_id)
-        # Update conversation timestamp so it moves to top of list
-        conv.save() 
-        
+        conv.save()
         return Message.objects.create(
             conversation=conv,
             sender=user,
             text=text,
             image_url=image_url,
             voice_url=voice_url,
+            voice_duration=voice_duration or 0,
             meetup_spot=meetup_spot,
-            meetup_time=meetup_time
+            meetup_time=meetup_time,
         )
