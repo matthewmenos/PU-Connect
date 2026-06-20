@@ -1,1058 +1,375 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#0d0e11" id="themeColorMeta"/>
-  <title>Dashboard — PU-Connect</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="{% static "dash_app/css/dashboard.css" %}">
+  <title>Browse — PU-Connect</title>
+  <meta name="theme-color" content="#16A34A" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0F1117"  media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="/static/manifest.json">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="PU-Connect">
-  <style>
-    .login-banner {
-      background: linear-gradient(135deg, var(--a), #f5c842);
-      border-radius: 15px;
-      padding: 1.1rem 1.25rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1.2rem;
-      color: #0d0e11;
-      box-shadow: 0 8px 24px rgba(232,201,106,0.15);
-      position: relative;
-      overflow: hidden;
-    }
-    .login-banner::before {
-      content: '';
-      position: absolute;
-      top: -20px;
-      right: -20px;
-      width: 100px;
-      height: 100px;
-      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-      border-radius: 50%;
-    }
-    .login-banner-icon {
-      font-size: 1.8rem;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-      flex-shrink: 0;
-    }
-    .login-banner-content {
-      flex: 1;
-    }
-    .login-banner-title {
-      font-weight: 800;
-      font-size: 1.05rem;
-      margin-bottom: 0.15rem;
-      font-family: 'Playfair Display', serif;
-    }
-    .login-banner-text {
-      font-size: 0.78rem;
-      opacity: 0.9;
-      font-weight: 500;
-      line-height: 1.4;
-    }
-    .login-banner-btn {
-      background: #0d0e11;
-      color: #fff;
-      border: none;
-      padding: 0.65rem 1.1rem;
-      border-radius: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.82rem;
-      transition: transform 0.2s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .login-banner-btn:hover {
-      transform: scale(1.03);
-    }
-    @media (max-width: 600px) {
-      .login-banner {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.8rem;
-        padding: 1.3rem 1rem;
-      }
-      .login-banner-btn {
-        width: 100%;
-      }
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'Base_app/css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'Base_app/css/shell.css' %}">
+  <link rel="stylesheet" href="{% static 'dash_app/css/dashboard.css' %}">
 </head>
 <body>
-<div class="ov" id="ov" onclick="closeSb()"></div>
-{% include 'base/sidebar.html' with active_page='dashboard' %}
-<nav class="tnav">
-  <button class="hbg" id="hbg"><span></span><span></span><span></span></button>
-  <div class="tabs">
-    <button class="tab on" id="tabAll"      onclick="switchListTab('all',this)">All</button>
-    <button class="tab"    id="tabProducts" onclick="switchListTab('products',this)">Products</button>
-    <button class="tab"    id="tabServices" onclick="switchListTab('services',this)">Services</button>
-  </div>
-  {% if user.is_authenticated %}
-  <button class="notibtn" id="notibtn" title="Notifications">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-    <span class="nbadge" id="nbadge">3</span>
-  </button>
-  {% else %}
-  <button class="notibtn" onclick="location.href='{% url 'auth:auth_view' %}'" title="Log In">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-  </button>
-  {% endif %}
-  <button class="thbtn" id="thbtn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
-</nav>
-<div class="wrap">
-<div class="inner">
-  {% if not user.is_authenticated %}
-  <div class="login-banner">
-    <div class="login-banner-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-    <div class="login-banner-content">
-      <div class="login-banner-title">Unlock the Full Campus Market</div>
-      <div class="login-banner-text">Log in to post listings, save favorites, and chat with buyers/sellers instantly.</div>
-    </div>
-    <button class="login-banner-btn" onclick="location.href='{% url 'auth:auth_view' %}'">Get Started</button>
-  </div>
-  {% endif %}
 
-  <div class="srch">
-    <span class="sico"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-    <input type="text" id="si" placeholder="Search products, services, sellers…" oninput="doSearch(this)" autocomplete="off"/>
-    <button class="sclr" onclick="clearS()">✕</button>
-  </div>
-  <div class="boost">
-    <div class="bgw"></div><div class="bdt"></div>
-    <div class="btx">
-      <div class="be"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Limited Spots</div>
-      <div class="bh">Boost Your Listing<br>to Top Products</div>
-      <div class="bs">10× more visibility · from GH₵ 5</div>
-    </div>
-    <div class="bac">
-      <span class="brk"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
-      <button class="bct" onclick="openBoost()">Boost Now</button>
-    </div>
-  </div>
-  <div class="slbl">
-    <h2>Marketplace Discovery <span class="btag">Random</span></h2>
-    <a href="#">See all</a>
-  </div>
-  <div class="fw" id="fw">
-    <button class="far p" onclick="fmv(-1)">‹</button>
-    <button class="far n" onclick="fmv(1)">›</button>
-    <div class="ftr" id="ft">
-      <!-- Random discovery listings will appear here -->
-    </div>
-    <div class="fdt" id="fd"></div>
-  </div>
+<div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
 
-  <!-- ── SERVICES SECTION ── -->
-  <div class="svo">
-    <div class="slbl">
-      <h2><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg> Campus Services</h2>
-      <a href="#">See all</a>
-    </div>
-    <!-- Category filter pills -->
-    <div class="cr">
-      <div class="cp on" onclick="fcat(this,'all')">All</div>
-      <div class="cp" onclick="fcat(this,'design')">Design</div>
-      <div class="cp" onclick="fcat(this,'tutoring')">Tutoring</div>
-      <div class="cp" onclick="fcat(this,'tech')">Tech</div>
-      <div class="cp" onclick="fcat(this,'delivery')">Delivery</div>
-      <div class="cp" onclick="fcat(this,'writing')">Writing</div>
-      <div class="cp" onclick="fcat(this,'photo')">Photo</div>
-      <div class="cp" onclick="fcat(this,'food')">Food</div>
-    </div>
-    <!-- Carousel wrapper -->
-    <div class="svw" id="sw">
-      <div class="svt" id="st"></div>
-    </div>
-    <!-- Navigation -->
-    <div class="svnv">
-      <button class="sva" onclick="smv(-1)">&#8592;</button>
-      <div class="sds" id="sd"></div>
-      <button class="sva" onclick="smv(1)">&#8594;</button>
-    </div>
-  </div>
+<div class="app-layout">
+  {% include 'base/sidebar.html' with active_page='dashboard' %}
 
-  <div id="listingsSection">
-    <div class="slbl" id="slblProducts" style="display:none"><h2><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Products</h2><a href="#">View all →</a></div>
-    <div class="grid" id="agProducts" style="display:none"></div>
-    <div class="slbl" id="slblServices" style="margin-top:.2rem;display:none"><h2><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg> Services</h2><a href="#">View all →</a></div>
-    <div class="grid" id="agServices" style="display:none"></div>
-    <div class="slbl" id="slblAll"><h2><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> All Listings</h2><a href="#">View all →</a></div>
-    <div class="grid" id="ag"></div>
-  </div>
-</div>
-</div>
-<div class="dr" id="dr"><div class="dov" onclick="closeDr()"></div><div class="dsh"><div class="dhn"></div><div class="dh"><span class="dic" id="dico"></span><div class="dtl" id="dttl"></div></div><div class="dsb" id="dsb"></div><div class="dg" id="dg"></div></div></div>
-<div class="mov" id="mv"><div class="modal"><div class="mtl">Post Something</div><div class="msb">What would you like to list on PU-Connect?</div><div class="mop"><div class="mo" onclick="location.href='{% url 'listings:create' %}'">
-  
-  <span class="moic"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span><div class="molb">Sell Product</div></div><div class="mo" onclick="location.href='{% url 'listings:create' %}?type=service'"><span class="moic"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></span><div class="molb">Offer Service</div></div><div class="mo" onclick="location.href='{% url 'profile:profile' %}'">
-    <span class="moic"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><div class="molb">Request Item</div></div><div class="mo" onclick="openBoost()"><span class="moic"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span><div class="molb">Feature Listing</div></div>
-  </div><button class="mcl" onclick="closeMod()">Cancel</button></div></div>
+  <div class="app-main">
 
-<!-- NOTIFICATION PANEL -->
-<div class="npanel" id="npanel">
-  <div class="nph">
-    <span class="nptitle">Notifications</span>
-    <button class="npmrk" id="markAllBtn">Mark all read</button>
-  </div>
-  <div class="nplist" id="nlist"></div>
-</div>
+    <!-- Top bar -->
+    <header class="top-bar">
+      <button class="top-bar-menu-btn" onclick="openSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="{% url 'base:home' %}" class="top-bar-logo">PU<span>Connect</span></a>
+      <div class="top-bar-spacer"></div>
 
-{% include 'dash/bot_nav.html' %}
+      <!-- Filter tabs -->
+      <div class="dash-tabs" id="dashTabs">
+        <button class="dash-tab active" data-filter="all"      onclick="setFilter('all',this)">All</button>
+        <button class="dash-tab"        data-filter="products" onclick="setFilter('products',this)">Products</button>
+        <button class="dash-tab"        data-filter="services" onclick="setFilter('services',this)">Services</button>
+      </div>
 
-<!-- ── LISTING DETAIL SHEET ── -->
-<div id="ldOv" style="position:fixed;inset:0;z-index:750;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s;display:flex;align-items:flex-end;justify-content:center">
-  <div id="ldSheet" style="width:100%;max-width:580px;background:var(--card);border-radius:24px 24px 0 0;border-top:1px solid rgba(255,255,255,.1);max-height:88dvh;overflow-y:auto;transform:translateY(100%);transition:transform .38s cubic-bezier(.4,0,.2,1)">
-    <!-- Handle + close -->
-    <div style="position:sticky;top:0;z-index:2;background:var(--card);padding:.75rem 1.1rem .4rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06)">
-      <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:0 auto;flex:1;max-width:36px"></div>
-      <button id="ldClose" style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--m);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
-    </div>
-    <!-- Photo gallery -->
-    <div id="ldGallery" style="width:100%;aspect-ratio:4/3;background:var(--inp);overflow:hidden;position:relative;max-height:280px"></div>
-    <!-- Photo dots -->
-    <div id="ldDots" style="display:flex;justify-content:center;gap:.35rem;padding:.5rem 0 0"></div>
-    <!-- Body -->
-    <div style="padding:1.1rem 1.2rem 1.4rem">
-      <!-- Type + category badges -->
-      <div id="ldBadges" style="display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap"></div>
-      <!-- Title -->
-      <div id="ldTitle" style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;letter-spacing:-.3px;line-height:1.25;margin-bottom:.4rem"></div>
-      <!-- Price -->
-      <div id="ldPrice" style="font-size:1.25rem;font-weight:800;color:var(--a);font-family:'Playfair Display',serif;margin-bottom:.5rem"></div>
-      <!-- Seller row -->
-      <div style="display:flex;align-items:center;gap:.6rem;padding:.6rem 0;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:.85rem">
-        <div id="ldAv" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--a),#f5c842);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:#0d0e11;flex-shrink:0;font-family:'Playfair Display',serif"></div>
-        <div style="flex:1;min-width:0">
-          <div id="ldSellerName" style="font-size:.84rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-          <div id="ldSellerMeta" style="font-size:.7rem;color:var(--m)"></div>
+      <div class="top-bar-spacer"></div>
+
+      {% if user.is_authenticated %}
+      <button class="btn-icon notif-btn" id="notifBtn" aria-label="Notifications">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-dot" id="notifDot" style="display:none"></span>
+      </button>
+      {% else %}
+      <a href="{% url 'auth:auth_view' %}" class="btn btn-primary" style="font-size:.8rem;padding:.42rem .9rem">Sign in</a>
+      {% endif %}
+    </header>
+
+    <div class="page-inner">
+
+      <!-- Guest banner -->
+      {% if not user.is_authenticated %}
+      <div class="guest-banner reveal">
+        <div class="gb-left">
+          <div class="gb-title">Unlock the full marketplace</div>
+          <div class="gb-sub">Post listings, save favourites, chat with buyers instantly.</div>
         </div>
-        <div id="ldStatus" style="font-size:.65rem;font-weight:700;padding:.2rem .55rem;border-radius:5px"></div>
+        <a href="{% url 'auth:auth_view' %}" class="btn btn-primary">Get started</a>
       </div>
-      <!-- Detail rows -->
-      <div id="ldRows" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:.9rem"></div>
-      <!-- Description -->
-      <div id="ldDescWrap" style="display:none;margin-bottom:.9rem">
-        <div style="font-size:.7rem;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--m);margin-bottom:.4rem">Description</div>
-        <div id="ldDesc" style="font-size:.85rem;line-height:1.7;color:var(--t)"></div>
-      </div>
-      <!-- Tags -->
-      <div id="ldTagsWrap" style="display:none;margin-bottom:1rem">
-        <div style="font-size:.7rem;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--m);margin-bottom:.4rem">Tags</div>
-        <div id="ldTags" style="display:flex;flex-wrap:wrap;gap:.35rem"></div>
-      </div>
-      
-      <!-- Actions -->
-      <div style="display:flex;flex-direction:column;gap:.5rem">
-        <button id="ldChatBtn" style="width:100%;padding:.85rem;border-radius:12px;background:var(--a);color:#0d0e11;border:none;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .2s"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message Seller</button>
+      {% endif %}
 
-        <!-- WhatsApp & Call Actions -->
-        <div id="ldPhoneActionsWrap" style="display:none;gap:.5rem">
-          <button id="ldWhatsAppBtn" style="flex:1;padding:.85rem;border-radius:12px;background:#25D366;color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .2s">
-            <svg style="width:18px;height:18px" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.21-4.832l.332.197c1.644.975 3.551 1.488 5.503 1.49h.005c5.702 0 10.342-4.636 10.346-10.339.002-2.762-1.072-5.359-3.023-7.314C17.478 1.25 14.887.08 12.012.08 6.313.08 1.674 4.717 1.67 10.42c-.001 1.986.518 3.926 1.503 5.642l.21.366-1.0 3.655 3.674-.963zm13.111-5.176c-.302-.151-1.785-.882-2.057-.981-.273-.099-.471-.149-.669.149-.198.297-.768.981-.941 1.179-.173.197-.347.222-.649.072-.301-.151-1.272-.469-2.423-1.496-.895-.798-1.5-1.783-1.676-2.084-.176-.301-.019-.464.132-.613.136-.134.302-.351.453-.527.151-.176.201-.301.302-.502.101-.201.05-.377-.025-.526-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.501-.669-.51l-.57-.011c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.785-.73 2.033-1.433.248-.703.248-1.307.173-1.433-.075-.126-.273-.201-.575-.352z"/></svg>
-            WhatsApp
+      <!-- Search -->
+      <div class="dash-search">
+        <svg class="ds-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input class="input ds-input" type="text" id="searchInput" placeholder="Search listings, services, sellers…" oninput="handleSearch(this.value)" autocomplete="off"/>
+        <button class="ds-clear" id="searchClear" onclick="clearSearch()" style="display:none" aria-label="Clear">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Category pills -->
+      <div class="cat-pills" id="catPills">
+        <button class="cat-pill active" data-cat="all"       onclick="setCat('all',this)">All</button>
+        <button class="cat-pill"        data-cat="textbooks" onclick="setCat('textbooks',this)">📚 Textbooks</button>
+        <button class="cat-pill"        data-cat="electronics" onclick="setCat('electronics',this)">💻 Electronics</button>
+        <button class="cat-pill"        data-cat="fashion"   onclick="setCat('fashion',this)">👗 Fashion</button>
+        <button class="cat-pill"        data-cat="food"      onclick="setCat('food',this)">🍱 Food</button>
+        <button class="cat-pill"        data-cat="furniture" onclick="setCat('furniture',this)">🛋 Furniture</button>
+        <button class="cat-pill"        data-cat="services"  onclick="setCat('services',this)">🎨 Services</button>
+      </div>
+
+      <!-- Featured carousel -->
+      <section class="dash-section" id="featuredSection">
+        <div class="section-head">
+          <h2 class="section-title">Featured</h2>
+          <span class="section-badge">Discover</span>
+        </div>
+        <div class="carousel-wrap">
+          <button class="carousel-btn prev" onclick="carouselMove(-1)" aria-label="Previous">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
-          <button id="ldCallBtn" style="flex:1;padding:.85rem;border-radius:12px;background:#007AFF;color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:opacity .2s">
-            <svg style="width:18px;height:18px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            Call
+          <div class="carousel" id="carousel">
+            <div class="carousel-track" id="carouselTrack"></div>
+          </div>
+          <button class="carousel-btn next" onclick="carouselMove(1)" aria-label="Next">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
+        <div class="carousel-dots" id="carouselDots"></div>
+      </section>
 
-        <div style="display:flex;gap:.5rem">
-          <button id="ldWishBtn" style="flex:1;padding:.7rem;border-radius:12px;background:rgba(255,255,255,.06);color:var(--t);border:1px solid rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;font-size:.84rem;cursor:pointer"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg> Save</button>
-          <button id="ldShareBtn" style="flex:1;padding:.7rem;border-radius:12px;background:rgba(255,255,255,.06);color:var(--t);border:1px solid rgba(255,255,255,.1);font-family:'DM Sans',sans-serif;font-size:.84rem;cursor:pointer"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"18\" cy=\"5\" r=\"3\"/><circle cx=\"6\" cy=\"12\" r=\"3\"/><circle cx=\"18\" cy=\"19\" r=\"3\"/><line x1=\"8.59\" y1=\"13.51\" x2=\"15.42\" y2=\"17.49\"/><line x1=\"15.41\" y1=\"6.51\" x2=\"8.59\" y2=\"10.49\"/></svg> Share</button>
+      <!-- Listings grid -->
+      <section class="dash-section" id="listingsSection">
+        <div class="section-head">
+          <h2 class="section-title" id="listingsLabel">All Listings</h2>
+          <span class="listing-count t-sm t-muted" id="listingCount"></span>
         </div>
-      </div>
-    </div>
+        <div class="listings-grid" id="listingsGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <p>No listings found</p>
+          <a href="{% url 'listings:create' %}" class="btn btn-primary" style="margin-top:.75rem">Post the first one</a>
+        </div>
+        <div class="listings-loader" id="listingsLoader">
+          {% for i in "123456" %}
+          <div class="listing-skel">
+            <div class="skel" style="width:100%;aspect-ratio:4/3;border-radius:var(--radius-sm);margin-bottom:.6rem"></div>
+            <div class="skel" style="width:70%;height:14px;border-radius:4px;margin-bottom:.4rem"></div>
+            <div class="skel" style="width:40%;height:12px;border-radius:4px"></div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+    </div><!-- /page-inner -->
+  </div><!-- /app-main -->
+</div><!-- /app-layout -->
+
+{% include 'dash/bot_nav.html' with active_page='dashboard' %}
+
+<!-- Listing detail drawer -->
+<div class="drawer" id="drawer">
+  <div class="drawer-backdrop" onclick="closeDrawer()"></div>
+  <div class="drawer-sheet">
+    <div class="drawer-handle"></div>
+    <div class="drawer-content" id="drawerContent"></div>
   </div>
 </div>
 
+<!-- Post modal -->
+<div class="post-modal" id="postModal">
+  <div class="pm-backdrop" onclick="closePostModal()"></div>
+  <div class="pm-sheet">
+    <div class="pm-title">Post something</div>
+    <div class="pm-sub">What would you like to list on PU-Connect?</div>
+    <div class="pm-options">
+      <a href="{% url 'listings:create' %}" class="pm-option">
+        <span class="pm-opt-icon">📦</span>
+        <span class="pm-opt-label">Sell a Product</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+      <a href="{% url 'listings:create' %}?type=service" class="pm-option">
+        <span class="pm-opt-icon">🎨</span>
+        <span class="pm-opt-label">Offer a Service</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:.5rem" onclick="closePostModal()">Cancel</button>
+  </div>
+</div>
 
 <script>
-onclick="window.location.reload()"
-const H=document.documentElement,TB=document.getElementById('thbtn');
-let dark=true;
-function applyTh(d){H.setAttribute('data-theme',d?'dark':'light');TB.innerHTML=d?'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"5\"/><line x1=\"12\" y1=\"1\" x2=\"12\" y2=\"3\"/><line x1=\"12\" y1=\"21\" x2=\"12\" y2=\"23\"/><line x1=\"4.22\" y1=\"4.22\" x2=\"5.64\" y2=\"5.64\"/><line x1=\"18.36\" y1=\"18.36\" x2=\"19.78\" y2=\"19.78\"/><line x1=\"1\" y1=\"12\" x2=\"3\" y2=\"12\"/><line x1=\"21\" y1=\"12\" x2=\"23\" y2=\"12\"/><line x1=\"4.22\" y1=\"19.78\" x2=\"5.64\" y2=\"18.36\"/><line x1=\"18.36\" y1=\"5.64\" x2=\"19.78\" y2=\"4.22\"/></svg>':'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"/></svg>';dark=d;localStorage.setItem('pu-theme',d?'dark':'light')}
-const sv=localStorage.getItem('pu-theme');if(sv)applyTh(sv==='dark');
-TB.onclick=()=>applyTh(!dark);
-const SB=document.getElementById('sb'),OV=document.getElementById('ov');
-function openSb(){SB.classList.add('on');OV.classList.add('on');document.body.style.overflow='hidden'}
-function closeSb(){SB.classList.remove('on');OV.classList.remove('on');document.body.style.overflow=''}
-document.getElementById('hbg').onclick=openSb;
-if(window.innerWidth>=960)SB.classList.add('on');
-window.addEventListener('resize',()=>{if(window.innerWidth>=960){SB.classList.add('on');OV.classList.remove('on')}else SB.classList.remove('on')});
-const MV=document.getElementById('mv');
-function openMod(){MV.classList.add('on');document.body.style.overflow='hidden'}
-function closeMod(){MV.classList.remove('on');document.body.style.overflow=''}
-MV.onclick=e=>{if(e.target===MV)closeMod()};
-function getPriceLabel(l){
-  if(l.contactForPrice || (l.price != null && Number(l.price) === 0)){
-    return 'Contact Buyer for Price';
-  }
-  if(l.priceLabel){
-    if(['Contact for Price', 'Contact', 'Contact Buyer'].includes(l.priceLabel)){
-      return 'Contact Buyer for Price';
-    }
-    return l.priceLabel;
-  }
-  if(l.price != null && l.price !== ''){
-    return 'GH₵ ' + Number(l.price).toLocaleString() + (l.negotiable ? ' (Negotiable)' : '');
-  }
-  return 'Contact Buyer for Price';
+/* ── Sidebar ── */
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sbOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
 }
-function renderDiscoverySlider(all){
-  const ft = document.getElementById('ft');
-  if(!ft || !all.length) return;
-  
-  // Pick up to 6 random listings
-  const shuffled = [...all].sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, 6);
-  
-  ft.innerHTML = selected.map(l => {
-    const isSvc = l.type === 'service';
-    const typeClr = isSvc ? '#5be5c5' : 'var(--a)';
-    const typeBg = isSvc ? 'rgba(91,229,197,.14)' : 'rgba(232,201,106,.14)';
-    const price = getPriceLabel(l);
-    
-    return `<div class="fsl" onclick="openListingDetail('${l.id}')" style="cursor:pointer">
-      <div class="fsi">
-        ${l.img ? `<img src="${l.img}" alt="" loading="lazy"/>` : `<div style="width:100%;height:100%;background:var(--inp);display:flex;align-items:center;justify-content:center;font-size:3.5rem">${isSvc?'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14\"/></svg>':'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"/></svg>'}</div>`}
-        <span class="fcat" style="background:${typeBg};color:${typeClr}">${l.category || (isSvc?'Service':'Product')}</span>
-      </div>
-      <div class="fsb">
-        <div class="fsn">${l.title}</div>
-        <div class="fsr">
-          <span class="fsp">${price}</span>
-          <span class="fss">@${l.sellerUsername || l.seller || 'anon'}</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-  
-  // Re-initialize slider state
-  fi = 0;
-  buildFd();
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('open');
+  document.body.style.overflow='';
 }
 
-const FT=document.getElementById('ft'),FD=document.getElementById('fd');
-let fi=0,fat;
-function buildFd(){
-  const slides = document.querySelectorAll('#ft .fsl');
-  FD.innerHTML='';
-  if(!slides.length) return;
-  slides.forEach((_,i)=>{const d=document.createElement('div');d.className='fd'+(i===0?' on':'');d.onclick=()=>gf(i);FD.appendChild(d)})
-}
-function gf(i){
-  const slides = document.querySelectorAll('#ft .fsl');
-  if(!slides.length) return;
-  fi=((i%slides.length)+slides.length)%slides.length;
-  FT.style.transform='translateX(-'+fi*100+'%)';
-  FD.querySelectorAll('.fd').forEach((d,j)=>d.classList.toggle('on',j===fi))
-}
-function fmv(d){clearInterval(fat);gf(fi+d);sfa()}
-function sfa(){fat=setInterval(()=>gf(fi+1),4000)}
-buildFd();sfa();
-const FW=document.getElementById('fw');
-FW.addEventListener('mouseenter',()=>clearInterval(fat));
-FW.addEventListener('mouseleave',sfa);
-let ftx=0;
-FT.addEventListener('touchstart',e=>{ftx=e.touches[0].clientX},{passive:true});
-FT.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-ftx;if(Math.abs(dx)>40){clearInterval(fat);gf(fi+(dx<0?1:-1));sfa()}});
-const SD=[
-  {id:'design',   icon:'', name:'Graphic Design',    cat:'design',    img:'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=300&q=70&auto=format'},
-  {id:'tutoring', icon:'', name:'Tutoring',           cat:'tutoring',  img:'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=300&q=70&auto=format'},
-  {id:'tech',     icon:'', name:'Tech & Coding',      cat:'tech',      img:'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=300&q=70&auto=format'},
-  {id:'delivery', icon:'', name:'Campus Delivery',    cat:'delivery',  img:'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=300&q=70&auto=format'},
-  {id:'writing',  icon:'', name:'Writing & Editing',  cat:'writing',   img:'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=300&q=70&auto=format'},
-  {id:'photo',    icon:'', name:'Photography',        cat:'photo',     img:'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&q=70&auto=format'},
-  {id:'food',     icon:'', name:'Food & Snacks',      cat:'food',      img:'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=300&q=70&auto=format'},
-];
-let cur=[...SD],si=0,sat,cpp=4;
-function getCpp(){const w=window.innerWidth;return w<500?2:w<780?3:4}
-function buildSvc(data){
-  cpp=getCpp();
-  const T=document.getElementById('st'),Sd=document.getElementById('sd');
-  if(!T||!Sd)return;
-  T.innerHTML='';Sd.innerHTML='';
-  if(!data.length){T.innerHTML='<div class="svp" style="min-width:100%;padding:.5rem;color:var(--m);font-size:.88rem">No services found.</div>';return}
-  const pages=Math.ceil(data.length/cpp);
-  for(let p=0;p<pages;p++){
-    const pg=document.createElement('div');pg.className='svp';
-    data.slice(p*cpp,(p+1)*cpp).forEach(s=>{pg.innerHTML+='<div class="svc" onclick="openDr(\''+s.id+'\')"><button class="svx">+</button><div class="svi"><img src="'+s.img+'" alt="'+s.name+'" loading="lazy"/></div><div class="svn">'+s.name+'</div><div class="svc2">'+s.count+'</div></div>'});
-    T.appendChild(pg);
-    const d=document.createElement('div');d.className='sdd'+(p===0?' on':'');d.onclick=()=>{clearTimeout(sat);gs(p)};Sd.appendChild(d);
-  }
-  gs(0);
-}
-function gs(i){const stEl=document.getElementById('st');const sdEl=document.getElementById('sd');if(!stEl||!sdEl)return;const pages=stEl.querySelectorAll('.svp').length;if(!pages)return;si=((i%pages)+pages)%pages;stEl.style.transform='translateX(-'+si*100+'%)';sdEl.querySelectorAll('.sdd').forEach((d,j)=>d.classList.toggle('on',j===si))}
-function smv(d){clearTimeout(sat);gs(si+d);ssa()}
-function ssa(){sat=setTimeout(()=>{gs(si+1);ssa()},3600)}
-buildSvc(cur);ssa();
-const SW=document.getElementById('sw');
-if(SW){
-SW.addEventListener('mouseenter',()=>clearTimeout(sat));
-SW.addEventListener('mouseleave',ssa);
-let stx=0;
-SW.addEventListener('touchstart',e=>{stx=e.touches[0].clientX},{passive:true});
-SW.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-stx;if(Math.abs(dx)>40){clearTimeout(sat);gs(si+(dx<0?1:-1));ssa()}});
-}
-window.addEventListener('resize',()=>{if(getCpp()!==cpp){clearTimeout(sat);buildSvc(cur);ssa()}});
-function fcat(pill,cat){clearTimeout(sat);document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'));pill.classList.add('on');cur=cat==='all'?[...SD]:SD.filter(s=>s.cat===cat);si=0;buildSvc(cur);ssa()}
-const DR=document.getElementById('dr');
-function openDr(id){
-  const s=SD.find(x=>x.id===id);if(!s)return;
-  document.getElementById('dico').textContent=s.icon;
-  document.getElementById('dttl').textContent=s.name;
-  // Load live providers from pu-listings
+/* ── State ── */
+let allListings=[], currentFilter='all', currentCat='all', searchQuery='';
+let carouselIndex=0, carouselItems=[];
+
+/* ── Fetch listings ── */
+async function loadListings(){
   try{
-    const all=JSON.parse(localStorage.getItem('pu-listings')||'[]');
-    const catProviders=all.filter(l=>l.cat===s.cat||l.type==='service');
-    document.getElementById('dsb').textContent=catProviders.length?catProviders.length+' provider'+(catProviders.length!==1?'s':'')+' on campus':'No providers yet';
-    document.getElementById('dg').innerHTML=catProviders.length
-      ?catProviders.slice(0,6).map(l=>`<div class="di" onclick="closeDr();openListingDetail('${l.id}')" style="cursor:pointer"><div class="dth">${l.img?`<img src="${l.img}" alt="" loading="lazy"/>`:'<div style="width:100%;height:100%;background:var(--inp);display:flex;align-items:center;justify-content:center;font-size:1.4rem">'+s.icon+'</div>'}</div><div><div class="din">${(l.title||l.name||'').substring(0,30)}</div><div class="dip">${getPriceLabel(l)}</div><div class="dir">@${l.sellerUsername||l.seller||''}</div></div></div>`).join('')
-      :`<div style="grid-column:1/-1;padding:1rem;color:var(--m);font-size:.83rem;text-align:center">No services posted yet in this category.<br><button onclick="closeDr();location.href='{% url 'listings:create' %}?type=service'" style="margin-top:.6rem;background:var(--a2);color:#0d0e11;border:none;border-radius:8px;padding:.45rem 1rem;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer">+ Post a Service</button></div>`;
-  }catch(e){document.getElementById('dg').innerHTML='';}
-  DR.classList.add('on');document.body.style.overflow='hidden';
-}
-function closeDr(){DR.classList.remove('on');document.body.style.overflow=''}
-/* ── NOTIFICATIONS ── */
-const NOTIFS=[];
-let notifs=[...NOTIFS];
-function renderNotifs(){
-  const list=document.getElementById('nlist');
-  if(!list) return;
-  const unread=notifs.filter(n=>n.unread).length;
-  const badge=document.getElementById('nbadge');
-  if(badge){
-    if(unread>0){badge.textContent=unread>9?'9+':unread;badge.classList.remove('hidden')}else{badge.classList.add('hidden')}
+    const res=await fetch('/listings/api/all/');
+    const data=await res.json();
+    allListings=data.listings||[];
+    renderCarousel(allListings.slice(0,6));
+    renderListings();
+  }catch(e){
+    document.getElementById('listingsLoader').style.display='none';
+    document.getElementById('emptyState').style.display='flex';
   }
-  if(!notifs.length){list.innerHTML='<div class="npempty"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9\"/><path d=\"M13.73 21a2 2 0 0 1-3.46 0\"/></svg><br>No notifications yet</div>';return}
-  list.innerHTML=notifs.map(n=>`<div class="nitem${n.unread?' unread':''}" onclick="markRead(${n.id})"><div class="nico2" style="background:${n.bg}">${n.icon}</div><div class="ntxt"><div class="ntitle2">${n.title}</div><div class="ndesc">${n.desc}</div></div><div class="ntime">${n.time}</div></div>`).join('');
-}
-function markRead(id){const n=notifs.find(x=>x.id===id);if(n){n.unread=false;renderNotifs();}}
-async function markAllRead(){
-  notifs.forEach(n=>n.unread=false);
-  renderNotifs();
-  try {
-    const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
-    await fetch('/chat/api/notifications/read-all/', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrfToken
-      }
-    });
-  } catch(e) { console.error('Failed to mark all notifications as read', e); }
 }
 
-async function fetchNotifs() {
-  try {
-    const res = await fetch('/chat/api/notifications/');
-    const data = await res.json();
-    notifs = data.map(n => ({
-      id: n.id,
-      unread: n.unread,
-      icon: n.icon,
-      bg: n.bg,
-      title: n.title,
-      desc: n.desc,
-      time: n.time
-    }));
-    renderNotifs();
-  } catch(e) { console.error('Failed to fetch notifications', e); }
-}
-fetchNotifs();
-const markAllBtn = document.getElementById('markAllBtn');
-if(markAllBtn) markAllBtn.onclick=function(e){e.stopPropagation();markAllRead();};
-const NP=document.getElementById('npanel');
-const NOTIBTN=document.getElementById('notibtn');
-if(NOTIBTN){
-  NOTIBTN.onclick=function(e){
-    e.stopPropagation();
-    const isOpen = NP.classList.toggle('open');
-    if(isOpen) {
-      fetchNotifs();
-    }
-  };
-}
-if(NP){
-  NP.onclick=function(e){
-    e.stopPropagation();
-  };
-}
-document.addEventListener('click',function(){
-  if(NP) NP.classList.remove('open');
-});
-renderNotifs();
-function openBoost(){
-  // Navigate to chat with support context
-  try{localStorage.setItem('pu-chat-open',JSON.stringify({username:'support',listing:'Boost Request'}));}catch(e){}
-  location.href='{% url 'chat:chat' %}';
+/* ── Filter helpers ── */
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const labels={all:'All Listings',products:'Products',services:'Services'};
+  document.getElementById('listingsLabel').textContent=labels[f];
+  renderListings();
 }
 
-/* ════════════════════════════════════════════
-   LISTINGS — tab-filtered, grouped, live from pu-listings
-════════════════════════════════════════════ */
-let _activeListTab = 'all';
-let _fetchedListings = []; // Global cache for listings from API
-let _wishSet = new Set(JSON.parse(localStorage.getItem('pu-wish-ids')||'[]'));
-let _favSet  = new Set(JSON.parse(localStorage.getItem('pu-fav-ids')||'[]'));
+function setCat(c,btn){
+  currentCat=c;
+  document.querySelectorAll('.cat-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderListings();
+}
 
-function switchListTab(type, btn){
-  _activeListTab = type;
-  // Only toggle the three top-nav listing tabs, not service carousel pills
-  ['tabAll','tabProducts','tabServices'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) el.classList.remove('on');
+function handleSearch(val){
+  searchQuery=val.trim().toLowerCase();
+  document.getElementById('searchClear').style.display=val?'flex':'none';
+  renderListings();
+}
+function clearSearch(){
+  document.getElementById('searchInput').value='';
+  handleSearch('');
+}
+
+function filtered(){
+  return allListings.filter(l=>{
+    const typeOk = currentFilter==='all'||(currentFilter==='products'&&l.type!=='service')||(currentFilter==='services'&&l.type==='service');
+    const catOk  = currentCat==='all'||l.category?.toLowerCase()===currentCat;
+    const q      = searchQuery;
+    const searchOk = !q||(l.title||'').toLowerCase().includes(q)||(l.description||'').toLowerCase().includes(q)||(l.seller||'').toLowerCase().includes(q);
+    return typeOk&&catOk&&searchOk;
   });
-  if(btn) btn.classList.add('on');
-  loadAllListings();
 }
 
-function _cardHTML(l){
-  const isSvc   = l.type === 'service';
-  const typeClr = isSvc ? '#5be5c5' : 'var(--a)';
-  const typeBg  = isSvc ? 'rgba(91,229,197,.14)' : 'rgba(232,201,106,.14)';
-  const price   = getPriceLabel(l);
-  const isSaved  = _wishSet.has(l.id);
-  const catLabel = l.category || l.cat || (isSvc ? 'Service' : 'Product');
-  const isSold   = l.status === 'sold';
-  const titleSafe = String(l.title||l.name||'Untitled').substring(0,36).replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const sellerSafe = String(l.sellerUsername||l.seller||'').replace(/</g,'&lt;');
-  const idSafe   = String(l.id||'').replace(/'/g,'');
-
-  var imgHTML = l.img
-    ? '<img src="'+l.img+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>'
-    : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.4rem;background:var(--inp)">'+(isSvc?'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14\"/></svg>':'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"/></svg>')+'</div>';
-
-  var soldHTML = isSold
-    ? '<div style="position:absolute;inset:0;background:rgba(0,0,0,.52);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;font-weight:700;letter-spacing:.5px">SOLD</div>'
-    : '';
-
-  return '<div class="lc" data-name="'+titleSafe+'" data-type="'+(isSvc?'service':'product')+'" onclick="openListingDetail(\''+idSafe+'\')">'
-    + '<div class="lcm">'
-    + imgHTML
-    + '<span class="lbg" style="background:'+typeBg+';color:'+typeClr+'">'+catLabel+'</span>'
-    + soldHTML
-    + '</div>'
-    + '<div class="lbd">'
-    + '<div class="lnm">'+titleSafe+'</div>'
-    + '<div class="lpr">'+price+'</div>'
-    + '<div class="lrw">'
-    + '<span class="lsl">@'+sellerSafe+'</span>'
-    + '<button class="lfv" onclick="event.stopPropagation();_toggleWish(this,\''+idSafe+'\')">'+(isSaved?'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg>':'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg>')+'</button>'
-    + '</div>'
-    + '</div>'
-    + '</div>';
+/* ── Render listings grid ── */
+function renderListings(){
+  const grid=document.getElementById('listingsGrid');
+  const loader=document.getElementById('listingsLoader');
+  const empty=document.getElementById('emptyState');
+  const count=document.getElementById('listingCount');
+  loader.style.display='none';
+  const items=filtered();
+  count.textContent=items.length?`${items.length} listing${items.length!==1?'s':''}`: '';
+  if(!items.length){grid.innerHTML='';empty.style.display='flex';return;}
+  empty.style.display='none';
+  grid.innerHTML=items.map(l=>listingCard(l)).join('');
 }
 
-function _toggleWish(btn, id){
-  if(_wishSet.has(id)){ _wishSet.delete(id); btn.innerHTML='<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg>'; }
-  else { _wishSet.add(id); btn.innerHTML='<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg>'; }
-  try{ localStorage.setItem('pu-wish-ids', JSON.stringify([..._wishSet])); }catch(e){}
-}
-
-function _emptyState(type){
-  const isProduct = type === 'product';
-  return `<div style="grid-column:1/-1;text-align:center;padding:2.5rem 1rem">
-    <div style="font-size:2.2rem;margin-bottom:.55rem;opacity:.38">${isProduct?'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"/></svg>':'<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14\"/></svg>'}</div>
-    <div style="font-size:.88rem;font-weight:600;margin-bottom:.28rem">No ${isProduct?'products':'services'} yet</div>
-    <div style="font-size:.78rem;color:var(--m);margin-bottom:.9rem">Be the first to list ${isProduct?'something for sale':'a campus service'}</div>
-    <button onclick="location.href='{% url 'listings:create' %}${isProduct?'':'?type=service'}'" style="background:${isProduct?'var(--a)':'var(--a2)'};color:#0d0e11;padding:.5rem 1.2rem;border-radius:9px;border:none;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer">+ Post ${isProduct?'a Product':'a Service'}</button>
+function listingCard(l){
+  const price=l.contact_for_price?'Contact for price':`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
+  const img=l.image_url
+    ?`<img src="${l.image_url}" alt="${esc(l.title)}" loading="lazy">`
+    :`<div class="lc-img-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+  const badge=l.type==='service'
+    ?`<span class="lc-badge service">Service</span>`
+    :`<span class="lc-badge product">Product</span>`;
+  return `<div class="listing-card" onclick="openDrawer(${l.id})">
+    <div class="lc-img">${img}</div>
+    <div class="lc-body">
+      ${badge}
+      <div class="lc-title">${esc(l.title)}</div>
+      <div class="lc-price">${esc(price)}</div>
+      <div class="lc-seller t-muted t-xs">by ${esc(l.seller||'Anonymous')}</div>
+    </div>
   </div>`;
 }
 
-async function loadAllListings(){
-  try{
-    const response = await fetch('/listings/api/all/');
-    const all = await response.json();
-    _fetchedListings = all; // Update global cache
-    const t   = _activeListTab;
-
-    const products = all.filter(l => l.type === 'product' || (!l.type && l.price != null));
-    const services = all.filter(l => l.type === 'service');
-
-    // ── Update Marketplace Discovery (Random Slider) ──
-    renderDiscoverySlider(all);
-
-    // Show/hide grouped sections
-    const showAll      = t === 'all';
-    const showProducts = t === 'all' || t === 'products';
-    const showServices = t === 'all' || t === 'services';
-
-    // Update section label + grid for "All" tab
-    document.getElementById('slblAll').style.display     = showAll ? '' : 'none';
-    document.getElementById('ag').style.display          = showAll ? '' : 'none';
-
-    // Products section (only visible when Products tab is active)
-    document.getElementById('slblProducts').style.display = (t === 'products') ? '' : 'none';
-    document.getElementById('agProducts').style.display   = (t === 'products') ? '' : 'none';
-
-    // Services section (only visible when Services tab is active)
-    document.getElementById('slblServices').style.display = (t === 'services') ? '' : 'none';
-    document.getElementById('agServices').style.display   = (t === 'services') ? '' : 'none';
-
-    if(t === 'all'){
-      const grid = document.getElementById('ag');
-      if(!all.length){
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--m);font-size:.88rem"><div style="font-size:2.5rem;margin-bottom:.65rem;opacity:.4"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z\"/><line x1=\"7\" y1=\"7\" x2=\"7.01\" y2=\"7\"/></svg></div>No listings yet — be the first to post!</div>';
-      } else {
-        grid.innerHTML = all.slice(0,30).map(_cardHTML).join('');
-      }
-    } else if(t === 'products'){
-      const g = document.getElementById('agProducts');
-      g.innerHTML = products.length ? products.slice(0,30).map(_cardHTML).join('') : _emptyState('product');
-    } else if(t === 'services'){
-      const g = document.getElementById('agServices');
-      g.innerHTML = services.length ? services.slice(0,30).map(_cardHTML).join('') : _emptyState('service');
-    }
-
-    // Re-apply search filter if active (use _searchInp, not `si` which is the slider index)
-    const _searchInp = document.getElementById('si');
-    if(_searchInp && _searchInp.value.trim()) doSearch(_searchInp);
-
-  }catch(e){ console.warn('loadAllListings:', e); }
+/* ── Carousel ── */
+function renderCarousel(items){
+  carouselItems=items;
+  const track=document.getElementById('carouselTrack');
+  const dots=document.getElementById('carouselDots');
+  if(!items.length){document.getElementById('featuredSection').style.display='none';return;}
+  track.innerHTML=items.map((l,i)=>featureCard(l,i)).join('');
+  dots.innerHTML=items.map((_,i)=>`<button class="c-dot${i===0?' active':''}" onclick="goCarousel(${i})" aria-label="Slide ${i+1}"></button>`).join('');
 }
 
-// doSearch: filter visible grids + service tiles
-// NOTE: uses _svcPageIdx instead of global `si` to avoid collision
-function doSearch(inp){
-  const v = inp.value.toLowerCase().trim();
-  ['ag','agProducts','agServices'].forEach(function(gridId){
-    document.querySelectorAll('#'+gridId+' .lc').forEach(function(card){
-      const name = (card.dataset.name||'').toLowerCase();
-      card.style.display = (!v || name.includes(v)) ? '' : 'none';
-    });
-  });
-  // Filter service category carousel
-  clearTimeout(sat);
-  cur = v ? SD.filter(s=>s.name.toLowerCase().includes(v)) : [...SD];
-  si=0; buildSvc(cur); ssa();
+function featureCard(l){
+  const price=l.contact_for_price?'Contact for price':`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
+  const bg=l.image_url?`background-image:url('${l.image_url}');background-size:cover;background-position:center`:'';
+  return `<div class="fc-slide" style="${bg}" onclick="openDrawer(${l.id})">
+    <div class="fc-overlay">
+      <div class="fc-meta">
+        <div class="fc-title">${esc(l.title)}</div>
+        <div class="fc-price">${esc(price)}</div>
+      </div>
+    </div>
+  </div>`;
 }
-function clearS(){ var inp=document.getElementById('si'); inp.value=''; doSearch(inp); }
 
-loadAllListings();
-window.addEventListener('focus', loadAllListings);
-// Auto-open a listing if flagged from another page (e.g. search.html)
-(function(){
+function carouselMove(dir){
+  goCarousel(carouselIndex+dir);
+}
+function goCarousel(i){
+  const track=document.getElementById('carouselTrack');
+  const dots=document.querySelectorAll('.c-dot');
+  const max=carouselItems.length;
+  carouselIndex=((i%max)+max)%max;
+  track.style.transform=`translateX(-${carouselIndex*100}%)`;
+  dots.forEach((d,idx)=>d.classList.toggle('active',idx===carouselIndex));
+}
+
+/* ── Drawer ── */
+async function openDrawer(id){
+  const l=allListings.find(x=>x.id===id);
+  if(!l) return;
+  const drawer=document.getElementById('drawer');
+  const content=document.getElementById('drawerContent');
+  const price=l.contact_for_price?'Contact for price':`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
+  const img=l.image_url?`<img src="${l.image_url}" alt="${esc(l.title)}" style="width:100%;border-radius:var(--radius);aspect-ratio:16/9;object-fit:cover;margin-bottom:1rem">`:'';
+  const chatUrl=`{% url 'chat:start_direct' %}`;
+  content.innerHTML=`
+    ${img}
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem">
+      <h2 style="font-size:1.1rem;font-weight:700;line-height:1.3">${esc(l.title)}</h2>
+      <span class="lc-badge ${l.type==='service'?'service':'product'}">${l.type==='service'?'Service':'Product'}</span>
+    </div>
+    <div style="font-size:1.3rem;font-weight:800;color:var(--accent);margin-bottom:.5rem">${esc(price)}</div>
+    <div style="font-size:.82rem;color:var(--text-2);margin-bottom:1rem">Posted by ${esc(l.seller||'Anonymous')}</div>
+    ${l.description?`<p style="font-size:.9rem;color:var(--text-2);line-height:1.7;margin-bottom:1.25rem">${esc(l.description)}</p>`:''}
+    {% if user.is_authenticated %}
+    <button class="btn btn-primary" style="width:100%" onclick="startChat(${l.id})">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Message Seller
+    </button>
+    {% else %}
+    <a href="{% url 'auth:auth_view' %}" class="btn btn-primary" style="width:100%;justify-content:center">Log in to message seller</a>
+    {% endif %}
+  `;
+  drawer.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+async function startChat(listingId){
   try{
-    const id = localStorage.getItem('pu-open-listing');
-    if(id){ localStorage.removeItem('pu-open-listing'); setTimeout(()=>openListingDetail(id), 400); }
+    const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';
+    const res=await fetch('/chat/api/start/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({listing_id:listingId})});
+    const d=await res.json();
+    if(d.conversation_id) location.href='{% url "chat:chat" %}';
   }catch(e){}
-})();
+}
 
-// Auto-select tab from URL hash: dashboard.html#products or #services
+/* ── Post modal ── */
+function openPostModal(){document.getElementById('postModal').classList.add('open');document.body.style.overflow='hidden';}
+function closePostModal(){document.getElementById('postModal').classList.remove('open');document.body.style.overflow='';}
+
+/* ── Utils ── */
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+
+/* ── Bot nav hide on scroll ── */
 (function(){
-  const hash = location.hash.replace('#','').toLowerCase();
-  if(hash === 'products'){
-    const btn = document.getElementById('tabProducts');
-    if(btn) switchListTab('products', btn);
-  } else if(hash === 'services'){
-    const btn = document.getElementById('tabServices');
-    if(btn) switchListTab('services', btn);
-  }
-})();
-
-
-
-/* ════════════════════════════════════════════
-   LISTING DETAIL SHEET — shared across dashboards
-════════════════════════════════════════════ */
-(function(){
-  const ldOv  = document.getElementById('ldOv');
-  const ldSh  = document.getElementById('ldSheet');
-  let   curId = null;
-  let   gIdx  = 0;
-  let   gImgs = [];
-  let   wishSet = new Set(JSON.parse(localStorage.getItem('pu-wish-ids')||'[]'));
-
-  function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-  function fmtPrice(l){
-    return getPriceLabel(l) || '—';
-  }
-
-  function timeAgo(ts){
-    if(!ts)return '';
-    const s=Math.floor((Date.now()-ts)/1000);
-    if(s<60)return 'Just now';
-    if(s<3600)return Math.floor(s/60)+'m ago';
-    if(s<86400)return Math.floor(s/3600)+'h ago';
-    if(s<604800)return Math.floor(s/86400)+'d ago';
-    return new Date(ts).toLocaleDateString('en-GH',{day:'numeric',month:'short',year:'numeric'});
-  }
-
-  function initials(name){
-    return String(name||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
-  }
-
-  /* Build gallery */
-  function buildGallery(imgs){
-    const gal = document.getElementById('ldGallery');
-    const dots = document.getElementById('ldDots');
-    gImgs = imgs.length ? imgs : [];
-    gIdx  = 0;
-    if(!gImgs.length){
-      gal.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:4rem;background:var(--inp)"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z\"/><line x1=\"7\" y1=\"7\" x2=\"7.01\" y2=\"7\"/></svg></div>';
-      dots.innerHTML = '';
-      return;
-    }
-    function showImg(i){
-      gIdx = i;
-      gal.innerHTML = `<img src="${escH(gImgs[i])}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"/>`;
-      dots.innerHTML = gImgs.length > 1
-        ? gImgs.map((_,j)=>`<div onclick="window._ldGo(${j})" style="width:${j===i?18:7}px;height:7px;border-radius:99px;background:${j===i?'var(--a)':'rgba(255,255,255,.25)'};cursor:pointer;transition:all .3s"></div>`).join('')
-        : '';
-    }
-    window._ldGo = function(i){ showImg(((i%gImgs.length)+gImgs.length)%gImgs.length); };
-    showImg(0);
-    /* Swipe */
-    let tx=0;
-    gal.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
-    gal.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)window._ldGo(gIdx+(dx<0?1:-1));});
-    gal.style.cursor='pointer';
-    gal.onclick=()=>{ if(gImgs.length>1) window._ldGo(gIdx+1); };
-  }
-
-  /* Row helper */
-  function row(label,value){
-    return `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:.38rem 0;border-bottom:1px solid rgba(255,255,255,.05);gap:.75rem">
-      <span style="font-size:.75rem;color:var(--m);flex-shrink:0;min-width:90px">${escH(label)}</span>
-      <span style="font-size:.78rem;font-weight:500;text-align:right;word-break:break-word">${escH(value)}</span>
-    </div>`;
-  }
-
-  /* Open */
-  window.openListingDetail = function(id){
-    const local = JSON.parse(localStorage.getItem('pu-listings')||'[]');
-    // Search both fetched and local listings, use == for string/number flexibility
-    const l = _fetchedListings.find(x => x.id == id) || local.find(x => x.id == id);
-    if(!l) return;
-    curId = id;
-
-    /* Increment view count */
-    l.views = (l.views||0)+1;
-    try{ localStorage.setItem('pu-listings',JSON.stringify(local)); }catch(e){}
-
-    /* Gallery */
-    const imgs = Array.isArray(l.images)&&l.images.length ? l.images : (l.img ? [l.img] : []);
-    buildGallery(imgs);
-
-    /* Badges */
-    const isService = l.type==='service';
-    const typeBg    = isService?'rgba(91,229,197,.14)':'rgba(232,201,106,.14)';
-    const typeClr   = isService?'#5be5c5':'var(--a)';
-    document.getElementById('ldBadges').innerHTML =
-      `<span style="background:${typeBg};color:${typeClr};font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:5px">${isService?'Service':'Product'}</span>`+
-      (l.category||l.cat?`<span style="background:rgba(255,255,255,.07);color:var(--m);font-size:.65rem;padding:.2rem .6rem;border-radius:5px">${escH(l.category||l.cat)}</span>`:'')+
-      (l.subcategory?`<span style="background:rgba(255,255,255,.05);color:var(--m);font-size:.65rem;padding:.2rem .6rem;border-radius:5px">${escH(l.subcategory)}</span>`:'');
-
-    /* Title */
-    document.getElementById('ldTitle').textContent = l.title||l.name||'Untitled';
-
-    /* Price */
-    document.getElementById('ldPrice').textContent = fmtPrice(l);
-
-    /* Seller */
-    const sName = l.seller||'Anonymous';
-    document.getElementById('ldAv').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:55%;height:55%;opacity:.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-    document.getElementById('ldSellerName').textContent = sName;
-    document.getElementById('ldSellerMeta').textContent =
-      ('@'+(l.sellerUsername||'')) + (l.postedAt ? ' · '+timeAgo(l.postedAt) : '') +
-      (l.meetup ? ' · '+l.meetup : '');
-
-    /* Status badge */
-    const st = l.status||'active';
-    const stMap = {active:['rgba(91,229,197,.12)','#5be5c5','Active'],sold:['rgba(255,107,107,.12)','#ff6b6b','Sold'],paused:['rgba(160,120,255,.12)','#a78bfa','Paused'],boosted:['rgba(232,201,106,.15)','var(--a)','Boosted']};
-    const [sbg,sclr,slbl] = stMap[st]||stMap.active;
-    const stEl = document.getElementById('ldStatus');
-    stEl.style.background = sbg; stEl.style.color = sclr; stEl.textContent = slbl;
-
-    /* Detail rows */
-    const rows = [];
-    if(l.condition)          rows.push(row('Condition', l.condition));
-    if(l.availability)       rows.push(row('Availability', l.availability));
-    if(l.brand)              rows.push(row('Brand', l.brand));
-    if(l.meetup)             rows.push(row('Meetup Spot', l.meetup));
-    if(l.phone)              rows.push(row('Contact', l.phone));
-    document.getElementById('ldRows').innerHTML = rows.join('');
-
-    /* Description */
-    const descWrap = document.getElementById('ldDescWrap');
-    if(l.description){
-      document.getElementById('ldDesc').textContent = l.description;
-      descWrap.style.display='block';
-    } else { descWrap.style.display='none'; }
-
-    /* Tags */
-    const tagsWrap = document.getElementById('ldTagsWrap');
-    if(Array.isArray(l.tags)&&l.tags.length){
-      document.getElementById('ldTags').innerHTML = l.tags.map(t=>`<span style="background:rgba(91,229,197,.1);border:1px solid rgba(91,229,197,.2);border-radius:99px;padding:.18rem .6rem;font-size:.72rem;font-weight:500;color:#5be5c5">${escH(t)}</span>`).join('');
-      tagsWrap.style.display='block';
-    } else { tagsWrap.style.display='none'; }
-
-    /* WhatsApp & Call logic */
-    const phoneActionsWrap = document.getElementById('ldPhoneActionsWrap');
-    if (l.phone && phoneActionsWrap) {
-      let cleanPhone = String(l.phone).replace(/\D/g, '');
-      if (cleanPhone.startsWith('0') && cleanPhone.length === 10) {
-        cleanPhone = '233' + cleanPhone.substring(1);
-      } else if (cleanPhone.length === 9) {
-        cleanPhone = '233' + cleanPhone;
-      }
-      
-      document.getElementById('ldWhatsAppBtn').onclick = function() {
-        window.open(`https://wa.me/${cleanPhone}`, '_blank');
-      };
-      
-      document.getElementById('ldCallBtn').onclick = function() {
-        window.open(`tel:${l.phone}`, '_self');
-      };
-      
-      phoneActionsWrap.style.display = 'flex';
-    } else if (phoneActionsWrap) {
-      phoneActionsWrap.style.display = 'none';
-    }
-
-    /* Message seller */
-    document.getElementById('ldChatBtn').onclick = async function(){
-      {% if not user.is_authenticated %}
-        location.href = '{% url "auth:auth_view" %}';
-        return;
-      {% endif %}
-      
-      try {
-        const res = await fetch('/chat/api/start/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
-          },
-          body: JSON.stringify({
-            listing_id: l.id
-          })
-        });
-        const data = await res.json();
-        if(data.status === 'success'){
-          location.href = '{% url "chat:chat" %}';
-        }
-      } catch(e) { console.error('Failed to start chat', e); }
-    };
-
-    /* Wishlist / save */
-    const wishBtn = document.getElementById('ldWishBtn');
-    wishBtn.textContent = wishSet.has(id) ? '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg> Saved' : '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg> Save';
-    wishBtn.onclick = function(){
-      if(wishSet.has(id)){ wishSet.delete(id); wishBtn.innerHTML='<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg> Save'; }
-      else { wishSet.add(id); wishBtn.innerHTML='<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"/></svg> Saved'; }
-      try{ localStorage.setItem('pu-wish-ids',JSON.stringify([...wishSet])); }catch(e){}
-    };
-
-    /* Share */
-    document.getElementById('ldShareBtn').onclick = function(){
-      const shareUrl = window.location.origin + '/listings/view/' + id + '/';
-      const text = (l.title||l.name||'Listing')+' — '+(fmtPrice(l))+' on PU-Connect';
-      if(navigator.share){ navigator.share({title:l.title||l.name||'',text,url:shareUrl}).catch(()=>{}); }
-      else { navigator.clipboard?.writeText(shareUrl).then(()=>ldToast('Link copied!')).catch(()=>ldToast('Copied!')); }
-    };
-
-    /* Show overlay */
-    ldOv.style.pointerEvents='all';
-    ldOv.style.opacity='1';
-    requestAnimationFrame(()=>ldSh.style.transform='translateY(0)');
-    document.body.style.overflow='hidden';
-  };
-
-  /* Close */
-  function closeLD(){
-    ldSh.style.transform='translateY(100%)';
-    ldOv.style.opacity='0';
-    setTimeout(()=>{ ldOv.style.pointerEvents='none'; },380);
-    document.body.style.overflow='';
-    curId=null;
-  }
-
-  document.getElementById('ldClose').onclick = closeLD;
-  ldOv.addEventListener('click',e=>{ if(e.target===ldOv) closeLD(); });
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&curId) closeLD(); });
-
-  /* Swipe down to dismiss */
-  let sy=0;
-  ldSh.addEventListener('touchstart',e=>{ sy=e.touches[0].clientY; },{passive:true});
-  ldSh.addEventListener('touchend',e=>{
-    const dy=e.changedTouches[0].clientY-sy;
-    if(dy>80&&ldSh.scrollTop===0) closeLD();
+  const bn=document.querySelector('.bot-nav');
+  let ly=0;
+  window.addEventListener('scroll',()=>{
+    const y=window.scrollY;
+    if(y>ly+8&&y>60) bn.classList.add('hidden');
+    else if(y<ly-8) bn.classList.remove('hidden');
+    ly=y;
   },{passive:true});
-
-  /* Toast */
-  window.ldToast = function(msg){
-    let t=document.getElementById('ld-toast');
-    if(!t){t=document.createElement('div');t.id='ld-toast';t.style.cssText='position:fixed;bottom:calc(var(--bh,78px)+18px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.6rem 1.2rem;font-size:.82rem;font-weight:500;color:var(--t);box-shadow:0 8px 32px rgba(0,0,0,.6);opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:999;white-space:nowrap';document.body.appendChild(t);}
-    t.textContent=msg;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
-    clearTimeout(window._ldToastT);window._ldToastT=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2600);
-  };
 })();
 
-/* ── REAL-TIME NOTIFICATIONS & WEB PUSH ── */
-{% if user.is_authenticated %}
-(function(){
-  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-  const wsUrl = wsScheme + "://" + window.location.host + "/ws/notifications/";
-  console.log("Connecting to notification WS:", wsUrl);
-  const socket = new WebSocket(wsUrl);
-
-  socket.onopen = function() {
-    console.log("Notification WS connected");
-  };
-
-  socket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    console.log("Notification received:", data);
-    // Add to local notifs array
-    notifs.unshift({
-      id: data.id,
-      unread: true,
-      icon: "",
-      bg: "rgba(232,201,106,.15)",
-      title: data.title,
-      desc: data.content,
-      time: data.created_at
-    });
-    renderNotifs();
-    if(window.ldToast) window.ldToast(data.title);
-  };
-
-  socket.onclose = function(e) {
-    console.error('Notification socket closed unexpectedly');
-  };
-
-  // Helper to convert VAPID public key
-  function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
-
-  // Push notifications registration
-  async function initPushNotifications() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('Push messaging is not supported in this browser');
-      return;
-    }
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      
-      let permission = Notification.permission;
-      if (permission === 'denied') {
-        console.log('Notification permission denied by user');
-        return;
-      }
-      
-      // Ask user for permission if not granted yet
-      if (permission !== 'granted') {
-        permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          console.log('Notification permission request rejected');
-          return;
-        }
-      }
-      
-      // User has granted permission, get subscription
-      const response = await fetch('/chat/api/vapid-public-key/');
-      const keyData = await response.json();
-      const vapidPublicKey = keyData.public_key;
-      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-      
-      let subscription = await registration.pushManager.getSubscription();
-      if (!subscription) {
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: convertedVapidKey
-        });
-        console.log('Push subscription created:', subscription);
-      }
-      
-      const subJSON = subscription.toJSON();
-      const csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
-      
-      await fetch('/chat/api/push-subscription/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify({
-          endpoint: subJSON.endpoint,
-          auth: subJSON.keys.auth,
-          p256dh: subJSON.keys.p256dh
-        })
-      });
-      console.log('Push notification subscription registered successfully');
-    } catch (err) {
-      console.error('Error setting up push notifications:', err);
-    }
-  }
-
-  // Auto trigger check or trigger on first click to comply with browser interaction rules
-  if (Notification.permission === 'granted') {
-    initPushNotifications();
-  } else {
-    // If not granted yet, ask when the user clicks/interacts with the dashboard to satisfy browser rules
-    const askPermission = () => {
-      initPushNotifications();
-      document.removeEventListener('click', askPermission);
-      document.removeEventListener('touchstart', askPermission);
-    };
-    document.addEventListener('click', askPermission, { passive: true });
-    document.addEventListener('touchstart', askPermission, { passive: true });
-  }
-})();
-{% endif %}
-
+/* ── Init ── */
+loadListings();
 </script>
-<script>async function loadDashboardFromDB() {
-    const response = await fetch('/api/listings/all/'); // or your specific endpoint
-    const data = await response.json();
-    
-    const products = data.filter(l => l.type === 'product');
-    const services = data.filter(l => l.type === 'service');
-    
-    document.getElementById('agProducts').innerHTML = products.map(_cardHTML).join('');
-    document.getElementById('agServices').innerHTML = services.map(_cardHTML).join('');
-}</script>
-<script>(function(){
-  if(!('serviceWorker' in navigator))return;
-  navigator.serviceWorker.register('/sw.js',{scope:'/'}).then(reg=>{
-    if(!('Notification' in window)||!('PushManager' in window))return;
-    if(Notification.permission==='denied')return;
-    Notification.requestPermission().then(p=>{
-      if(p!=='granted')return;
-      const vapidKey='{{ VAPID_PUBLIC_KEY }}';
-      if(!vapidKey)return;
-      reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_u8(vapidKey)})
-        .then(sub=>{
-          const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';
-          fetch('/chat/api/push-subscribe/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(sub.toJSON())});
-        }).catch(()=>{});
-    });
-  }).catch(()=>{});
-  function _u8(b64){const p=(b64+'='.repeat((4-b64.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');const r=atob(p);const o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o;}
-})();</script>
 
 </body>
 </html>
