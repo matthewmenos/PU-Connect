@@ -200,6 +200,7 @@ def get_all_listings(request):
             'seller': item.user.get_full_name() or item.user.username,
             'sellerUsername': item.user.username,
             'phone': phone,
+            'contact_for_price': item.contact_for_price,
             'status': item.status,
             'postedAt': int(item.created_at.timestamp() * 1000)
         })

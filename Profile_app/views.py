@@ -73,20 +73,8 @@ def get_my_profile(request):
         'faculty': profile.faculty or "",
         'location': profile.location or "",
         'phone': profile.phone or "",
-        'avatarSrc': profile.avatar_url or "", # This is the unique image link
+        'avatarSrc': profile.avatar_url or "",
     })
-    
-    return JsonResponse({
-        'username': request.user.username,
-        # 'name' is what kills the "KA" (Kadeer Ahmed) initials
-        'name': request.user.get_full_name() or request.user.username,
-        'bio': profile.bio or "",
-        'avatarSrc': profile.avatar_url or "", # Your Cloudinary or image link
-    })
-    
-   
-
-    # This line is the fix: it fetches the profile or creates one if missing
   
 
 # Profile_app/views.py

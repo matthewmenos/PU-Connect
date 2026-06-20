@@ -2,7 +2,7 @@
 Base App Views - Homepage, About, Help, Terms, Privacy, Safety
 """
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.contrib.auth.decorators import login_required
@@ -13,22 +13,7 @@ import os
 
 
 def home(request):
-    """
-    Homepage / Landing Page
-    GET /
-    
-    Displays:
-    - Hero section with call-to-action
-    - Features overview
-    - How it works
-    - Categories
-    - Statistics
-    """
-    context = {
-        'page_title': 'PU-Marketplace - Campus Commerce, Reimagined',
-        'page_description': 'Buy, sell, and trade on campus. Exclusively for university students.',
-    }
-    return render(request, 'base/index.html', context)
+    return redirect('dashboard:dashboard')
 
 
 def about(request):

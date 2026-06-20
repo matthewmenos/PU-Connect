@@ -5,7 +5,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Browse — PU-Connect</title>
-  <meta name="theme-color" content="#16A34A" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#c9a030" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0F1117"  media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="/static/manifest.json">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
@@ -190,7 +190,7 @@ async function loadListings(){
   try{
     const res=await fetch('/listings/api/all/');
     const data=await res.json();
-    allListings=data.listings||[];
+    allListings=Array.isArray(data)?data:(data.listings||[]);
     renderCarousel(allListings.slice(0,6));
     renderListings();
   }catch(e){
@@ -228,7 +228,8 @@ function clearSearch(){
 
 function filtered(){
   return allListings.filter(l=>{
-    const typeOk = currentFilter==='all'||(currentFilter==='products'&&l.type!=='service')||(currentFilter==='services'&&l.type==='service');
+    const t=l.listing_type||l.type||'product';
+    const typeOk = currentFilter==='all'||(currentFilter==='products'&&t!=='service')||(currentFilter==='services'&&t==='service');
     const catOk  = currentCat==='all'||l.category?.toLowerCase()===currentCat;
     const q      = searchQuery;
     const searchOk = !q||(l.title||'').toLowerCase().includes(q)||(l.description||'').toLowerCase().includes(q)||(l.seller||'').toLowerCase().includes(q);
@@ -251,11 +252,13 @@ function renderListings(){
 }
 
 function listingCard(l){
-  const price=l.contact_for_price?'Contact for price':`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
-  const img=l.image_url
-    ?`<img src="${l.image_url}" alt="${esc(l.title)}" loading="lazy">`
+  const imgSrc=l.img||l.image_url||'';
+  const t=l.listing_type||l.type||'product';
+  const price=`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
+  const img=imgSrc
+    ?`<img src="${imgSrc}" alt="${esc(l.title)}" loading="lazy">`
     :`<div class="lc-img-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
-  const badge=l.type==='service'
+  const badge=t==='service'
     ?`<span class="lc-badge service">Service</span>`
     :`<span class="lc-badge product">Product</span>`;
   return `<div class="listing-card" onclick="openDrawer(${l.id})">
@@ -280,8 +283,9 @@ function renderCarousel(items){
 }
 
 function featureCard(l){
-  const price=l.contact_for_price?'Contact for price':`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
-  const bg=l.image_url?`background-image:url('${l.image_url}');background-size:cover;background-position:center`:'';
+  const price=`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
+  const imgSrc=l.img||l.image_url||'';
+  const bg=imgSrc?`background-image:url('${imgSrc}');background-size:cover;background-position:center`:'';
   return `<div class="fc-slide" style="${bg}" onclick="openDrawer(${l.id})">
     <div class="fc-overlay">
       <div class="fc-meta">
@@ -310,14 +314,16 @@ async function openDrawer(id){
   if(!l) return;
   const drawer=document.getElementById('drawer');
   const content=document.getElementById('drawerContent');
-  const price=l.contact_for_price?'Contact for price':`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
-  const img=l.image_url?`<img src="${l.image_url}" alt="${esc(l.title)}" style="width:100%;border-radius:var(--radius);aspect-ratio:16/9;object-fit:cover;margin-bottom:1rem">`:'';
-  const chatUrl=`{% url 'chat:start_direct' %}`;
+  const t=l.listing_type||l.type||'product';
+  const price=`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
+  const imgSrc=l.img||l.image_url||'';
+  const img=imgSrc?`<img src="${imgSrc}" alt="${esc(l.title)}" style="width:100%;border-radius:var(--radius);aspect-ratio:16/9;object-fit:cover;margin-bottom:1rem">`:``;
+
   content.innerHTML=`
     ${img}
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem">
       <h2 style="font-size:1.1rem;font-weight:700;line-height:1.3">${esc(l.title)}</h2>
-      <span class="lc-badge ${l.type==='service'?'service':'product'}">${l.type==='service'?'Service':'Product'}</span>
+      <span class="lc-badge ${t==='service'?'service':'product'}">${t==='service'?'Service':'Product'}</span>
     </div>
     <div style="font-size:1.3rem;font-weight:800;color:var(--accent);margin-bottom:.5rem">${esc(price)}</div>
     <div style="font-size:.82rem;color:var(--text-2);margin-bottom:1rem">Posted by ${esc(l.seller||'Anonymous')}</div>
@@ -344,7 +350,7 @@ async function startChat(listingId){
     const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';
     const res=await fetch('/chat/api/start/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({listing_id:listingId})});
     const d=await res.json();
-    if(d.conversation_id) location.href='{% url "chat:chat" %}';
+    if(d.conv_id||d.conversation_id) location.href='{% url "chat:chat" %}';
   }catch(e){}
 }
 

@@ -16,7 +16,9 @@ class Listing(models.Model):
     condition = models.CharField(max_length=50, blank=True)
     
     # The Cloudinary URL string
-    image_url = models.URLField(max_length=500) 
+    image_url = models.URLField(max_length=500, blank=True, default='')
+
+    contact_for_price = models.BooleanField(default=False)
     
     # Status and Metadata
     STATUS_CHOICES = [
