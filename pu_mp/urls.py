@@ -35,6 +35,7 @@ urlpatterns = [
     path('profile/', include('Profile_app.urls')),
     path('chat/', include('chat_app.urls')),
     path('search/', include('search_app.urls')),
+    path('reels/', include('Reels_app.urls')),
     path("accounts/", include("allauth.urls")),
     path('api/r2-presign/', r2_presign, name='r2_presign'),
 

@@ -1,4 +1,4 @@
-import json
+﻿import json
 from django.contrib.auth import authenticate, login 
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -113,7 +113,7 @@ def signup_api(request):
             return JsonResponse({
                 'success': True, 
                 'message': 'Account created successfully!', 
-                'redirect': reverse('Dash_app:dashboard')
+                'redirect': reverse('dashboard:dashboard')
             })
 
         except json.JSONDecodeError:

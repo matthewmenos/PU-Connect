@@ -1,4 +1,4 @@
-<aside class="sb" id="sb">
+﻿<aside class="sb" id="sb">
   <div class="sbh">
     <div class="sbl">PU-<span>Connect</span></div>
     <button class="sbx" onclick="closeSb()">✕</button>
@@ -6,7 +6,7 @@
   
   <div class="sbsec">Navigate</div>
   <ul class="sbul">
-    <li><a href="{% url 'Dash_app:dashboard' %}" {% if active_page == 'dashboard' %}class="act"{% endif %}><span class="ico"></span>Dashboard</a></li>
+    <li><a href="{% url 'dashboard:dashboard' %}" {% if active_page == 'dashboard' %}class="act"{% endif %}><span class="ico"></span>Dashboard</a></li>
     {% if user.is_authenticated %}
     <li><a href="{% url 'listings:wishlist' %}" {% if active_page == 'wishlist' %}class="act"{% endif %}><span class="ico"></span>Wishlist</a></li>
     <li><a href="{% url 'listings:listings' %}" {% if active_page == 'listings' %}class="act"{% endif %}><span class="ico"></span>My Listings</a></li>

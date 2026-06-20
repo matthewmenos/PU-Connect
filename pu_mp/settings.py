@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'search_app',
     'chat_app',
     'Listings_app',
+    'Reels_app',
     'channels',
     'allauth',
     'allauth.account',

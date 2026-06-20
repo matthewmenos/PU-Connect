@@ -1,4 +1,4 @@
-<!-- Reusable Listing Card Component -->
+﻿<!-- Reusable Listing Card Component -->
 <script>
 /**
  * Renders a single listing card HTML.
@@ -73,6 +73,6 @@ function toggleWishlist(id, btn) {
 function openListingDetail(id) {
   // Store the ID and navigate to dashboard which will handle opening the detail sheet
   localStorage.setItem('pu-open-listing', id);
-  window.location.href = "{% url 'Dash_app:dashboard' %}";
+  window.location.href = "{% url 'dashboard:dashboard' %}";
 }
 </script>

@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -214,7 +214,7 @@
   <div class="suc-s">Your listing is now live on PU-Connect. Buyers will reach you through in-app chat. It may take a moment to appear in the feed.</div>
   <a href="{% url 'listings:listings' %}" class="sb">View My Listings</a>
 
-  <a href="{% url 'Dash_app:dashboard' %}" id="sucViewLink" class="sb tl">Browse Marketplace</a>
+  <a href="{% url 'dashboard:dashboard' %}" id="sucViewLink" class="sb tl">Browse Marketplace</a>
   <button class="sb g" onclick="resetForm()">Post Another Listing</button>
 </div>
 
@@ -911,7 +911,7 @@ async function publish(){
         viewLink.href = 'listings.html';
         viewLink.textContent = 'Back to My Listings';
       } else {
-        viewLink.href = isService ? '{% url "Dash_app:dashboard" %}#services' : '{% url "Dash_app:dashboard" %}#products';
+        viewLink.href = isService ? '{% url "dashboard:dashboard" %}#services' : '{% url "dashboard:dashboard" %}#products';
         viewLink.textContent = isService ? 'View in Services' : 'View in Products';
       }
     }

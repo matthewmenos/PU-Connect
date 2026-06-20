@@ -26,7 +26,7 @@
   <ul>
     <li><a href="#features">Features</a></li>
     <li><a href="#how">How it Works</a></li>
-    <li><a href="{% url 'Dash_app:dashboard' %}">Browse</a></li>
+    <li><a href="{% url 'dashboard:dashboard' %}">Browse</a></li>
     <li><a href="{% url 'auth:auth_view' %}" class="nav-cta">Get Started</a></li>
   </ul>
   <button class="idx-theme" id="idxTheme"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
@@ -39,7 +39,7 @@
 <div class="mobile-menu" id="mobileMenu">
   <a href="#features">Features</a>
   <a href="#how">How it Works</a>
-  <a href="{% url 'Dash_app:dashboard' %}">Browse</a>
+  <a href="{% url 'dashboard:dashboard' %}">Browse</a>
   <a href="{% url 'auth:auth_view' %}#signup">Get Started →</a>
 </div>
 
@@ -59,7 +59,7 @@
       </p>
       <div class="hero-actions">
         <a href="{% url 'auth:auth_view' %}#signup" class="btn-primary">Start Selling ↗</a>
-        <a href="{% url 'Dash_app:dashboard' %}" class="btn-ghost">Explore Marketplace</a>
+        <a href="{% url 'dashboard:dashboard' %}" class="btn-ghost">Explore Marketplace</a>
       </div>
     </div>
 
@@ -175,12 +175,12 @@
     <div class="section-title">Everything Campus Life Needs</div>
   </div>
   <div class="cat-grid">
-    <a href="{% url 'Dash_app:dashboard' %}#textbooks" class="cat-item reveal"><span class="cat-emoji">📚</span><span class="cat-name">Textbooks</span></a>
-    <a href="{% url 'Dash_app:dashboard' %}#electronics" class="cat-item reveal"><span class="cat-emoji">💻</span><span class="cat-name">Electronics</span></a>
-    <a href="{% url 'Dash_app:dashboard'%}#services" class="cat-item reveal"><span class="cat-emoji">🎨</span><span class="cat-name">Services</span></a>
-    <a href="{% url 'Dash_app:dashboard' %}#fashion" class="cat-item reveal"><span class="cat-emoji">👗</span><span class="cat-name">Fashion</span></a>
-    <a href="{% url 'Dash_app:dashboard' %}#furniture" class="cat-item reveal"><span class="cat-emoji">🛋️</span><span class="cat-name">Furniture</span></a>
-    <a href="{% url 'Dash_app:dashboard' %}#food" class="cat-item reveal"><span class="cat-emoji">🍱</span><span class="cat-name">Food &amp; Snacks</span></a>
+    <a href="{% url 'dashboard:dashboard' %}#textbooks" class="cat-item reveal"><span class="cat-emoji">📚</span><span class="cat-name">Textbooks</span></a>
+    <a href="{% url 'dashboard:dashboard' %}#electronics" class="cat-item reveal"><span class="cat-emoji">💻</span><span class="cat-name">Electronics</span></a>
+    <a href="{% url 'dashboard:dashboard'%}#services" class="cat-item reveal"><span class="cat-emoji">🎨</span><span class="cat-name">Services</span></a>
+    <a href="{% url 'dashboard:dashboard' %}#fashion" class="cat-item reveal"><span class="cat-emoji">👗</span><span class="cat-name">Fashion</span></a>
+    <a href="{% url 'dashboard:dashboard' %}#furniture" class="cat-item reveal"><span class="cat-emoji">🛋️</span><span class="cat-name">Furniture</span></a>
+    <a href="{% url 'dashboard:dashboard' %}#food" class="cat-item reveal"><span class="cat-emoji">🍱</span><span class="cat-name">Food &amp; Snacks</span></a>
   </div>
 </section>
 
@@ -192,7 +192,7 @@
     <p>Thousands of students are already buying and selling smart on PU-Connect. Don't miss out on the easiest way to trade on campus.</p>
     <div class="cta-actions">
       <a href="{% url 'auth:auth_view' %}#signup" class="btn-primary">Create Free Account</a>
-      <a href="{% url 'Dash_app:dashboard' %}" class="btn-ghost">Browse Listings</a>
+      <a href="{% url 'dashboard:dashboard' %}" class="btn-ghost">Browse Listings</a>
     </div>
   </div>
 </section>

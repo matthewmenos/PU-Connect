@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,7 +120,7 @@
                 <div class="title">{{ listing.title }}</div>
                 <div class="price">GH₵ {{ listing.price }}</div>
                 <div class="desc">{{ listing.description }}</div>
-                <a href="{% url 'Dash_app:dashboard' %}" class="btn" id="viewOnDash">View in Marketplace</a>
+                <a href="{% url 'dashboard:dashboard' %}" class="btn" id="viewOnDash">View in Marketplace</a>
             </div>
         </div>
         <div class="logo">PU-<span>Connect</span></div>
