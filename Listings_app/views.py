@@ -111,6 +111,9 @@ def create_listing_api(request):
         if not title or price is None:
             return JsonResponse({'status': 'error', 'message': 'Title and price are required'}, status=400)
 
+        if not image_url:
+            return JsonResponse({'status': 'error', 'message': 'At least one photo is required'}, status=400)
+
         # Update user's profile with phone number if provided
         phone = data.get('phone')
         if phone:
