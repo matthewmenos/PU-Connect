@@ -434,7 +434,7 @@ body::before {
 /* Social row */
 .social-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: .75rem;
 }
 .social-btn {
@@ -448,13 +448,26 @@ body::before {
   font-size: .84rem;
   font-weight: 500;
   cursor: pointer;
-  transition: border-color .2s, background .2s, transform .15s;
+  transition: border-color .2s, background .2s, transform .15s, box-shadow .2s;
   text-decoration: none;
   white-space: nowrap;
 }
 .social-btn:hover { border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.05); transform: translateY(-1px); }
-.apple-btn { background: #fff; color: #000; border-color: #fff; }
-.apple-btn:hover { background: #f0f0f0; border-color: #f0f0f0; }
+
+/* Google button */
+.google-btn {
+  background: #fff;
+  color: #3c4043;
+  border-color: #dadce0;
+  font-weight: 600;
+}
+.google-btn:hover {
+  background: #f8f9fa;
+  border-color: #bdc1c6;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  transform: translateY(-1px);
+}
+.g-logo { flex-shrink: 0; }
 
 /* Compulsory terms highlight */
 .check-group.required-shake { animation: shake .4s ease; }

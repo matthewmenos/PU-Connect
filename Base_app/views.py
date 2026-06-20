@@ -1,15 +1,20 @@
 """
-Base App Views - Homepage, About, Help, Terms, Privacy, Safety
+Base App Views - Homepage, About, Help, Terms, Privacy, Safety, Admin
 """
 
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_POST
+from django.contrib.auth.models import User
+from django.db.models import Q, Count
 from django.conf import settings
 import boto3
 import uuid
 import os
+import json
 
 
 def home(request):
@@ -283,6 +288,220 @@ def serve_sw(request):
             return HttpResponse(f.read(), content_type='application/javascript')
     except FileNotFoundError:
         return HttpResponse('// sw not found', content_type='application/javascript', status=404)
+
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_dashboard(request):
+    return render(request, 'base/admin.html')
+
+
+# ── Admin API helpers ────────────────────────────────────────────────────────
+
+def _user_to_dict(u):
+    avatar_url = ''
+    faculty = ''
+    try:
+        p = u.profile
+        avatar_url = p.avatar_url or ''
+        faculty = p.faculty or ''
+    except Exception:
+        pass
+    from Listings_app.models import Listing
+    listing_count = Listing.objects.filter(user=u).count()
+    return {
+        'id': u.id,
+        'name': u.get_full_name() or u.username,
+        'username': u.username,
+        'email': u.email,
+        'faculty': faculty,
+        'avatar_url': avatar_url,
+        'joined': u.date_joined.isoformat(),
+        'listings': listing_count,
+        'is_active': u.is_active,
+        'is_staff': u.is_staff,
+        'is_superuser': u.is_superuser,
+        'status': 'active' if u.is_active else 'suspended',
+    }
+
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_api_stats(request):
+    from Listings_app.models import Listing
+    from chat_app.models import Conversation, Message
+
+    total_users = User.objects.count()
+    active_listings = Listing.objects.filter(status='active').count()
+    total_listings = Listing.objects.count()
+    total_conversations = Conversation.objects.count()
+    total_messages = Message.objects.count()
+    suspended_users = User.objects.filter(is_active=False).count()
+
+    return JsonResponse({
+        'total_users': total_users,
+        'active_listings': active_listings,
+        'total_listings': total_listings,
+        'total_conversations': total_conversations,
+        'total_messages': total_messages,
+        'suspended_users': suspended_users,
+    })
+
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_api_users(request):
+    q = request.GET.get('q', '').strip()
+    status = request.GET.get('status', '')
+    page = max(1, int(request.GET.get('page', 1)))
+    page_size = 10
+
+    qs = User.objects.select_related('profile').order_by('-date_joined')
+    if q:
+        qs = qs.filter(Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q) | Q(email__icontains=q))
+    if status == 'active':
+        qs = qs.filter(is_active=True)
+    elif status == 'suspended':
+        qs = qs.filter(is_active=False)
+
+    total = qs.count()
+    users = qs[(page - 1) * page_size: page * page_size]
+    return JsonResponse({
+        'total': total,
+        'page': page,
+        'page_size': page_size,
+        'users': [_user_to_dict(u) for u in users],
+    })
+
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_api_listings(request):
+    from Listings_app.models import Listing
+    q = request.GET.get('q', '').strip()
+    category = request.GET.get('category', '')
+    status = request.GET.get('status', '')
+    page = max(1, int(request.GET.get('page', 1)))
+    page_size = 10
+
+    qs = Listing.objects.select_related('user').order_by('-created_at')
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(user__username__icontains=q))
+    if category:
+        qs = qs.filter(category__iexact=category)
+    if status:
+        qs = qs.filter(status__iexact=status)
+
+    total = qs.count()
+    listings = qs[(page - 1) * page_size: page * page_size]
+    data = []
+    for l in listings:
+        data.append({
+            'id': l.id,
+            'title': l.title,
+            'seller': l.user.username,
+            'seller_id': l.user.id,
+            'category': l.category,
+            'price': float(l.price),
+            'image_url': l.image_url or '',
+            'status': l.status,
+            'listing_type': l.listing_type,
+            'created_at': l.created_at.isoformat(),
+        })
+    return JsonResponse({'total': total, 'page': page, 'page_size': page_size, 'listings': data})
+
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_api_conversations(request):
+    from chat_app.models import Conversation, Message
+    page = max(1, int(request.GET.get('page', 1)))
+    page_size = 10
+    qs = Conversation.objects.prefetch_related('participants').order_by('-updated_at')
+    total = qs.count()
+    convs = qs[(page - 1) * page_size: page * page_size]
+    data = []
+    for c in convs:
+        parts = list(c.participants.values('id', 'username'))
+        msg_count = c.messages.count()
+        last = c.messages.last()
+        data.append({
+            'id': c.id,
+            'participants': parts,
+            'listing': c.listing.title if c.listing else None,
+            'message_count': msg_count,
+            'last_message': last.timestamp.isoformat() if last else None,
+            'created_at': c.created_at.isoformat(),
+        })
+    return JsonResponse({'total': total, 'page': page, 'page_size': page_size, 'conversations': data})
+
+
+@staff_member_required(login_url='auth:auth_view')
+@require_POST
+def admin_api_user_action(request, user_id):
+    try:
+        data = json.loads(request.body)
+        action = data.get('action')
+        u = User.objects.get(id=user_id)
+
+        if action == 'suspend':
+            u.is_active = False
+            u.save()
+            return JsonResponse({'status': 'ok', 'message': f'@{u.username} suspended'})
+        elif action == 'unsuspend':
+            u.is_active = True
+            u.save()
+            return JsonResponse({'status': 'ok', 'message': f'@{u.username} reactivated'})
+        elif action == 'make_staff':
+            if not request.user.is_superuser:
+                return JsonResponse({'status': 'error', 'message': 'Superuser required'}, status=403)
+            u.is_staff = True
+            u.save()
+            return JsonResponse({'status': 'ok', 'message': f'@{u.username} is now staff'})
+        elif action == 'remove_staff':
+            if not request.user.is_superuser:
+                return JsonResponse({'status': 'error', 'message': 'Superuser required'}, status=403)
+            u.is_staff = False
+            u.save()
+            return JsonResponse({'status': 'ok', 'message': f'@{u.username} staff removed'})
+        elif action == 'delete':
+            if not request.user.is_superuser:
+                return JsonResponse({'status': 'error', 'message': 'Superuser required'}, status=403)
+            username = u.username
+            u.delete()
+            return JsonResponse({'status': 'ok', 'message': f'@{username} deleted'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Unknown action'}, status=400)
+    except User.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@staff_member_required(login_url='auth:auth_view')
+@require_POST
+def admin_api_listing_action(request, listing_id):
+    from Listings_app.models import Listing
+    try:
+        data = json.loads(request.body)
+        action = data.get('action')
+        l = Listing.objects.get(id=listing_id)
+
+        if action == 'remove':
+            l.status = 'paused'
+            l.is_available = False
+            l.save()
+            return JsonResponse({'status': 'ok', 'message': f'Listing "{l.title}" removed'})
+        elif action == 'restore':
+            l.status = 'active'
+            l.is_available = True
+            l.save()
+            return JsonResponse({'status': 'ok', 'message': f'Listing "{l.title}" restored'})
+        elif action == 'delete':
+            if not request.user.is_superuser:
+                return JsonResponse({'status': 'error', 'message': 'Superuser required'}, status=403)
+            title = l.title
+            l.delete()
+            return JsonResponse({'status': 'ok', 'message': f'Listing "{title}" deleted permanently'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Unknown action'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 def serve_offline(request):

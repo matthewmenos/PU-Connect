@@ -1,4 +1,5 @@
 {% load static %}
+{% csrf_token %}
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -70,7 +71,7 @@
     <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     Settings
   </div>
-  <div class="sb-item" onclick="window.open('../index.html')">
+  <div class="sb-item" onclick="window.open('/dashboard/')">
     <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
     View Live Site
   </div>
@@ -78,10 +79,10 @@
   <div class="sb-divider"></div>
   <div class="sb-footer">
     <div class="sb-user">
-      <div class="sb-av">AD</div>
+      <div class="sb-av">{{ request.user.username|slice:":2"|upper }}</div>
       <div class="sb-user-info">
-        <div class="sb-user-name">Admin User</div>
-        <div class="sb-user-role">Super Admin</div>
+        <div class="sb-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="sb-user-role">{% if request.user.is_superuser %}Super Admin{% else %}Staff{% endif %}</div>
       </div>
     </div>
   </div>
@@ -303,9 +304,6 @@
       </div>
       <div class="filter-bar">
         <div class="search-box"><svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search by name, email or username…" oninput="debouncedFilter(()=>{PAGE.users=1;renderUsers();},'users')" id="userSearch"/></div>
-        <select class="filter-select" id="userRoleFilter" onchange="PAGE.users=1;renderUsers()">
-          <option value="">All Roles</option><option>Student</option><option>Verified Seller</option><option>Top Seller</option>
-        </select>
         <select class="filter-select" id="userStatusFilter" onchange="PAGE.users=1;renderUsers()">
           <option value="">All Status</option><option value="active">Active</option><option value="suspended">Suspended</option><option value="banned">Banned</option><option value="flagged">Flagged</option>
         </select>
@@ -336,10 +334,10 @@
       <div class="filter-bar">
         <div class="search-box"><svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="listingSearch" placeholder="Search listings…" oninput="debouncedFilter(()=>{PAGE.listings=1;renderListings();},'listings')"/></div>
         <select class="filter-select" id="listingCatFilter" onchange="PAGE.listings=1;renderListings()">
-          <option value="">All Categories</option><option>Electronics</option><option>Books</option><option>Fashion</option><option>Food</option><option>Services</option><option>Other</option>
+          <option value="">All Categories</option><option>Electronics</option><option>Books</option><option>Textbooks</option><option>Fashion</option><option>Food</option><option>Services</option><option>Furniture</option><option>Other</option>
         </select>
         <select class="filter-select" id="listingStatusFilter" onchange="PAGE.listings=1;renderListings()">
-          <option value="">All Status</option><option value="active">Active</option><option value="sold">Sold</option><option value="flagged">Flagged</option><option value="removed">Removed</option>
+          <option value="">All Status</option><option value="active">Active</option><option value="sold">Sold</option><option value="paused">Paused/Removed</option><option value="boosted">Boosted</option>
         </select>
       </div>
       <div class="card">
@@ -543,7 +541,7 @@
             <div>
               <div style="font-size:.72rem;color:var(--m);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.2rem">Database</div>
               <div style="font-size:.9rem;font-weight:700;color:var(--teal)">Connected</div>
-              <div style="font-size:.68rem;color:var(--m);margin-top:.1rem">PostgreSQL 15 · <span id="dbConn" style="font-family:var(--font-mono);color:var(--teal)">—</span></div>
+              <div style="font-size:.68rem;color:var(--m);margin-top:.1rem">SQLite (dual-file) · <span id="dbConn" style="font-family:var(--font-mono);color:var(--teal)">—</span></div>
             </div>
           </div>
         </div>
@@ -853,43 +851,34 @@
 })();
 
 /* ════════════════════════════════════════════════
-   STORAGE — every mutation persists to localStorage
+   API — real backend calls
 ════════════════════════════════════════════════ */
-const LS={
-  key:'pu-connect-admin-v1',
-  load(){try{return JSON.parse(localStorage.getItem(this.key)||'null');}catch{return null;}},
-  save(state){try{localStorage.setItem(this.key,JSON.stringify(state));}catch(e){console.warn('Storage full',e);}},
-};
+const CSRF = document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1] || '';
 
-/* ════════════════════════════════════════════════
-   SEED DATA (used only on first load)
-════════════════════════════════════════════════ */
-const SEED_USERS=[];
-const SEED_LISTINGS=[];
-const SEED_REELS=[];
-const SEED_TRANSACTIONS=[];
-const SEED_REPORTS=[];
-const SEED_MOD_LOG=[];
-const SEED_SETTINGS={
-  maintenance:false,registration:true,listing_create:true,reels_upload:true,
-  notif_reports:true,notif_users:false,notif_flagged:true,notif_digest:true,
-  adminEmail:'admin@pu-connect.edu.gh',
-};
-const SEED_INVITES=[];
-
-/* ════════════════════════════════════════════════
-   STATE — loaded from localStorage or seeded fresh
-════════════════════════════════════════════════ */
-let STATE=LS.load();
-if(!STATE){
-  STATE={
-    users:SEED_USERS,listings:SEED_LISTINGS,reels:SEED_REELS,
-    transactions:SEED_TRANSACTIONS,reports:SEED_REPORTS,
-    modLog:SEED_MOD_LOG,settings:SEED_SETTINGS,invites:SEED_INVITES,
-  };
-  LS.save(STATE);
+async function apiFetch(url, opts={}){
+  const res = await fetch(url, {
+    headers:{'X-CSRFToken':CSRF,'Content-Type':'application/json',...(opts.headers||{})},
+    ...opts,
+  });
+  if(!res.ok) throw new Error((await res.json().catch(()=>({}))).message || res.statusText);
+  return res.json();
 }
-// Convenience aliases (always references STATE)
+
+/* ════════════════════════════════════════════════
+   STATE — in-memory cache of API data
+════════════════════════════════════════════════ */
+let STATE={
+  users:[],listings:[],reels:[],transactions:[],reports:[],
+  modLog:[],
+  settings:{
+    maintenance:false,registration:true,listing_create:true,reels_upload:true,
+    notif_reports:true,notif_users:false,notif_flagged:true,notif_digest:true,
+  },
+  invites:[],
+  stats:{},
+  userTotal:0, listingTotal:0,
+};
+
 const USERS=()=>STATE.users;
 const LISTINGS=()=>STATE.listings;
 const REELS=()=>STATE.reels;
@@ -898,19 +887,72 @@ const REPORTS=()=>STATE.reports;
 const MOD_LOG=()=>STATE.modLog;
 const SETTINGS=()=>STATE.settings;
 
-function persist(){LS.save(STATE);}
+/* ════════════════════════════════════════════════
+   DATA LOADERS — fetch real data from Django APIs
+════════════════════════════════════════════════ */
+async function loadStats(){
+  try{
+    const d = await apiFetch('/site-admin/api/stats/');
+    STATE.stats = d;
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    set('kpiUsers', d.total_users.toLocaleString());
+    set('kpiListings', d.active_listings.toLocaleString());
+    set('kpiReports', '0');
+    set('sbUserBadge', d.total_users);
+    const countEl=document.getElementById('userCount');
+    if(countEl)countEl.textContent=`${d.total_users} users total`;
+  }catch(e){console.error('Stats error',e);}
+}
+
+async function loadUsers(page=1, q='', status=''){
+  try{
+    const url=`/site-admin/api/users/?page=${page}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}`;
+    const d = await apiFetch(url);
+    STATE.users = d.users;
+    STATE.userTotal = d.total;
+    return d;
+  }catch(e){console.error('Users error',e);return {users:[],total:0,page:1,page_size:10};}
+}
+
+async function loadListings(page=1, q='', category='', status=''){
+  try{
+    const url=`/site-admin/api/listings/?page=${page}&q=${encodeURIComponent(q)}&category=${encodeURIComponent(category)}&status=${encodeURIComponent(status)}`;
+    const d = await apiFetch(url);
+    STATE.listings = d.listings;
+    STATE.listingTotal = d.total;
+    return d;
+  }catch(e){console.error('Listings error',e);return {listings:[],total:0,page:1,page_size:10};}
+}
+
+async function loadConversations(page=1){
+  try{
+    const d = await apiFetch(`/site-admin/api/conversations/?page=${page}`);
+    STATE.conversations = d.conversations;
+    STATE.convTotal = d.total;
+    return d;
+  }catch(e){return {conversations:[],total:0};}
+}
+
+async function userAction(userId, action){
+  return apiFetch(`/site-admin/api/users/${userId}/action/`, {method:'POST', body:JSON.stringify({action})});
+}
+
+async function listingAction(listingId, action){
+  return apiFetch(`/site-admin/api/listings/${listingId}/action/`, {method:'POST', body:JSON.stringify({action})});
+}
+
+function persist(){/* state is server-side — no localStorage needed */}
 
 /* ════════════════════════════════════════════════
-   MODERATION LOG — write every admin action
+   MODERATION LOG — in-memory log of admin actions
 ════════════════════════════════════════════════ */
 function logAction(action,target,reason=''){
   STATE.modLog.unshift({
-    admin:'Admin',action,target,reason,
+    admin:'{{ request.user.username }}',action,target,reason,
     date:new Date().toISOString(),
     id:'M-'+Date.now(),
   });
   if(STATE.modLog.length>200)STATE.modLog.pop();
-  persist();
   renderModLog(STATE.modLog.slice(0,50));
 }
 
@@ -938,54 +980,42 @@ function fmtDateTime(iso){
    PAGINATION
 ════════════════════════════════════════════════ */
 const PAGE={users:1,listings:1,reels:1,transactions:1,reports:1};
-const PAGE_SIZE=8;
+const PAGE_SIZE=10;
 function paginate(arr,page){return arr.slice((page-1)*PAGE_SIZE,page*PAGE_SIZE);}
-function renderPager(containerId,total,page,table){
-  const pages=Math.ceil(total/PAGE_SIZE);if(pages<=1){document.getElementById(containerId).innerHTML='';return;}
+
+function renderServerPager(containerId,total,page,pageSize,table){
+  const pages=Math.ceil(total/(pageSize||PAGE_SIZE));
+  if(pages<=1){document.getElementById(containerId).innerHTML='';return;}
+  const start=(page-1)*(pageSize||PAGE_SIZE)+1;
+  const end=Math.min(page*(pageSize||PAGE_SIZE),total);
   document.getElementById(containerId).innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-top:1px solid var(--border);font-size:.78rem;color:var(--m)">
-      <div>Showing ${Math.min((page-1)*PAGE_SIZE+1,total)}–${Math.min(page*PAGE_SIZE,total)} of ${total}</div>
+      <div>Showing ${start}–${end} of ${total}</div>
       <div style="display:flex;gap:.35rem">
         ${page>1?`<button class="btn btn-ghost btn-sm" onclick="changePage('${table}',${page-1})">← Prev</button>`:''}
-        ${Array.from({length:pages},(_,i)=>`<button class="btn btn-sm ${i+1===page?'btn-primary':'btn-ghost'}" onclick="changePage('${table}',${i+1})">${i+1}</button>`).join('')}
+        ${Array.from({length:Math.min(pages,7)},(_,i)=>`<button class="btn btn-sm ${i+1===page?'btn-primary':'btn-ghost'}" onclick="changePage('${table}',${i+1})">${i+1}</button>`).join('')}
         ${page<pages?`<button class="btn btn-ghost btn-sm" onclick="changePage('${table}',${page+1})">Next →</button>`:''}
       </div>
     </div>`;
 }
+
+function renderPager(containerId,total,page,table){
+  renderServerPager(containerId,total,page,PAGE_SIZE,table);
+}
+
 function changePage(table,page){
   PAGE[table]=page;
-  if(table==='users')renderUsers(getFilteredUsers());
-  if(table==='listings')renderListings(getFilteredListings());
-  if(table==='reels')renderReels(getFilteredReels());
-  if(table==='transactions')renderTransactions(getFilteredTx());
-  if(table==='reports')renderReports(getFilteredReports());
+  if(table==='users')renderUsers();
+  if(table==='listings')renderListings();
+  if(table==='reels')renderReels();
+  if(table==='transactions')renderTransactions();
+  if(table==='reports')renderReports();
 }
 
 /* ════════════════════════════════════════════════
-   FILTERS — all read live from DOM inputs
+   FILTERS — server-side for users & listings,
+             client-side for in-memory data (reels, transactions, reports)
 ════════════════════════════════════════════════ */
-function getFilteredUsers(){
-  const q=(document.getElementById('userSearch')?.value||'').toLowerCase();
-  const role=document.getElementById('userRoleFilter')?.value||'';
-  const status=document.getElementById('userStatusFilter')?.value||'';
-  return USERS().filter(u=>{
-    const matchQ=!q||u.name.toLowerCase().includes(q)||u.username.toLowerCase().includes(q)||u.email.toLowerCase().includes(q);
-    const matchRole=!role||u.role.toLowerCase().includes(role.toLowerCase())||u.faculty.toLowerCase().includes(role.toLowerCase());
-    const matchStatus=!status||u.status===status.toLowerCase();
-    return matchQ&&matchRole&&matchStatus;
-  });
-}
-function getFilteredListings(){
-  const q=(document.getElementById('listingSearch')?.value||'').toLowerCase();
-  const cat=document.getElementById('listingCatFilter')?.value||'';
-  const stat=document.getElementById('listingStatusFilter')?.value||'';
-  return LISTINGS().filter(l=>{
-    const matchQ=!q||l.name.toLowerCase().includes(q)||l.seller.toLowerCase().includes(q)||l.id.toLowerCase().includes(q);
-    const matchCat=!cat||l.category===cat;
-    const matchStat=!stat||l.status===stat.toLowerCase();
-    return matchQ&&matchCat&&matchStat;
-  });
-}
 function getFilteredReels(){
   const q=(document.getElementById('reelSearch')?.value||'').toLowerCase();
   const stat=document.getElementById('reelStatusFilter')?.value||'';
@@ -1017,7 +1047,7 @@ function getFilteredReports(){
 let filterDebounce={};
 function debouncedFilter(fn,key){
   clearTimeout(filterDebounce[key]);
-  filterDebounce[key]=setTimeout(fn,200);
+  filterDebounce[key]=setTimeout(fn,350);
 }
 
 /* ════════════════════════════════════════════════
@@ -1039,38 +1069,39 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 /* ════════════════════════════════════════════════
    RENDER: USERS
 ════════════════════════════════════════════════ */
-function renderUsers(data){
-  const all=data??getFilteredUsers();
-  const paged=paginate(all,PAGE.users);
-  document.getElementById('userCount').textContent=`${USERS().length} users total · ${all.length} matching filter`;
-  document.getElementById('sbUserBadge').textContent=USERS().length;
-  document.getElementById('kpiUsers').textContent=USERS().length.toLocaleString();
+async function renderUsers(){
+  const q=document.getElementById('userSearch')?.value||'';
+  const status=document.getElementById('userStatusFilter')?.value||'';
+  document.getElementById('usersTable').innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--m)">Loading…</td></tr>';
+  const d = await loadUsers(PAGE.users, q, status);
   const avClrs=['av-gold','av-teal','av-purple','av-orange','av-blue'];
-  document.getElementById('usersTable').innerHTML=paged.length?paged.map((u,i)=>`
+  document.getElementById('userCount').textContent=`${d.total} users total${q?' · filtered':''}`;
+  document.getElementById('sbUserBadge').textContent=d.total;
+  document.getElementById('kpiUsers').textContent=d.total.toLocaleString();
+  document.getElementById('usersTable').innerHTML=d.users.length?d.users.map((u,i)=>`
     <tr onclick="openUserModal(${u.id})">
       <td><div style="display:flex;align-items:center;gap:.6rem">
-        <div class="user-av ${avClrs[i%5]}">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
-        <div><div class="td-primary">${hl(u.name)}</div><div class="td-dim">${hl(u.email)}</div></div>
+        ${u.avatar_url?`<img src="${u.avatar_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'user-av ${avClrs[i%5]}',textContent:'${''}'}))">`:`<div class="user-av ${avClrs[i%5]}">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>`}
+        <div><div class="td-primary">${u.name}</div><div class="td-dim">${u.email}</div></div>
       </div></td>
-      <td class="td-mono">${hl('@'+u.username)}</td>
-      <td class="td-dim">${u.faculty}</td>
+      <td class="td-mono">@${u.username}</td>
+      <td class="td-dim">${u.faculty||'—'}</td>
       <td class="td-dim">${fmtDate(u.joined)}</td>
       <td><span class="td-mono" style="color:var(--teal)">${u.listings}</span></td>
-      <td><span class="td-mono" style="color:var(--gold)">${u.trades}</span></td>
-      <td style="font-size:.8rem;font-weight:600">${u.rating}</td>
+      <td>${u.is_staff?'<span class="badge badge-gold">Staff</span>':u.is_superuser?'<span class="badge badge-purple">Super</span>':'<span class="badge badge-gray">User</span>'}</td>
       <td>${statusBadge(u.status)}</td>
       <td><div style="display:flex;gap:.35rem">
         <button class="btn btn-ghost btn-sm btn-icon" onclick="event.stopPropagation();openUserModal(${u.id})" title="View">
           <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
-        <button class="btn btn-sm btn-icon ${u.status==='suspended'||u.status==='banned'?'btn-teal':'btn-danger'}"
-          onclick="event.stopPropagation();quickSuspend(${u.id})" title="${u.status==='suspended'?'Unsuspend':'Suspend'}">
+        <button class="btn btn-sm btn-icon ${u.is_active?'btn-danger':'btn-teal'}"
+          onclick="event.stopPropagation();quickSuspend(${u.id},'${u.username}',${u.is_active})" title="${u.is_active?'Suspend':'Unsuspend'}">
           <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
         </button>
       </div></td>
     </tr>`).join('')
     :'<tr><td colspan="9"><div class="empty-state"><div class="empty-ico"></div><div class="empty-t">No users match this filter</div></div></td></tr>';
-  renderPager('usersPager',all.length,PAGE.users,'users');
+  renderServerPager('usersPager', d.total, PAGE.users, d.page_size, 'users');
 }
 
 function hl(text){
@@ -1083,33 +1114,39 @@ function hl(text){
 /* ════════════════════════════════════════════════
    RENDER: LISTINGS
 ════════════════════════════════════════════════ */
-function renderListings(data){
-  const all=data??getFilteredListings();
-  const paged=paginate(all,PAGE.listings);
-  document.getElementById('kpiListings').textContent=LISTINGS().filter(l=>l.status==='active').length.toLocaleString();
-  document.getElementById('listingsTable').innerHTML=paged.length?paged.map(l=>`
-    <tr onclick="openListingModal('${l.id}')">
-      <td><div class="td-primary">${l.name}</div><div class="td-mono" style="font-size:.68rem">${l.id}</div></td>
+async function renderListings(){
+  const q=document.getElementById('listingSearch')?.value||'';
+  const cat=document.getElementById('listingCatFilter')?.value||'';
+  const stat=document.getElementById('listingStatusFilter')?.value||'';
+  document.getElementById('listingsTable').innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--m)">Loading…</td></tr>';
+  const d = await loadListings(PAGE.listings, q, cat, stat);
+  document.getElementById('kpiListings').textContent=STATE.stats.active_listings?.toLocaleString()||d.total.toLocaleString();
+  document.getElementById('listingsTable').innerHTML=d.listings.length?d.listings.map(l=>`
+    <tr onclick="openListingModal(${l.id})">
+      <td>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          ${l.image_url?`<img src="${l.image_url}" style="width:36px;height:36px;border-radius:7px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`:'<div style="width:36px;height:36px;border-radius:7px;background:var(--card2);flex-shrink:0"></div>'}
+          <div><div class="td-primary">${l.title}</div><div class="td-mono" style="font-size:.68rem">#${l.id} · ${l.listing_type}</div></div>
+        </div>
+      </td>
       <td class="td-mono">@${l.seller}</td>
       <td><span class="badge badge-blue">${l.category}</span></td>
       <td class="td-mono" style="color:var(--gold);font-weight:700">GH₵ ${l.price.toLocaleString()}</td>
-      <td class="td-dim">${l.views} views</td>
-      <td class="td-dim">${fmtDate(l.posted)}</td>
+      <td class="td-dim">${fmtDate(l.created_at)}</td>
       <td>${listingStatusBadge(l.status)}</td>
       <td><div style="display:flex;gap:.35rem">
-        <button class="btn btn-ghost btn-sm btn-icon" onclick="event.stopPropagation();openListingModal('${l.id}')" title="View">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="event.stopPropagation();openListingModal(${l.id})" title="View">
           <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
-        ${l.status==='flagged'?`<button class="btn btn-teal btn-sm btn-icon" onclick="event.stopPropagation();approveListing('${l.id}')" title="Approve">
-          <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </button>`:''}
-        ${l.status!=='removed'?`<button class="btn btn-danger btn-sm btn-icon" onclick="event.stopPropagation();removeListing('${l.id}')" title="Remove">
+        ${l.status!=='paused'?`<button class="btn btn-danger btn-sm btn-icon" onclick="event.stopPropagation();removeListingReal(${l.id},'${l.title.replace(/'/g,'\\\'')}')" title="Remove">
           <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
-        </button>`:''}
+        </button>`:`<button class="btn btn-teal btn-sm btn-icon" onclick="event.stopPropagation();restoreListingReal(${l.id},'${l.title.replace(/'/g,'\\\'')}')" title="Restore">
+          <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>`}
       </div></td>
     </tr>`).join('')
-    :'<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"></div><div class="empty-t">No listings match this filter</div></div></td></tr>';
-  renderPager('listingsPager',all.length,PAGE.listings,'listings');
+    :'<tr><td colspan="7"><div class="empty-state"><div class="empty-ico"></div><div class="empty-t">No listings match this filter</div></div></td></tr>';
+  renderServerPager('listingsPager', d.total, PAGE.listings, d.page_size, 'listings');
 }
 
 /* ════════════════════════════════════════════════
@@ -1230,30 +1267,33 @@ function renderModLog(data){
 
 function renderTopSellers(){
   const avClrs=['av-gold','av-teal','av-purple','av-orange','av-blue'];
-  const top=[...USERS()].sort((a,b)=>b.trades-a.trades).slice(0,5);
-  document.getElementById('topSellers').innerHTML=top.map((u,i)=>`
+  const top=[...USERS()].sort((a,b)=>b.listings-a.listings).slice(0,5);
+  const el=document.getElementById('topSellers');
+  if(!el)return;
+  el.innerHTML=top.length?top.map((u,i)=>`
     <div class="activity-item" onclick="openUserModal(${u.id})">
-      <div class="user-av ${avClrs[i%5]}">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+      ${u.avatar_url?`<img src="${u.avatar_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">`:`<div class="user-av ${avClrs[i%5]}">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>`}
       <div class="act-body">
         <div class="act-title"><span>${u.name}</span> · @${u.username}</div>
-        <div class="act-meta"><span>${u.trades} trades</span><span>${u.rating}</span><span class="act-time">${u.faculty}</span></div>
+        <div class="act-meta"><span>${u.listings} listings</span><span class="act-time">${u.faculty||''}</span></div>
       </div>
-      <div style="font-family:var(--font-mono);font-size:.78rem;color:var(--gold)">GH₵ ${(u.trades*174).toLocaleString()}</div>
-    </div>`).join('');
+    </div>`).join(''):'<div class="empty-state"><div class="empty-t">No users yet</div></div>';
 }
 
 function renderNewestUsers(){
   const avClrs=['av-gold','av-teal','av-purple','av-orange','av-blue'];
   const newest=[...USERS()].sort((a,b)=>new Date(b.joined)-new Date(a.joined)).slice(0,5);
-  document.getElementById('newestUsers').innerHTML=newest.map((u,i)=>`
+  const el=document.getElementById('newestUsers');
+  if(!el)return;
+  el.innerHTML=newest.length?newest.map((u,i)=>`
     <div class="activity-item" onclick="openUserModal(${u.id})">
-      <div class="user-av ${avClrs[i%5]}">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+      ${u.avatar_url?`<img src="${u.avatar_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">`:`<div class="user-av ${avClrs[i%5]}">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>`}
       <div class="act-body">
         <div class="act-title"><span>${u.name}</span></div>
-        <div class="act-meta"><span class="act-time">@${u.username}</span><span>${u.faculty}</span><span>${timeAgo(new Date(u.joined).getTime())}</span></div>
+        <div class="act-meta"><span class="act-time">@${u.username}</span><span>${u.faculty||''}</span><span>${timeAgo(new Date(u.joined).getTime())}</span></div>
       </div>
       ${statusBadge(u.status)}
-    </div>`).join('');
+    </div>`).join(''):'<div class="empty-state"><div class="empty-t">No users yet</div></div>';
 }
 
 /* ════════════════════════════════════════════════
@@ -1344,53 +1384,51 @@ function listingStatusBadge(s){
 /* ════════════════════════════════════════════════
    USER ACTIONS
 ════════════════════════════════════════════════ */
-function quickSuspend(id){
-  const u=STATE.users.find(x=>x.id===id);if(!u)return;
-  const action=u.status==='suspended'||u.status==='banned'?'active':'suspended';
-  // confirmed inline via user modal
-  u.status=action;persist();
-  logAction(action==='suspended'?'Suspended':'Unsuspended','@'+u.username,'Quick action from user table');
-  renderUsers();showToast(`@${u.username} ${action==='suspended'?'suspended':'unsuspended'}`,action==='suspended'?'red':'teal');
+async function quickSuspend(id, username, isActive){
+  const action = isActive ? 'suspend' : 'unsuspend';
+  try{
+    const d = await userAction(id, action);
+    logAction(isActive?'Suspended':'Unsuspended','@'+username,'Quick action from user table');
+    await renderUsers();
+    showToast(d.message, isActive?'red':'teal');
+  }catch(e){ showToast(e.message,'red'); }
 }
 
 function openUserModal(id){
   const u=STATE.users.find(x=>x.id===id);if(!u)return;
-  const userReports=REPORTS().filter(r=>r.reported===u.username||r.reporter===u.username);
-  const userListings=LISTINGS().filter(l=>l.seller===u.username);
-  const userTx=TRANSACTIONS().filter(t=>t.buyer===u.username||t.seller===u.username);
   document.getElementById('userModalTitle').textContent=u.name;
   const banBtn=document.getElementById('userModalBanBtn');
-  const isSuspended=u.status==='suspended'||u.status==='banned';
-  banBtn.textContent=isSuspended?'Lift Suspension':'Suspend User';
-  banBtn.className=`btn btn-sm ${isSuspended?'btn-teal':'btn-danger'}`;
-  banBtn.onclick=()=>{
-    const newStatus=isSuspended?'active':'suspended';
-    u.status=newStatus;persist();
-    logAction(newStatus==='suspended'?'Suspended':'Unsuspended','@'+u.username,'From user modal');
-    renderUsers();closeModal(null,'userModal');
-    showToast(`@${u.username} ${newStatus==='active'?'unsuspended':'suspended'}`,newStatus==='active'?'teal':'red');
+  banBtn.textContent=u.is_active?'Suspend User':'Lift Suspension';
+  banBtn.className=`btn btn-sm ${u.is_active?'btn-danger':'btn-teal'}`;
+  banBtn.onclick=async()=>{
+    try{
+      const action=u.is_active?'suspend':'unsuspend';
+      const d=await userAction(u.id,action);
+      logAction(u.is_active?'Suspended':'Unsuspended','@'+u.username,'From user modal');
+      closeModal(null,'userModal');
+      await renderUsers();
+      showToast(d.message,u.is_active?'red':'teal');
+    }catch(e){showToast(e.message,'red');}
   };
   document.getElementById('userModalBody').innerHTML=`
     <div style="display:flex;align-items:center;gap:.9rem;margin-bottom:1.1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)">
-      <div class="user-av av-gold" style="width:52px;height:52px;font-size:1.2rem">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+      ${u.avatar_url?`<img src="${u.avatar_url}" style="width:52px;height:52px;border-radius:50%;object-fit:cover">`:`<div class="user-av av-gold" style="width:52px;height:52px;font-size:1.2rem">${u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>`}
       <div style="flex:1">
         <div style="font-size:1rem;font-weight:700">${u.name}</div>
         <div style="font-size:.8rem;color:var(--m)">@${u.username} · ${u.email}</div>
-        <div style="margin-top:.35rem;display:flex;gap:.4rem;flex-wrap:wrap">${statusBadge(u.status)}<span class="badge badge-blue">${u.role}</span></div>
+        <div style="margin-top:.35rem;display:flex;gap:.4rem;flex-wrap:wrap">${statusBadge(u.status)}${u.is_staff?'<span class="badge badge-gold">Staff</span>':''}${u.is_superuser?'<span class="badge badge-purple">Superuser</span>':''}</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem">
-      ${[['Faculty',u.faculty],['Joined',fmtDate(u.joined)],['Listings',userListings.length+' total'],['Trades',u.trades],['Rating',u.rating],['Transactions',userTx.length]].map(([k,v])=>`
+      ${[['Faculty',u.faculty||'—'],['Joined',fmtDate(u.joined)],['Listings',u.listings+' posted'],['Email',u.email]].map(([k,v])=>`
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem .75rem">
         <div style="font-size:.65rem;color:var(--m);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.2rem">${k}</div>
-        <div style="font-size:.85rem;font-weight:600">${v}</div>
+        <div style="font-size:.85rem;font-weight:600;word-break:break-all">${v}</div>
       </div>`).join('')}
     </div>
-    ${userReports.length?`<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.15);border-radius:9px;padding:.7rem .85rem;font-size:.81rem;color:var(--m)">
-      <strong style="color:var(--red)">${userReports.length} report${userReports.length>1?'s':''}</strong> involving this account — 
-      ${userReports.filter(r=>r.reported===u.username).length} as reported, ${userReports.filter(r=>r.reporter===u.username).length} as reporter
-      <br/><button class="btn btn-ghost btn-sm" style="margin-top:.5rem" onclick="closeModal(null,'userModal');nav('reports',document.querySelector('[onclick*=reports]'))">View Reports →</button>
-    </div>`:'<div style="font-size:.78rem;color:var(--m)">No reports involving this user.</div>'}`;
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <a href="/profile/?u=${u.username}" target="_blank" class="btn btn-ghost btn-sm">View Profile →</a>
+    </div>`;
   openModal('userModal');
 }
 
@@ -1399,20 +1437,24 @@ function openUserModal(id){
 ════════════════════════════════════════════════ */
 function openListingModal(id){
   const l=STATE.listings.find(x=>x.id===id);if(!l)return;
-  const seller=STATE.users.find(u=>u.username===l.seller);
-  // Reuse user modal body for listing detail
-  document.getElementById('userModalTitle').textContent=l.name;
-  document.getElementById('userModalBanBtn').textContent=l.status==='removed'?'Restore Listing':'Remove Listing';
-  document.getElementById('userModalBanBtn').className=`btn btn-sm ${l.status==='removed'?'btn-teal':'btn-danger'}`;
-  document.getElementById('userModalBanBtn').onclick=()=>{
-    if(l.status==='removed'){l.status='active';logAction('Restored Listing',l.id);}
-    else{l.status='removed';logAction('Removed Listing',l.name,'Admin action');}
-    persist();renderListings();closeModal(null,'userModal');
-    showToast(l.status==='removed'?'Listing removed':'Listing restored',l.status==='removed'?'red':'teal');
+  const isPaused=l.status==='paused';
+  document.getElementById('userModalTitle').textContent=l.title;
+  document.getElementById('userModalBanBtn').textContent=isPaused?'Restore Listing':'Remove Listing';
+  document.getElementById('userModalBanBtn').className=`btn btn-sm ${isPaused?'btn-teal':'btn-danger'}`;
+  document.getElementById('userModalBanBtn').onclick=async()=>{
+    try{
+      const action=isPaused?'restore':'remove';
+      const d=await listingAction(l.id,action);
+      logAction(isPaused?'Restored Listing':'Removed Listing','#'+l.id+' '+l.title,'Admin action');
+      closeModal(null,'userModal');
+      await renderListings();
+      showToast(d.message,isPaused?'teal':'red');
+    }catch(e){showToast(e.message,'red');}
   };
   document.getElementById('userModalBody').innerHTML=`
+    ${l.image_url?`<img src="${l.image_url}" style="width:100%;height:160px;object-fit:cover;border-radius:10px;margin-bottom:1rem" onerror="this.style.display='none'">`:''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
-      ${[['ID',l.id],['Seller','@'+l.seller],['Category',l.category],['Price','GH₵ '+l.price.toLocaleString()],['Views',l.views+' views'],['Posted',fmtDate(l.posted)],['Status',l.status],['Seller Rating',seller?seller.rating:'—']].map(([k,v])=>`
+      ${[['ID','#'+l.id],['Seller','@'+l.seller],['Category',l.category],['Type',l.listing_type],['Price','GH₵ '+l.price.toLocaleString()],['Posted',fmtDate(l.created_at)],['Status',l.status]].map(([k,v])=>`
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem .75rem">
         <div style="font-size:.65rem;color:var(--m);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.2rem">${k}</div>
         <div style="font-size:.85rem;font-weight:600">${v}</div>
@@ -1421,19 +1463,22 @@ function openListingModal(id){
   openModal('userModal');
 }
 
-function approveListing(id){
-  const l=STATE.listings.find(x=>x.id===id);if(!l)return;
-  l.status='active';persist();
-  logAction('Approved Listing',l.name,'Reviewed and cleared');
-  renderListings();showToast('Listing approved','teal');
+async function removeListingReal(id, title){
+  try{
+    const d=await listingAction(id,'remove');
+    logAction('Removed Listing','#'+id+' '+title,'Admin removal from table');
+    await renderListings();showToast(d.message,'red');
+  }catch(e){showToast(e.message,'red');}
 }
-function removeListing(id){
-  const l=STATE.listings.find(x=>x.id===id);if(!l)return;
-  // proceed — action is confirmed by button click
-  l.status='removed';persist();
-  logAction('Removed Listing',l.name,'Admin removal');
-  renderListings();showToast('Listing removed','red');
+async function restoreListingReal(id, title){
+  try{
+    const d=await listingAction(id,'restore');
+    logAction('Restored Listing','#'+id+' '+title,'Admin restore');
+    await renderListings();showToast(d.message,'teal');
+  }catch(e){showToast(e.message,'red');}
 }
+function approveListing(id){ restoreListingReal(id,''); }
+function removeListing(id){ removeListingReal(id,''); }
 
 /* ════════════════════════════════════════════════
    REEL ACTIONS
@@ -1537,20 +1582,27 @@ function undoModAction(id){
 /* ════════════════════════════════════════════════
    BAN MODAL — real submission
 ════════════════════════════════════════════════ */
-function submitBanModal(){
+async function submitBanModal(){
   const input=document.getElementById('banTarget').value.trim().replace('@','');
-  const action=document.getElementById('banAction').value;
   const reason=document.getElementById('banReason').value.trim();
   if(!input){showToast('Please enter a username or email','red');return;}
   if(!reason){showToast('Please provide a reason','red');return;}
-  const u=STATE.users.find(x=>x.username===input||x.email===input);
+  // Find user in current loaded list or search
+  let u=STATE.users.find(x=>x.username===input||x.email===input);
+  if(!u){
+    try{
+      const d=await apiFetch(`/site-admin/api/users/?q=${encodeURIComponent(input)}&page=1`);
+      u=d.users.find(x=>x.username===input||x.email===input);
+    }catch(e){}
+  }
   if(!u){showToast('User not found: '+input,'red');return;}
-  const newStatus=action.includes('Permanent')?'banned':'suspended';
-  u.status=newStatus;u.suspendReason=reason;persist();
-  logAction(newStatus==='banned'?'Banned':'Suspended','@'+u.username,reason);
-  closeModal(null,'banModal');
-  renderUsers();
-  showToast(`@${u.username} ${newStatus==='banned'?'permanently banned':'suspended'}`,'red');
+  try{
+    const d=await userAction(u.id,'suspend');
+    logAction('Suspended','@'+u.username,reason);
+    closeModal(null,'banModal');
+    await renderUsers();
+    showToast(d.message,'red');
+  }catch(e){showToast(e.message,'red');}
 }
 
 /* ════════════════════════════════════════════════
@@ -1635,9 +1687,9 @@ function exportData(){
 /* ════════════════════════════════════════════════
    REFRESH
 ════════════════════════════════════════════════ */
-function refreshAll(){
-  renderUsers();renderListings();renderReels();
-  renderTransactions();renderReports();renderModLog();
+async function refreshAll(){
+  await Promise.all([loadStats(), renderUsers(), renderListings()]);
+  renderReels();renderTransactions();renderReports();renderModLog();
   renderTopSellers();renderNewestUsers();renderActivityFeed();
   renderWeeklyChart();renderDauChart();renderGmvChart();
   showToast('Data refreshed','teal');
@@ -1667,23 +1719,23 @@ function showToast(msg,type='teal'){
 }
 
 /* ════════════════════════════════════════════════
-   LIVE TICKER — re-render activity feed every 30s
+   LIVE TICKER — refresh stats every 60s
 ════════════════════════════════════════════════ */
-setInterval(()=>{
+setInterval(async()=>{
+  await loadStats();
   if(activeSection==='overview')renderActivityFeed();
-  // Update elapsed times in reports badge
-  document.getElementById('sbReportBadge').textContent=REPORTS().filter(r=>r.status==='open').length;
-},30000);
+},60000);
 
 /* ════════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════════ */
-(function init(){
-  renderUsers();renderListings();renderReels();
-  renderTransactions();renderReports();renderModLog();
+(async function init(){
+  await Promise.all([loadStats(), renderUsers(), renderListings()]);
+  renderReels();renderTransactions();renderReports();renderModLog();
   renderTopSellers();renderNewestUsers();renderActivityFeed();
   renderWeeklyChart();renderDauChart();renderGmvChart();
   initSettingsUI();updateModerationCounts();
+  loadPlatformConfig();
 })();
 
 /* ════════════════════════════════════════════════
@@ -1783,7 +1835,7 @@ function sysAction(type){
   const actions={
     cache:     {msg:'Cache cleared — 847 MB freed','type':'ok',  tag:'CACHE',   log:'Platform cache flushed — 847 MB freed across 3 edge nodes'},
     reindex:   {msg:'Re-indexing search…','type':'info',tag:'INDEX',  log:'Search index rebuild triggered — estimated 45s'},
-    backup:    {msg:'Database backup started','type':'ok',  tag:'BACKUP', log:'Full PostgreSQL backup initiated — destination: S3/backups/'+new Date().toISOString().slice(0,10)},
+    backup:    {msg:'Database backup started','type':'ok',  tag:'BACKUP', log:'SQLite backup initiated — destination: /var/data/backups/'+new Date().toISOString().slice(0,10)},
     logs:      {msg:null,'type':'info',tag:'LOGS',   log:'Error log download initiated'},
     broadcast: {msg:null,'type':'info',tag:'MSG',    log:'Broadcast composer opened'},
     maintenance:{msg:null,'type':'warn',tag:'MAINT', log:'Maintenance mode toggle requested'},
