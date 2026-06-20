@@ -71,8 +71,6 @@ function toggleWishlist(id, btn) {
  * Navigation helper
  */
 function openListingDetail(id) {
-  // Store the ID and navigate to dashboard which will handle opening the detail sheet
-  localStorage.setItem('pu-open-listing', id);
-  window.location.href = "{% url 'dashboard:dashboard' %}";
+  window.location.href = '/listings/' + id + '/';
 }
 </script>

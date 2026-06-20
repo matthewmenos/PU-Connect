@@ -64,16 +64,34 @@ def settings(request):
 @never_cache
 def get_my_profile(request):
     """Sends DB data to the frontend on load."""
-    
-    profile, created = Profile.objects.get_or_create(user=request.user)
+    from Listings_app.models import Listing
+
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    user = request.user
+
+    listing_qs = Listing.objects.filter(user=user)
+    active_listings = list(
+        listing_qs.filter(status__in=['active', 'boosted'])
+        .order_by('-created_at')[:12]
+        .values('id', 'title', 'price', 'image_url', 'listing_type', 'status', 'contact_for_price')
+    )
+    # Serialise Decimal -> str for JSON
+    for l in active_listings:
+        l['price'] = str(l['price'])
+
     return JsonResponse({
-        'username': request.user.username,
-        'name': request.user.get_full_name() or request.user.username,
+        'username': user.username,
+        'name': user.get_full_name() or user.username,
+        'email': user.email,
         'bio': profile.bio or "",
         'faculty': profile.faculty or "",
         'location': profile.location or "",
         'phone': profile.phone or "",
         'avatarSrc': profile.avatar_url or "",
+        'joined': user.date_joined.strftime('%B %Y'),
+        'listing_count': listing_qs.count(),
+        'sold_count': listing_qs.filter(status='sold').count(),
+        'active_listings': active_listings,
     })
   
 
@@ -155,20 +173,18 @@ def logout_view(request):
     return redirect('auth:auth_view') # Standard redirect works for logout
 
 @login_required
+@require_POST
 def deactivate_account(request):
-    if request.method == 'POST':
-        user = request.user
-        user.is_active = False
-        user.save()
-        logout(request)
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'failed'}, status=400)
+    user = request.user
+    user.is_active = False
+    user.save()
+    logout(request)
+    return JsonResponse({'status': 'success'})
 
 @login_required
+@require_POST
 def delete_account(request):
-    if request.method == 'POST':
-        user = request.user
-        user.delete() # This deletes listings too due to CASCADE
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'failed'}, status=400)
+    user = request.user
+    user.delete()
+    return JsonResponse({'status': 'success'})
 

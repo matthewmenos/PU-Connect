@@ -2,6 +2,12 @@
    PU-Connect Dashboard
    ═══════════════════════════════════════════ */
 
+/* ── Theme toggle icon swap ── */
+#dashThemeBtn .theme-sun  { display: none; }
+#dashThemeBtn .theme-moon { display: block; }
+[data-theme="dark"] #dashThemeBtn .theme-sun  { display: block; }
+[data-theme="dark"] #dashThemeBtn .theme-moon { display: none; }
+
 /* ── Tab bar ── */
 .dash-tabs {
   display: flex;

@@ -7,23 +7,35 @@ import json
 from .models import Listing
 
 def listing_detail(request, pk):
-    """
-    Publicly accessible detail page for a listing.
-    Used for sharing previews (Open Graph).
-    """
+    """Full detail page for a single listing."""
     listing = get_object_or_404(Listing, pk=pk)
-    
-    # Ensure image URL is absolute for social crawlers
-    image_url = listing.image_url
+
+    image_url = listing.image_url or ''
     if image_url and not image_url.startswith('http'):
         image_url = request.build_absolute_uri(image_url)
-    
+
+    seller = listing.user
+    try:
+        seller_profile = seller.profile
+        seller_avatar  = seller_profile.avatar_url or ''
+        seller_phone   = seller_profile.phone or ''
+        seller_faculty = seller_profile.faculty or ''
+    except Exception:
+        seller_avatar  = ''
+        seller_phone   = ''
+        seller_faculty = ''
+
     context = {
-        'listing': listing,
-        'image_url': image_url,
-        'full_url': request.build_absolute_uri(),
-        'page_title': f"{listing.title} - PU-Connect",
-        'page_description': listing.description[:160] if listing.description else "Check out this listing on PU-Connect."
+        'listing':        listing,
+        'image_url':      image_url,
+        'full_url':       request.build_absolute_uri(),
+        'page_title':     f"{listing.title} — PU-Connect",
+        'page_description': listing.description[:160] if listing.description else "Check out this listing on PU-Connect.",
+        'seller':         seller,
+        'seller_avatar':  seller_avatar,
+        'seller_phone':   seller_phone,
+        'seller_faculty': seller_faculty,
+        'is_owner':       request.user.is_authenticated and request.user == seller,
     }
     return render(request, 'listings/detail.html', context)
 

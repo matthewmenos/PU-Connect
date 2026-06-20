@@ -60,7 +60,7 @@
     .prof-tag{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;color:var(--m);background:var(--inp);border:1px solid var(--b);border-radius:6px;padding:.2rem .55rem}
 
     /* ── STATS ROW ── */
-    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1.2rem}
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1.2rem}
     .stat-box{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:.85rem .7rem;text-align:center;cursor:pointer;transition:border-color .2s,transform .2s}
     .stat-box:hover{border-color:rgba(232,201,106,.3);transform:translateY(-2px)}
     .stat-num{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--a);letter-spacing:-.5px;display:block}
@@ -239,7 +239,7 @@
       .cover{height:200px}
       .avatar{width:104px;height:104px;font-size:2.6rem}
       .avatar-row{margin-top:-52px}
-      .stats-row{grid-template-columns:repeat(4,1fr)}
+      .stats-row{grid-template-columns:repeat(3,1fr)}
       .info-grid{grid-template-columns:repeat(4,1fr)}
       .badges-row{grid-template-columns:repeat(3,1fr)}
       .set-row{flex-wrap:nowrap}

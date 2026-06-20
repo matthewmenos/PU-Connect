@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
+  <script>(function(){var t=localStorage.getItem('pu-theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#0d0e11" id="themeColorMeta"/>
@@ -23,7 +24,7 @@
     Back
   </button>
   <span class="nav-title">My Profile</span>
-  <button class="thbtn" id="thbtn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
+  <button class="thbtn" id="thbtn" aria-label="Toggle theme"></button>
 </nav>
 
 <!-- COVER -->
@@ -39,20 +40,15 @@
 
 <div class="main">
 
-  <!-- DEACTIVATED BANNER -->
-  <div class="deactivated-banner" id="deactivatedBanner">
-    <p>Your account is <strong>deactivated</strong>. Your listings and profile are hidden from other users.</p>
-    <button class="reactivate-btn" onclick="reactivateAccount()">Reactivate My Account</button>
-  </div>
-
   <!-- AVATAR ROW -->
   <div class="avatar-row">
     <div class="avatar-wrap">
       <div class="avatar" id="avatarEl">
-        <span id="avatarInitials"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:50%;height:50%;opacity:.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span id="avatarInitials">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:50%;height:50%;opacity:.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
         <img id="avatarImg" src="" alt="" style="display:none"/>
       </div>
-      <div class="online-dot offline" id="onlineDot" title="Online status"></div>
       <label class="avatar-badge" for="avatarFileInput" title="Change profile photo">
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
@@ -62,14 +58,10 @@
       <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleDirectAvatarUpload(this)"/>
     </div>
     <div class="avatar-actions">
-      <a href="{% url 'listings:create' %}" class="btn-primary" id="newListingBtn">+ New Listing</a>
-      <button class="btn-ghost" id="editProfileBtn" onclick="openEditModal()">
+      <a href="{% url 'listings:create' %}" class="btn-primary">+ New Listing</a>
+      <button class="btn-ghost" onclick="openEditModal()">
         <svg viewBox="0 0 24 24" width="14" height="14"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Edit
-      </button>
-      <button class="btn-follow" id="followBtn" onclick="toggleFollowUser()">
-        <svg viewBox="0 0 24 24" id="followBtnIco"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span id="followBtnLbl">Follow</span>
       </button>
     </div>
   </div>
@@ -77,7 +69,7 @@
   <!-- PROFILE INFO -->
   <div id="profileInfo">
     <div class="name-row">
-      <h2 id="dispName">Loading...</h2>
+      <h2 id="dispName" class="prof-name">—</h2>
       <button class="name-edit-btn" id="nameEditBtn" onclick="toggleNameEdit()" title="Edit name">
         <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
@@ -87,73 +79,65 @@
       <button class="name-save-btn" onclick="saveInlineName()">✓</button>
       <button class="name-cancel-btn" onclick="cancelNameEdit()">✕</button>
     </div>
-    <div class="prof-username" id="dispUsername">@username</div>
-    <div class="prof-bio" id="dispBio">...</div>
+    <div class="prof-username" id="dispUsername"></div>
+    <div class="prof-bio" id="dispBio"></div>
     <div class="prof-tags" id="dispTags">
-      <span class="prof-tag" id="tagLocation"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ...</span>
-      <span class="prof-tag" id="tagFaculty"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> ...</span>
-      <span class="prof-tag">⚡ Usually responds in &lt;1hr</span>
-      <span class="prof-tag" id="tagOnline" style="display:none"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e"></span> Online</span>
+      <span class="prof-tag" id="tagLocation" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="tagLocationTxt"></span>
+      </span>
+      <span class="prof-tag" id="tagFaculty" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        <span id="tagFacultyTxt"></span>
+      </span>
     </div>
   </div>
 
   <!-- STATS -->
   <div class="stats-row">
     <div class="stat-box" onclick="location.href='{% url 'listings:listings' %}'">
-      <span class="stat-num" id="profStatListings">—</span>
+      <span class="stat-num" id="statListings">—</span>
       <span class="stat-lbl">Listings</span>
     </div>
-    <div class="stat-box" onclick="location.href='{% url 'search:search' %}'">
-      <span class="stat-num" id="profStatFollowing">—</span>
-      <span class="stat-lbl">Following</span>
-    </div>
     <div class="stat-box">
-      <span class="stat-num" id="profStatFollowers">—</span>
-      <span class="stat-lbl">Followers</span>
+      <span class="stat-num" id="statSold">—</span>
+      <span class="stat-lbl">Sold</span>
+    </div>
+    <div class="stat-box" onclick="location.href='{% url 'listings:wishlist' %}'">
+      <span class="stat-num" id="statSaved">—</span>
+      <span class="stat-lbl">Saved</span>
     </div>
   </div>
 
   <!-- QUICK ACTIONS -->
   <div class="quick-actions">
     <a class="qa-btn" href="{% url 'listings:listings' %}">
-      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
       <span class="qa-lbl">Listings</span>
     </a>
     <a class="qa-btn" href="{% url 'listings:wishlist' %}">
-      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
       <span class="qa-lbl">Saved</span>
     </a>
-    <a class="qa-btn" href="#settings" onclick="smoothToSettings()">
-      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+    <a class="qa-btn" href="{% url 'chat:chat' %}">
+      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+      <span class="qa-lbl">Messages</span>
+    </a>
+    <a class="qa-btn" href="#settings" onclick="smoothToSettings(event)">
+      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
       <span class="qa-lbl">Settings</span>
     </a>
   </div>
-
-  <!-- RATING -->
-  <div id="reviewsSection">
-    <div class="rating-card">
-      <div class="rating-big">4.9</div>
-      <div class="rating-right">
-        <div class="stars"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
-        <div class="rating-count">Based on 42 reviews</div>
-        <div class="rating-bars" id="ratingBars"></div>
-      </div>
-    </div>
-    <div class="slbl">
-      <h2>Reviews</h2>
-      <button class="see-all">See all →</button>
-    </div>
-    <div class="reviews-list" id="reviewsList"></div>
-  </div>
-
-  <div class="div"></div>
 
   <!-- ACTIVE LISTINGS -->
   <div class="slbl">
     <h2>Active Listings</h2>
     <a href="{% url 'listings:listings' %}">View all →</a>
   </div>
-  <div class="listings-scroll" id="listingsScroll"></div>
+  <div id="listingsScrollWrap">
+    <div class="listings-scroll" id="listingsScroll"></div>
+    <p id="listingsEmpty" style="display:none;font-size:.84rem;color:var(--m);padding:.5rem 0">No active listings yet. <a href="{% url 'listings:create' %}" style="color:var(--a)">Post one now →</a></p>
+  </div>
 
   <div class="div"></div>
 
@@ -161,14 +145,14 @@
   <div class="slbl"><h2>About</h2></div>
   <div class="info-grid">
     <div class="info-card">
-      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
+      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
       <div>
         <div class="info-label">Faculty</div>
         <div class="info-val" id="infoFaculty">—</div>
       </div>
     </div>
     <div class="info-card">
-      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
       <div>
         <div class="info-label">Location</div>
         <div class="info-val" id="infoLocation">—</div>
@@ -182,30 +166,12 @@
       </div>
     </div>
     <div class="info-card">
-      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
       <div>
         <div class="info-label">Member Since</div>
-        <div class="info-val">January 2025</div>
+        <div class="info-val" id="infoJoined">—</div>
       </div>
     </div>
-    <div class="info-card">
-      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-      <div>
-        <div class="info-label">Response Time</div>
-        <div class="info-val">Under 1 hour</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TRUST BADGES -->
-  <div class="slbl"><h2>Trust & Badges</h2></div>
-  <div class="badges-row">
-    <div class="badge-item gold"><span class="badge-ico">✅</span> Verified Student</div>
-    <div class="badge-item teal"><span class="badge-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> ID Verified</div>
-    <div class="badge-item gold"><span class="badge-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></span> Top Seller</div>
-    <div class="badge-item teal"><span class="badge-ico">⚡</span> Fast Responder</div>
-    <div class="badge-item gold"><span class="badge-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg></span> 30+ Trades</div>
-    <div class="badge-item teal"><span class="badge-ico">⭐</span> 5-Star Seller</div>
   </div>
 
   <!-- SETTINGS -->
@@ -215,29 +181,68 @@
   <div class="set-group">
     <div class="set-head">Appearance</div>
     <div class="set-row">
-      <div class="set-left"><div class="set-lbl">Dark Mode</div><div class="set-desc">Switch between light and dark interface</div></div>
-      <label class="toggle"><input type="checkbox" id="darkToggle" onchange="toggleDarkMode(this)"/><span class="tslider"></span></label>
+      <div class="set-left">
+        <div class="set-lbl">Dark Mode</div>
+        <div class="set-desc">Switch between light and dark interface</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="darkToggle" onchange="applyTheme(!isDark)"/>
+        <span class="tslider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="set-group">
+    <div class="set-head">Account</div>
+    <div class="set-row">
+      <div class="set-left">
+        <div class="set-lbl">Edit Profile</div>
+        <div class="set-desc">Update your name, bio, faculty, and photo</div>
+      </div>
+      <button class="edit-btn-sm" onclick="openEditModal()">Edit</button>
+    </div>
+    <div class="set-row">
+      <div class="set-left">
+        <div class="set-lbl">Change Username</div>
+        <div class="set-desc">Allowed once every 30 days</div>
+      </div>
+      <button class="edit-btn-sm" onclick="openUsernameModal()">Change</button>
+    </div>
+  </div>
+
+  <div class="set-group">
+    <div class="set-head">Danger Zone</div>
+    <div class="danger-zone" style="margin:0;border-radius:0;border:none;border-top:1px solid rgba(255,107,107,.15)">
+      <div class="dz-title">Deactivate Account</div>
+      <div class="dz-desc">Hides your profile and listings from other users. You can reactivate anytime.</div>
+      <button class="dz-btn" onclick="confirmDeactivate()">Deactivate</button>
+    </div>
+    <div class="danger-zone" style="margin:0;border-radius:0;border:none;border-top:1px solid rgba(255,107,107,.15)">
+      <div class="dz-title">Delete Account</div>
+      <div class="dz-desc">Permanently deletes your account and all listings. This cannot be undone.</div>
+      <button class="dz-btn" onclick="confirmDelete()">Delete Account</button>
     </div>
   </div>
 
   <!-- LOG OUT -->
   <div class="div"></div>
-  <button onclick="confirmLogout()" style="width:100%;padding:.82rem;border-radius:12px;background:rgba(255,107,107,.08);color:var(--red);border:1.5px solid rgba(255,107,107,.2);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;margin-bottom:1rem;transition:background .2s">
+  <a href="{% url 'auth:logout' %}" style="display:block;width:100%;padding:.82rem;border-radius:12px;background:rgba(255,107,107,.08);color:var(--red);border:1.5px solid rgba(255,107,107,.2);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;margin-bottom:1rem;text-align:center;text-decoration:none">
     Log Out
-  </button>
+  </a>
 
 </div><!-- /main -->
 
 <!-- EDIT PROFILE MODAL -->
-<div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+<div class="modal-overlay" id="editModal">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title">Edit Profile</div>
 
-    <!-- Avatar upload -->
     <div class="avatar-upload-row">
       <div class="av-preview" id="modalAvatarPreview">
-        <span id="modalAvatarInitials"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:50%;height:50%;opacity:.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span id="modalAvatarInitials">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:50%;height:50%;opacity:.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </span>
         <img id="modalAvatarImg" src="" alt="" style="display:none"/>
       </div>
       <label class="av-upload-btn">
@@ -249,10 +254,6 @@
     <div class="field">
       <label class="field-lbl">Full Name</label>
       <input type="text" id="editName" placeholder="Your full name" maxlength="50"/>
-    </div>
-    <div class="field">
-      <label class="field-lbl">Username</label>
-      <input type="text" id="editUsername" placeholder="@username" maxlength="30" oninput="this.value=this.value.replace(/[^a-zA-Z0-9._]/g,'')"/>
     </div>
     <div class="field">
       <label class="field-lbl">Phone Number</label>
@@ -267,197 +268,412 @@
       <label class="field-lbl">Faculty</label>
       <select id="editFaculty">
         <option value="">— Select faculty —</option>
-        <option>Engineering</option><option>Computer Science</option><option>Business</option><option>Medicine</option><option>Law</option><option>Other</option>
+        <option>Engineering</option>
+        <option>Computer Science</option>
+        <option>Business</option>
+        <option>Medicine</option>
+        <option>Law</option>
+        <option>Other</option>
       </select>
     </div>
     <div class="field">
       <label class="field-lbl">Location</label>
       <select id="editLocation">
         <option value="">— Select region —</option>
-        <option>Greater Accra</option><option>Ashanti</option><option>Central</option><option>Other</option>
+        <option>Greater Accra</option>
+        <option>Ashanti</option>
+        <option>Central</option>
+        <option>Other</option>
       </select>
     </div>
     <button class="save-btn" onclick="saveProfile()">Save Changes</button>
-    <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+    <button class="cancel-btn" onclick="closeModal('editModal')">Cancel</button>
   </div>
 </div>
 
-<!-- USERNAME CHANGE CONFIRMATION MODAL -->
-<div class="modal-overlay" id="usernameConfirmModal" onclick="closeUsernameConfirm(event)">
+<!-- USERNAME CHANGE MODAL -->
+<div class="modal-overlay" id="usernameModal">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="un-confirm-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-    <div class="modal-title">Change Username?</div>
-    <div class="un-confirm-body">
-      <p>Changing from <strong id="unFrom">@old</strong> to <strong id="unTo">@new</strong>.</p>
-      <p style="font-size:.75rem;opacity:.8;margin-top:.5rem">You can only change your username once every 30 days.</p>
+    <div class="un-confirm-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     </div>
-    <button class="save-btn" onclick="commitUsernameChange()">Yes, change it</button>
-    <button class="cancel-btn" onclick="closeUsernameConfirm()">Cancel</button>
+    <div class="modal-title">Change Username</div>
+    <div class="modal-sub">You can change your username once every 30 days.</div>
+    <div class="field">
+      <label class="field-lbl">New Username</label>
+      <input type="text" id="newUsernameInput" placeholder="@newusername" maxlength="30" oninput="this.value=this.value.replace(/[^a-zA-Z0-9._]/g,'')"/>
+      <div id="usernameNotice" class="username-notice" style="display:none"></div>
+    </div>
+    <button class="save-btn" id="usernameConfirmBtn" onclick="commitUsernameChange()">Confirm Change</button>
+    <button class="cancel-btn" onclick="closeModal('usernameModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- CONFIRM DEACTIVATE MODAL -->
+<div class="modal-overlay" id="deactivateModal">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--red)">Deactivate Account?</div>
+    <div class="modal-sub">Your profile and listings will be hidden until you log back in and reactivate.</div>
+    <button class="save-btn" style="background:var(--red)" onclick="doDeactivate()">Yes, Deactivate</button>
+    <button class="cancel-btn" onclick="closeModal('deactivateModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--red)">Delete Account?</div>
+    <div class="modal-sub">This will permanently delete your account and all your listings. <strong>This cannot be undone.</strong></div>
+    <div class="field" style="margin-top:.5rem">
+      <label class="field-lbl">Type <strong>DELETE</strong> to confirm</label>
+      <input type="text" id="deleteConfirmInput" placeholder="DELETE"/>
+    </div>
+    <button class="save-btn" style="background:var(--red)" onclick="doDelete()">Delete My Account</button>
+    <button class="cancel-btn" onclick="closeModal('deleteModal')">Cancel</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
+/* ── STATE ── */
+let _profile = {};
+let isDark = localStorage.getItem('pu-theme') !== 'light';
+
 /* ── THEME ── */
-(function(){
-  const H=document.documentElement,TB=document.getElementById('thbtn');
-  let d=localStorage.getItem('pu-theme')!=='light';
-  const apply=v=>{H.setAttribute('data-theme',v?'dark':'light');if(TB)TB.innerHTML=v?'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>':'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';localStorage.setItem('pu-theme',v?'dark':'light');const m=document.getElementById('themeColorMeta');if(m)m.setAttribute('content',v?'#0d0e11':'#f0ede8');d=v;};
-  apply(d);if(TB)TB.onclick=()=>apply(!d);
-})();
+function applyTheme(dark) {
+  isDark = dark;
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  localStorage.setItem('pu-theme', dark ? 'dark' : 'light');
+  const meta = document.getElementById('themeColorMeta');
+  if (meta) meta.setAttribute('content', dark ? '#0d0e11' : '#f0ede8');
+  const toggle = document.getElementById('darkToggle');
+  if (toggle) toggle.checked = dark;
+  renderThemeBtn();
+}
+function renderThemeBtn() {
+  const btn = document.getElementById('thbtn');
+  if (!btn) return;
+  btn.innerHTML = isDark
+    ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+    : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+}
+document.getElementById('thbtn').addEventListener('click', () => applyTheme(!isDark));
 
-/* ── CONFIG ── */
-const DEFAULT_P={name:'',username:'',bio:'',faculty:'',location:'',phone:'',avatarSrc:'',onlineStatus:true};
+/* ── HELPERS ── */
+const getCSRF = () => document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
+const showToast = msg => {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 2800);
+};
+const initials = n => {
+  const p = String(n || '').trim().split(' ').filter(Boolean);
+  return ((p[0]?.[0] || '') + (p[1]?.[0] || '')).toUpperCase() || '?';
+};
 
-/* ── CORE HELPERS ── */
-const getCSRF=()=>document.cookie.split('; ').find(row=>row.startsWith('csrftoken='))?.split('=')[1];
-const showToast=msg=>{const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.tt);window.toastTimer=setTimeout(()=>t.classList.remove('show'),2800);};
-const initials=n=>{const p=String(n||'').trim().split(' ').filter(Boolean);return((p[0]?.[0]||'')+(p[1]?.[0]||'')).toUpperCase()||'??';};
+/* ── MODAL HELPERS ── */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// Close on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+});
 
-/* ── PROFILE LOGIC ── */
-function loadLocalProfile(){try{const p=JSON.parse(localStorage.getItem('pu-profile'));return p?{...DEFAULT_P,...p}:DEFAULT_P;}catch{return DEFAULT_P;}}
-function saveLocalProfile(p){localStorage.setItem('pu-profile',JSON.stringify(p));}
+/* ── APPLY PROFILE DATA TO PAGE ── */
+function renderProfile(p) {
+  _profile = p;
 
-function applyProfile(p){
-  if(!p) return;
-  const name=p.name||p.username||'User';
-  document.getElementById('dispName').textContent=name;
-  document.getElementById('dispUsername').textContent=`@${p.username||'username'} · Member since Jan 2025`;
-  document.getElementById('dispBio').textContent=p.bio||'No bio added yet.';
-  document.getElementById('infoFaculty').textContent=p.faculty||'—';
-  document.getElementById('infoLocation').textContent=p.location||'—';
-  const infoPh = document.getElementById('infoPhone');
-  if(infoPh) infoPh.textContent = p.phone || '—';
-  
-  const img=document.getElementById('avatarImg'),mImg=document.getElementById('modalAvatarImg');
-  if(p.avatarSrc){
-    [img,mImg].forEach(el=>{if(el){el.src=p.avatarSrc;el.style.display='block';}});
-    ['avatarInitials','modalAvatarInitials'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  // Name
+  const name = p.name || p.username || '—';
+  document.getElementById('dispName').textContent = name;
+
+  // Username + joined
+  const joined = p.joined ? ` · Member since ${p.joined}` : '';
+  document.getElementById('dispUsername').textContent = `@${p.username || ''}${joined}`;
+
+  // Bio
+  document.getElementById('dispBio').textContent = p.bio || 'No bio yet.';
+
+  // Info cards
+  document.getElementById('infoFaculty').textContent = p.faculty || '—';
+  document.getElementById('infoLocation').textContent = p.location || '—';
+  document.getElementById('infoPhone').textContent = p.phone || '—';
+  document.getElementById('infoJoined').textContent = p.joined || '—';
+
+  // Tags
+  const tagLoc = document.getElementById('tagLocation');
+  const tagFac = document.getElementById('tagFaculty');
+  if (p.location) { document.getElementById('tagLocationTxt').textContent = p.location; tagLoc.style.display = ''; }
+  if (p.faculty)  { document.getElementById('tagFacultyTxt').textContent = p.faculty;   tagFac.style.display = ''; }
+
+  // Stats
+  document.getElementById('statListings').textContent = p.listing_count ?? '—';
+  document.getElementById('statSold').textContent     = p.sold_count ?? '—';
+
+  // Avatar
+  const img  = document.getElementById('avatarImg');
+  const init = document.getElementById('avatarInitials');
+  const mImg  = document.getElementById('modalAvatarImg');
+  const mInit = document.getElementById('modalAvatarInitials');
+  if (p.avatarSrc) {
+    img.src = p.avatarSrc; img.style.display = 'block'; init.style.display = 'none';
+    mImg.src = p.avatarSrc; mImg.style.display = 'block'; mInit.style.display = 'none';
   } else {
-    [img,mImg].forEach(el=>{if(el)el.style.display='none';});
-    ['avatarInitials','modalAvatarInitials'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
+    const txt = initials(name);
+    init.textContent = txt; init.style.display = '';
+    mInit.textContent = txt; mInit.style.display = '';
+    img.style.display = 'none'; mImg.style.display = 'none';
   }
-  if(p.location){const t=document.getElementById('tagLocation');if(t)t.textContent=p.location;}
-  if(p.faculty){const t=document.getElementById('tagFaculty');if(t)t.textContent=p.faculty;}
+
+  // Active listings
+  renderListings(p.active_listings || []);
 }
 
-async function syncWithDjango(){
-  try{
-    const res=await fetch('/profile/api/me/');
-    if(res.ok){
-      const data=await res.json();
-      saveLocalProfile(data);
-      applyProfile(data);
-      updateProfileStats();
-    }else if(res.status===403){location.href='{% url "auth:auth_view" %}';}
-  }catch(e){console.warn('Sync failed, using local data');applyProfile(loadLocalProfile());}
+function renderListings(items) {
+  const scroll = document.getElementById('listingsScroll');
+  const empty  = document.getElementById('listingsEmpty');
+  if (!items.length) {
+    scroll.style.display = 'none';
+    empty.style.display  = '';
+    return;
+  }
+  scroll.style.display = '';
+  empty.style.display  = 'none';
+  scroll.innerHTML = items.map(l => {
+    const price = l.contact_for_price ? 'Negotiate' : `GH₵ ${parseFloat(l.price).toLocaleString()}`;
+    const img   = l.image_url
+      ? `<img src="${l.image_url}" alt="${l.title}" style="width:100%;height:100%;object-fit:cover">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.2rem">🏷️</div>`;
+    const badge = l.status === 'sold'
+      ? `<span class="lcard-badge badge-sold">SOLD</span>`
+      : l.status === 'boosted'
+      ? `<span class="lcard-badge badge-active">BOOSTED</span>`
+      : `<span class="lcard-badge badge-active">ACTIVE</span>`;
+    return `
+      <div class="lcard" onclick="location.href='/listings/${l.id}/'" style="cursor:pointer">
+        <div class="lcard-img">${img}${badge}</div>
+        <div class="lcard-body">
+          <div class="lcard-name">${l.title}</div>
+          <div class="lcard-price">${price}</div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
-/* ── EDITING ── */
-function openEditModal(){
-  const p=loadLocalProfile();
-  document.getElementById('editName').value=p.name;
-  document.getElementById('editUsername').value=p.username;
-  document.getElementById('editPhone').value=p.phone||'';
-  document.getElementById('editBio').value=p.bio;
-  document.getElementById('editFaculty').value=p.faculty||'';
-  document.getElementById('editLocation').value=p.location||'';
-  document.getElementById('bioCount').textContent=p.bio.length+' / 200';
-  document.getElementById('editModal').classList.add('open');
+/* ── LOAD FROM SERVER ── */
+async function loadProfile() {
+  try {
+    const res = await fetch('/profile/api/me/');
+    if (res.status === 403 || res.status === 401) { location.href = '{% url "auth:auth_view" %}'; return; }
+    if (!res.ok) throw new Error('Server error');
+    const data = await res.json();
+    renderProfile(data);
+    // Saved count from wishlist localStorage (approximation)
+    const saved = JSON.parse(localStorage.getItem('pu-wishlist') || '[]');
+    document.getElementById('statSaved').textContent = saved.length || '—';
+  } catch (e) {
+    showToast('Could not load profile');
+  }
 }
-function closeEditModal(){document.getElementById('editModal').classList.remove('open');}
 
-async function saveProfile(){
-  const name=document.getElementById('editName').value.trim();
-  const username=document.getElementById('editUsername').value.trim().replace(/^@/,'');
-  const phone=document.getElementById('editPhone').value.trim();
-  if(!name||!username){showToast('Name and Username required');return;}
-  
-  const payload={
-    name,username,phone,
-    bio:document.getElementById('editBio').value.trim(),
-    faculty:document.getElementById('editFaculty').value,
-    location:document.getElementById('editLocation').value,
-    avatarSrc:window._pendingAvatar||loadLocalProfile().avatarSrc
+/* ── EDIT PROFILE ── */
+function openEditModal() {
+  document.getElementById('editName').value    = _profile.name || '';
+  document.getElementById('editPhone').value   = _profile.phone || '';
+  document.getElementById('editBio').value     = _profile.bio || '';
+  document.getElementById('bioCount').textContent = (_profile.bio || '').length + ' / 200';
+  document.getElementById('editFaculty').value = _profile.faculty || '';
+  document.getElementById('editLocation').value = _profile.location || '';
+  window._pendingAvatar = null;
+  openModal('editModal');
+}
+
+async function saveProfile() {
+  const name  = document.getElementById('editName').value.trim();
+  const phone = document.getElementById('editPhone').value.trim();
+  if (!name) { showToast('Name is required'); return; }
+
+  const payload = {
+    name,
+    phone,
+    bio:      document.getElementById('editBio').value.trim(),
+    faculty:  document.getElementById('editFaculty').value,
+    location: document.getElementById('editLocation').value,
+    avatarSrc: window._pendingAvatar || _profile.avatarSrc || '',
   };
 
-  try{
-    const res=await fetch('/profile/api/update/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCSRF()},body:JSON.stringify(payload)});
-    if(res.ok){
-      saveLocalProfile(payload);applyProfile(payload);
-      closeEditModal();showToast('Profile updated');
-      delete window._pendingAvatar;
-    }else{
-      const err=await res.json().catch(()=>({}));
-      showToast(err.message||'Update failed');
+  try {
+    const res = await fetch('/profile/api/update/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      closeModal('editModal');
+      showToast('Profile updated ✓');
+      window._pendingAvatar = null;
+      await loadProfile();
+    } else {
+      showToast(json.message || 'Update failed');
     }
-  }catch(e){showToast('Connection error');}
+  } catch (e) {
+    showToast('Connection error');
+  }
+}
+
+/* ── INLINE NAME EDIT ── */
+function toggleNameEdit() {
+  const row = document.getElementById('nameEditRow');
+  const showing = row.style.display !== 'none';
+  if (!showing) {
+    document.getElementById('inlineNameInput').value = _profile.name || '';
+    row.style.display = '';
+    document.getElementById('inlineNameInput').focus();
+  } else {
+    cancelNameEdit();
+  }
+}
+function cancelNameEdit() { document.getElementById('nameEditRow').style.display = 'none'; }
+async function saveInlineName() {
+  const name = document.getElementById('inlineNameInput').value.trim();
+  if (!name) { showToast('Name cannot be empty'); return; }
+  const payload = { ..._profile, name };
+  try {
+    const res = await fetch('/profile/api/update/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      cancelNameEdit();
+      showToast('Name updated ✓');
+      await loadProfile();
+    } else {
+      const j = await res.json().catch(() => ({}));
+      showToast(j.message || 'Update failed');
+    }
+  } catch { showToast('Connection error'); }
+}
+
+/* ── USERNAME CHANGE ── */
+function openUsernameModal() {
+  document.getElementById('newUsernameInput').value = '';
+  document.getElementById('usernameNotice').style.display = 'none';
+  openModal('usernameModal');
+}
+async function commitUsernameChange() {
+  const newUn = document.getElementById('newUsernameInput').value.trim().replace(/^@/, '');
+  if (!newUn) { showToast('Enter a username'); return; }
+  if (newUn === _profile.username) { showToast('Same as current username'); return; }
+  const notice = document.getElementById('usernameNotice');
+
+  const payload = { ..._profile, username: newUn };
+  try {
+    const res = await fetch('/profile/api/update/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      closeModal('usernameModal');
+      showToast('Username changed ✓');
+      await loadProfile();
+    } else {
+      notice.textContent = json.message || 'Username already taken';
+      notice.className = 'username-notice locked';
+      notice.style.display = '';
+    }
+  } catch { showToast('Connection error'); }
 }
 
 /* ── AVATAR UPLOAD ── */
-async function uploadToR2(file, resourceType) {
-  resourceType = resourceType || 'image';
+async function uploadToR2(file) {
   const presign = await fetch('/api/r2-presign/', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCSRF()},
-    body: JSON.stringify({filename: file.name, content_type: file.type, resource_type: resourceType}),
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+    body: JSON.stringify({ filename: file.name, content_type: file.type, resource_type: 'image' }),
   });
   if (!presign.ok) throw new Error('Could not get upload URL');
-  const {upload_url, public_url} = await presign.json();
-  const put = await fetch(upload_url, {method: 'PUT', headers: {'Content-Type': file.type}, body: file});
+  const { upload_url, public_url } = await presign.json();
+  const put = await fetch(upload_url, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
   if (!put.ok) throw new Error('Upload failed');
   return public_url;
 }
 
-function handleDirectAvatarUpload(input){
-  const f=input.files[0];if(!f)return;
-  showToast('Uploading...');
-  uploadToR2(f,'image').then(url=>{
-    const p=loadLocalProfile();p.avatarSrc=url;
-    saveLocalProfile(p);applyProfile(p);
-    fetch('/profile/api/update/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCSRF()},body:JSON.stringify(p)});
-    showToast('Photo updated');
-  }).catch(()=>showToast('Upload failed'));
-}
-function handleAvatarUpload(input){
-  const f=input.files[0];if(!f)return;
-  showToast('Uploading preview...');
-  uploadToR2(f,'image').then(url=>{
-    window._pendingAvatar=url;
-    document.getElementById('modalAvatarImg').src=url;
-    document.getElementById('modalAvatarImg').style.display='block';
-    document.getElementById('modalAvatarInitials').style.display='none';
-    showToast('Ready to save');
-  });
+function handleDirectAvatarUpload(input) {
+  const f = input.files[0]; if (!f) return;
+  showToast('Uploading…');
+  uploadToR2(f).then(async url => {
+    const payload = { ..._profile, avatarSrc: url };
+    const res = await fetch('/profile/api/update/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) { showToast('Photo updated ✓'); await loadProfile(); }
+    else showToast('Save failed');
+  }).catch(() => showToast('Upload failed'));
 }
 
-/* ── STATS & LISTINGS ── */
-function updateProfileStats(){
-  try{
-    const all=JSON.parse(localStorage.getItem('pu-listings')||'[]');
-    const p=loadLocalProfile();
-    const mine=all.filter(l=>l.sellerUsername===p.username||l.seller===p.name);
-    document.getElementById('profStatListings').textContent=mine.length;
-    document.getElementById('profStatTrades').textContent=mine.filter(l=>l.status==='sold').length;
-  }catch(e){}
+function handleAvatarUpload(input) {
+  const f = input.files[0]; if (!f) return;
+  showToast('Uploading…');
+  uploadToR2(f).then(url => {
+    window._pendingAvatar = url;
+    const mImg  = document.getElementById('modalAvatarImg');
+    const mInit = document.getElementById('modalAvatarInitials');
+    mImg.src = url; mImg.style.display = 'block'; mInit.style.display = 'none';
+    showToast('Photo ready — save to apply');
+  }).catch(() => showToast('Upload failed'));
+}
+
+/* ── DEACTIVATE / DELETE ── */
+function confirmDeactivate() { openModal('deactivateModal'); }
+async function doDeactivate() {
+  try {
+    const res = await fetch('/auth/deactivate/', { method: 'POST', headers: { 'X-CSRFToken': getCSRF() } });
+    if (res.ok) location.href = '{% url "auth:auth_view" %}';
+    else showToast('Could not deactivate');
+  } catch { showToast('Connection error'); }
+}
+
+function confirmDelete() {
+  document.getElementById('deleteConfirmInput').value = '';
+  openModal('deleteModal');
+}
+async function doDelete() {
+  if (document.getElementById('deleteConfirmInput').value !== 'DELETE') {
+    showToast('Type DELETE to confirm');
+    return;
+  }
+  try {
+    const res = await fetch('/auth/delete-account/', { method: 'POST', headers: { 'X-CSRFToken': getCSRF() } });
+    if (res.ok) location.href = '{% url "auth:auth_view" %}';
+    else showToast('Could not delete account');
+  } catch { showToast('Connection error'); }
+}
+
+/* ── SCROLL TO SETTINGS ── */
+function smoothToSettings(e) {
+  if (e) e.preventDefault();
+  document.getElementById('settings')?.scrollIntoView({ behavior: 'smooth' });
 }
 
 /* ── INIT ── */
-document.addEventListener('DOMContentLoaded',()=>{
-  applyProfile(loadLocalProfile());
-  syncWithDjango();
-  updateProfileStats();
-  // Rating bars simulation
-  const data=[{s:5,p:85},{s:4,p:10},{s:3,p:3},{s:2,p:1},{s:1,p:1}];
-  document.getElementById('ratingBars').innerHTML=data.map(d=>`<div class="rbar-row"><span class="rbar-lbl">${d.s}</span><div class="rbar-track"><div class="rbar-fill" style="width:${d.p}%"></div></div><span class="rbar-pct">${d.p}%</span></div>`).join('');
+document.addEventListener('DOMContentLoaded', () => {
+  applyTheme(isDark);
+  loadProfile();
 });
-
-function confirmLogout(){if(confirm('Log out?'))location.href='{% url "auth:auth_view" %}';}
-function smoothToSettings(){document.getElementById('settings')?.scrollIntoView({behavior:'smooth'});}
-
 </script>
+
 <script>(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.register('/sw.js',{scope:'/'}).then(reg=>{if(!('Notification' in window)||!('PushManager' in window))return;if(Notification.permission==='denied')return;Notification.requestPermission().then(p=>{if(p!=='granted')return;const vapidKey='{{ VAPID_PUBLIC_KEY }}';if(!vapidKey)return;reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_u8(vapidKey)}).then(sub=>{const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';fetch('/chat/api/push-subscribe/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(sub.toJSON())});}).catch(()=>{});});}).catch(()=>{});function _u8(b64){const p=(b64+'='.repeat((4-b64.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');const r=atob(p);const o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o;}})();</script>
 </body>
 </html>

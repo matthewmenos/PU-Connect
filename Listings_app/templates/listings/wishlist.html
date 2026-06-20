@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
+<script>(function(){var t=localStorage.getItem('pu-theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="theme-color" content="#0d0e11" id="themeColorMeta"/>
@@ -256,8 +257,7 @@ function filt(pill, cat) {
 
 /* ── OPEN DETAIL ── */
 function openDetail(id) {
-  try { localStorage.setItem('pu-open-listing', String(id)); } catch(e) {}
-  location.href = 'dashboard.html';
+  location.href = '/listings/' + String(id) + '/';
 }
 
 /* ── TOAST ── */

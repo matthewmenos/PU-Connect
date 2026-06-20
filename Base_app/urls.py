@@ -17,6 +17,7 @@ urlpatterns = [
     path('safety/', views.safety, name='safety'),
     path('contact/', views.contact, name='contact'),
     path('categories/', views.browse_categories, name='categories'),
+    path('categories/<str:category>/', views.browse_categories, name='categories_filtered'),
 
     # Admin dashboard
     path('site-admin/', views.admin_dashboard, name='admin_dashboard'),
