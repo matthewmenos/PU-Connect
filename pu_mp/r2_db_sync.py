@@ -41,20 +41,24 @@ def _r2_enabled():
 
 # ── Core operations ───────────────────────────────────────────────────────────
 
-def _download_if_missing(key: str, local_path: str) -> None:
-    """Download key from R2 to local_path only if local_path doesn't exist."""
-    if os.path.exists(local_path):
-        return
-    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+def _download(key: str, local_path: str) -> None:
+    """Download key from R2 to local_path, overwriting any existing local file.
+    If the key doesn't exist in R2 yet (first run), leaves local_path untouched."""
+    os.makedirs(os.path.dirname(os.path.abspath(local_path)), exist_ok=True)
+    tmp = local_path + ".r2tmp"
     try:
-        _client().download_file(settings.CF_R2_DB_BUCKET, key, local_path)
+        _client().download_file(settings.CF_R2_DB_BUCKET, key, tmp)
+        os.replace(tmp, local_path)
         logger.info("R2 DB sync: downloaded %s → %s", key, local_path)
     except ClientError as e:
         code = e.response["Error"]["Code"]
         if code in ("NoSuchKey", "404"):
-            # First run — DB doesn't exist in R2 yet; will be uploaded after first flush
-            logger.info("R2 DB sync: %s not found in R2 — will be created on first flush", key)
+            logger.info("R2 DB sync: %s not in R2 yet — will upload after first migrate", key)
+            if os.path.exists(tmp):
+                os.remove(tmp)
         else:
+            if os.path.exists(tmp):
+                os.remove(tmp)
             raise
 
 
@@ -88,9 +92,9 @@ def sync_on_startup() -> None:
         return
     for key, local_path in _db_files():
         try:
-            _download_if_missing(key, local_path)
+            _download(key, local_path)
         except Exception:
-            logger.exception("R2 DB sync: failed to download %s — continuing with local file", key)
+            logger.exception("R2 DB sync: failed to download %s — continuing with existing local file", key)
 
 
 def flush_all() -> None:
@@ -111,13 +115,14 @@ _flush_lock = threading.Lock()
 
 
 def start_flush_thread(interval: int = 30) -> None:
-    """Start a daemon thread that flushes both DBs to R2 every `interval` seconds.
+    """Start a daemon thread that flushes the DB to R2 every `interval` seconds.
     Safe to call multiple times — only starts one thread."""
     global _flush_thread_started
+    if not _r2_enabled():
+        logger.info("R2 DB sync: R2 not configured — background flush disabled")
+        return
     with _flush_lock:
         if _flush_thread_started:
-            return
-        if not _r2_enabled():
             return
         _flush_thread_started = True
 
