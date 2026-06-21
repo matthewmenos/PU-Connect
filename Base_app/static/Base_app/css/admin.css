@@ -10,9 +10,9 @@
   --red-glow:rgba(255,107,107,.15);--blue-glow:rgba(96,165,250,.15);
   --sh:0 8px 40px rgba(0,0,0,.6);
   --nav-w:240px;
-  --font:'Space Grotesk',sans-serif;
-  --font-display:'Syne',sans-serif;
-  --font-mono:'JetBrains Mono',monospace;
+  --font:'DM Sans',sans-serif;
+  --font-display:'Playfair Display',serif;
+  --font-mono:'DM Sans',monospace;
   --r:12px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}

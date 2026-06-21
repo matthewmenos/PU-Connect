@@ -388,6 +388,22 @@ def admin_api_stats(request):
     total_messages = Message.objects.count()
     suspended_users = User.objects.filter(is_active=False).count()
 
+    # Reels count
+    try:
+        from Reels_app.models import Reel
+        total_reels = Reel.objects.count()
+        flagged_reels = Reel.objects.filter(status='flagged').count()
+    except Exception:
+        total_reels = None
+        flagged_reels = None
+
+    # Open reports (using Profile_app report model if it exists)
+    try:
+        from Profile_app.models import Report
+        open_reports = Report.objects.filter(status='open').count()
+    except Exception:
+        open_reports = 0
+
     return JsonResponse({
         'total_users': total_users,
         'active_listings': active_listings,
@@ -395,6 +411,9 @@ def admin_api_stats(request):
         'total_conversations': total_conversations,
         'total_messages': total_messages,
         'suspended_users': suspended_users,
+        'open_reports': open_reports,
+        'total_reels': total_reels,
+        'flagged_reels': flagged_reels,
     })
 
 

@@ -8,7 +8,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#060810"/>
 <title>Admin — PU-Connect</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="{% static 'Base_app/css/admin.css' %}">
   <link rel="manifest" href="/static/manifest.json">
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
@@ -60,7 +60,7 @@
   <div class="sb-item" onclick="nav('reports',this)">
     <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     Reports
-    <span class="sb-badge" id="sbReportBadge">7</span>
+    <span class="sb-badge" id="sbReportBadge">0</span>
   </div>
   <div class="sb-item" onclick="nav('moderation',this)">
     <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -141,52 +141,52 @@
         <div class="stat-card gold" onclick="nav('users',document.querySelector('[onclick*=users]'))">
           <div class="stat-glow"></div>
           <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Total Users</div>
-          <div class="stat-value" id="kpiUsers">1,284</div>
-          <div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> +12% this week</div>
+          <div class="stat-value" id="kpiUsers">—</div>
+          <div class="stat-delta" style="color:var(--m)">Registered students</div>
         </div>
         <div class="stat-card teal" onclick="nav('listings',document.querySelector('[onclick*=listings]'))">
           <div class="stat-glow"></div>
           <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Active Listings</div>
-          <div class="stat-value" id="kpiListings">847</div>
-          <div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> +34 today</div>
+          <div class="stat-value" id="kpiListings">—</div>
+          <div class="stat-delta" style="color:var(--m)">Live marketplace items</div>
         </div>
         <div class="stat-card blue">
           <div class="stat-glow"></div>
           <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Completed Trades</div>
-          <div class="stat-value">4,821</div>
-          <div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> +8.3% this month</div>
+          <div class="stat-value" id="kpiTrades">—</div>
+          <div class="stat-delta" style="color:var(--m)">Confirmed meetups</div>
         </div>
         <div class="stat-card red" onclick="nav('reports',document.querySelector('[onclick*=reports]'))">
           <div class="stat-glow"></div>
           <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Open Reports</div>
-          <div class="stat-value" id="kpiReports">7</div>
-          <div class="stat-delta down"><svg viewBox="0 0 24 24"><polyline points="18 9 12 15 6 9"/></svg> Needs attention</div>
+          <div class="stat-value" id="kpiReports">—</div>
+          <div class="stat-delta" style="color:var(--m)">Awaiting review</div>
         </div>
       </div>
       <div class="stats-grid">
         <div class="stat-card gold">
           <div class="stat-glow"></div>
           <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> GMV This Month</div>
-          <div class="stat-value">GH₵ 84k</div>
-          <div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> +22% vs last month</div>
+          <div class="stat-value" id="kpiGmv">—</div>
+          <div class="stat-delta" style="color:var(--m)">Total trade value</div>
         </div>
         <div class="stat-card purple">
           <div class="stat-glow"></div>
           <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span> Reels Uploaded</div>
-          <div class="stat-value">312</div>
-          <div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> +61 this week</div>
+          <div class="stat-value" id="kpiReels">—</div>
+          <div class="stat-delta" style="color:var(--m)">Total video content</div>
         </div>
         <div class="stat-card teal">
           <div class="stat-glow"></div>
-          <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Messages Today</div>
-          <div class="stat-value">2,190</div>
-          <div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> +15% vs yesterday</div>
+          <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Messages Sent</div>
+          <div class="stat-value" id="kpiMessages">—</div>
+          <div class="stat-delta" style="color:var(--m)">Total messages</div>
         </div>
         <div class="stat-card orange">
           <div class="stat-glow"></div>
           <div class="stat-label"><span class="stat-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> Avg. Rating</div>
-          <div class="stat-value">4.83</div>
-          <div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg> Stable</div>
+          <div class="stat-value" id="kpiRating">—</div>
+          <div class="stat-delta" style="color:var(--m)">User satisfaction</div>
         </div>
       </div>
 
@@ -216,16 +216,10 @@
                 <circle cx="45" cy="45" r="36" fill="none" stroke="#a78bfa" stroke-width="12" stroke-dasharray="20 206" stroke-dashoffset="-155"/>
                 <circle cx="45" cy="45" r="36" fill="none" stroke="#fb923c" stroke-width="12" stroke-dasharray="51 175" stroke-dashoffset="-175"/>
               </svg>
-              <div class="donut-center"><div class="donut-num">847</div><div class="donut-sub">Listings</div></div>
+              <div class="donut-center"><div class="donut-num" id="donutListings">—</div><div class="donut-sub">Listings</div></div>
             </div>
-            <div style="flex:1;display:flex;flex-direction:column;gap:.5rem">
-              ${[['Electronics','gold',35],['Textbooks','teal',20],['Food & Drinks','blue',13],['Fashion','purple',9],['Services','orange',23]].map(([k,c,p])=>`
-              <div style="display:flex;align-items:center;gap:.5rem">
-                <div style="width:8px;height:8px;border-radius:2px;background:var(--${c});flex-shrink:0"></div>
-                <div style="font-size:.75rem;flex:1;color:var(--m)">${k}</div>
-                <div style="font-size:.73rem;font-family:var(--font-mono);color:var(--t)">${p}%</div>
-                <div class="prog-track" style="width:60px"><div class="prog-fill" style="width:${p}%;background:var(--${c})"></div></div>
-              </div>`).join('')}
+            <div style="flex:1;display:flex;flex-direction:column;gap:.5rem" id="catBreakdown">
+              <div style="color:var(--m);font-size:.8rem;text-align:center;padding:.5rem 0">Loading…</div>
             </div>
           </div>
         </div>
@@ -271,10 +265,10 @@
         </div>
       </div>
       <div class="stats-grid">
-        <div class="stat-card gold"><div class="stat-glow"></div><div class="stat-label">New Signups</div><div class="stat-value">+284</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+18% vs prev period</div></div>
-        <div class="stat-card teal"><div class="stat-glow"></div><div class="stat-label">DAU</div><div class="stat-value">639</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>Daily active users</div></div>
-        <div class="stat-card blue"><div class="stat-glow"></div><div class="stat-label">Reel Views</div><div class="stat-value">48.2k</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+41% this week</div></div>
-        <div class="stat-card purple"><div class="stat-glow"></div><div class="stat-label">Avg Session</div><div class="stat-value">8m 24s</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+2m vs last month</div></div>
+        <div class="stat-card gold"><div class="stat-glow"></div><div class="stat-label">New Signups</div><div class="stat-value" id="anaSignups">—</div><div class="stat-delta" style="color:var(--m)">Registered users</div></div>
+        <div class="stat-card teal"><div class="stat-glow"></div><div class="stat-label">Total Users</div><div class="stat-value" id="anaTotalUsers">—</div><div class="stat-delta" style="color:var(--m)">All registered</div></div>
+        <div class="stat-card blue"><div class="stat-glow"></div><div class="stat-label">Active Listings</div><div class="stat-value" id="anaListings">—</div><div class="stat-delta" style="color:var(--m)">Currently live</div></div>
+        <div class="stat-card purple"><div class="stat-glow"></div><div class="stat-label">Open Reports</div><div class="stat-value" id="anaReports">—</div><div class="stat-delta" style="color:var(--m)">Awaiting review</div></div>
       </div>
       <div class="grid-2">
         <div class="card"><div class="card-head"><div class="card-title">Daily Active Users — 30d</div></div><div class="card-body"><div class="bar-chart" id="dauChart"></div></div></div>
@@ -284,8 +278,6 @@
         <div class="card-head"><div class="card-title">Top Search Terms</div></div>
         <div class="card-body">
           <div style="text-align:center;padding:2rem;color:var(--m);font-size:.84rem">Search analytics will appear here once users are active on the platform.</div>
-          </div>`).join('')}
-          </div>
         </div>
       </div>
     </div>
@@ -362,10 +354,10 @@
         </div>
       </div>
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card gold"><div class="stat-glow"></div><div class="stat-label">Total Reels</div><div class="stat-value">312</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+61 this week</div></div>
-        <div class="stat-card teal"><div class="stat-glow"></div><div class="stat-label">Total Views</div><div class="stat-value">48.2k</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+41%</div></div>
-        <div class="stat-card blue"><div class="stat-glow"></div><div class="stat-label">Total Likes</div><div class="stat-value">12.8k</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+26%</div></div>
-        <div class="stat-card red"><div class="stat-glow"></div><div class="stat-label">Flagged</div><div class="stat-value">3</div><div class="stat-delta down"><svg viewBox="0 0 24 24"><polyline points="18 9 12 15 6 9"/></svg>Review needed</div></div>
+        <div class="stat-card gold"><div class="stat-glow"></div><div class="stat-label">Total Reels</div><div class="stat-value" id="reelStatTotal">—</div><div class="stat-delta" style="color:var(--m)">Uploaded videos</div></div>
+        <div class="stat-card teal"><div class="stat-glow"></div><div class="stat-label">Total Views</div><div class="stat-value" id="reelStatViews">—</div><div class="stat-delta" style="color:var(--m)">Across all reels</div></div>
+        <div class="stat-card blue"><div class="stat-glow"></div><div class="stat-label">Total Likes</div><div class="stat-value" id="reelStatLikes">—</div><div class="stat-delta" style="color:var(--m)">Across all reels</div></div>
+        <div class="stat-card red"><div class="stat-glow"></div><div class="stat-label">Flagged</div><div class="stat-value" id="reelStatFlagged">—</div><div class="stat-delta down">Review needed</div></div>
       </div>
       <div class="filter-bar">
         <div class="search-box"><svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="reelSearch" placeholder="Search reels…" oninput="debouncedFilter(()=>{PAGE.reels=1;renderReels();},'reels')"/></div>
@@ -382,6 +374,9 @@
         </div>
         <div id="reelsPager"></div>
       </div>
+    </div>
+
+    <!-- ══════════════ TRANSACTIONS ══════════════ -->
     <div class="section" id="sec-transactions">
       <div class="page-header">
         <div class="page-header-left">
@@ -394,10 +389,10 @@
         </div>
       </div>
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card gold"><div class="stat-glow"></div><div class="stat-label">Total GMV</div><div class="stat-value">GH₵ 84k</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+22% this month</div></div>
-        <div class="stat-card teal"><div class="stat-glow"></div><div class="stat-label">Completed</div><div class="stat-value">4,821</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+8.3%</div></div>
-        <div class="stat-card orange"><div class="stat-glow"></div><div class="stat-label">Avg Trade Value</div><div class="stat-value">GH₵ 174</div><div class="stat-delta up"><svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>+GH₵ 12 vs last month</div></div>
-        <div class="stat-card red"><div class="stat-glow"></div><div class="stat-label">Disputed</div><div class="stat-value">4</div><div class="stat-delta down"><svg viewBox="0 0 24 24"><polyline points="18 9 12 15 6 9"/></svg>Needs review</div></div>
+        <div class="stat-card gold"><div class="stat-glow"></div><div class="stat-label">Total GMV</div><div class="stat-value" id="txStatGmv">—</div><div class="stat-delta" style="color:var(--m)">Total trade value</div></div>
+        <div class="stat-card teal"><div class="stat-glow"></div><div class="stat-label">Completed</div><div class="stat-value" id="txStatCompleted">—</div><div class="stat-delta" style="color:var(--m)">Confirmed trades</div></div>
+        <div class="stat-card orange"><div class="stat-glow"></div><div class="stat-label">Avg Trade Value</div><div class="stat-value" id="txStatAvg">—</div><div class="stat-delta" style="color:var(--m)">Per transaction</div></div>
+        <div class="stat-card red"><div class="stat-glow"></div><div class="stat-label">Disputed</div><div class="stat-value" id="txStatDisputed">—</div><div class="stat-delta down">Review needed</div></div>
       </div>
       <div class="filter-bar">
         <div class="search-box"><svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="txSearch" placeholder="Search by ID, user or item…" oninput="debouncedFilter(()=>{PAGE.transactions=1;renderTransactions();},'tx')"/></div>
@@ -427,7 +422,7 @@
       </div>
       <div class="notice">
         <span class="notice-ico"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-        <span><strong id="openReportsNotice">7 open reports</strong> require review. Reports older than 2 hours are highlighted. Our SLA is <strong id="slaHours">2</strong>-hour response time.</span>
+        <span><strong id="openReportsNotice">0 open reports</strong> require review. Reports older than 2 hours are highlighted. Our SLA is <strong id="slaHours">2</strong>-hour response time.</span>
       </div>
       <div class="filter-bar">
         <select class="filter-select" id="reportStatusFilter" onchange="PAGE.reports=1;renderReports()">
@@ -492,31 +487,83 @@
         <div class="card">
           <div class="card-head"><div class="card-title">Platform</div></div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:.9rem">
-            ${[['Maintenance Mode','Take the platform offline for maintenance','maintenance',false],['User Registration','Allow new students to sign up','registration',true],['Listing Creation','Allow users to post new listings','listing_create',true],['Reels Upload','Allow video uploads to Reels','reels_upload',true]].map(([l,d,k,def])=>`
             <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
-              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">${l}</div><div style="font-size:.74rem;color:var(--m)">${d}</div></div>
+              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">Maintenance Mode</div><div style="font-size:.74rem;color:var(--m)">Take the platform offline for maintenance</div></div>
               <label style="position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block">
-                <input type="checkbox" style="opacity:0;width:0;height:0" ${def?'checked':''} onchange="settingToggled('${k}',this.checked)"/>
-                <span style="position:absolute;cursor:pointer;inset:0;background:${def?'var(--gold)':'rgba(255,255,255,.1)'};border-radius:99px;transition:.3s" id="tog-${k}">
-                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:${def?'21':'3'}px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-${k}"></span>
+                <input type="checkbox" style="opacity:0;width:0;height:0" onchange="settingToggled('maintenance',this.checked)"/>
+                <span style="position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,.1);border-radius:99px;transition:.3s" id="tog-maintenance">
+                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:3px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-maintenance"></span>
                 </span>
               </label>
-            </div>`).join('')}
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">User Registration</div><div style="font-size:.74rem;color:var(--m)">Allow new students to sign up</div></div>
+              <label style="position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block">
+                <input type="checkbox" style="opacity:0;width:0;height:0" checked onchange="settingToggled('registration',this.checked)"/>
+                <span style="position:absolute;cursor:pointer;inset:0;background:var(--gold);border-radius:99px;transition:.3s" id="tog-registration">
+                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:21px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-registration"></span>
+                </span>
+              </label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">Listing Creation</div><div style="font-size:.74rem;color:var(--m)">Allow users to post new listings</div></div>
+              <label style="position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block">
+                <input type="checkbox" style="opacity:0;width:0;height:0" checked onchange="settingToggled('listing_create',this.checked)"/>
+                <span style="position:absolute;cursor:pointer;inset:0;background:var(--gold);border-radius:99px;transition:.3s" id="tog-listing_create">
+                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:21px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-listing_create"></span>
+                </span>
+              </label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">Reels Upload</div><div style="font-size:.74rem;color:var(--m)">Allow video uploads to Reels</div></div>
+              <label style="position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block">
+                <input type="checkbox" style="opacity:0;width:0;height:0" checked onchange="settingToggled('reels_upload',this.checked)"/>
+                <span style="position:absolute;cursor:pointer;inset:0;background:var(--gold);border-radius:99px;transition:.3s" id="tog-reels_upload">
+                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:21px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-reels_upload"></span>
+                </span>
+              </label>
+            </div>
           </div>
         </div>
         <div class="card">
           <div class="card-head"><div class="card-title">Notifications</div></div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:.9rem">
-            ${[['Report Alerts','Email admin when a new report is submitted','notif_reports',true],['New User Alerts','Alert on new registrations','notif_users',false],['Flagged Content','Alert on auto-flagged listings or reels','notif_flagged',true],['Daily Digest','Send daily summary email to admin','notif_digest',true]].map(([l,d,k,def])=>`
             <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
-              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">${l}</div><div style="font-size:.74rem;color:var(--m)">${d}</div></div>
+              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">Report Alerts</div><div style="font-size:.74rem;color:var(--m)">Email admin when a new report is submitted</div></div>
               <label style="position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block">
-                <input type="checkbox" style="opacity:0;width:0;height:0" ${def?'checked':''} onchange="settingToggled('${k}',this.checked)"/>
-                <span style="position:absolute;cursor:pointer;inset:0;background:${def?'var(--teal)':'rgba(255,255,255,.1)'};border-radius:99px;transition:.3s" id="tog-${k}">
-                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:${def?'21':'3'}px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-${k}"></span>
+                <input type="checkbox" style="opacity:0;width:0;height:0" checked onchange="settingToggled('notif_reports',this.checked)"/>
+                <span style="position:absolute;cursor:pointer;inset:0;background:var(--teal);border-radius:99px;transition:.3s" id="tog-notif_reports">
+                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:21px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-notif_reports"></span>
                 </span>
               </label>
-            </div>`).join('')}
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">New User Alerts</div><div style="font-size:.74rem;color:var(--m)">Alert on new registrations</div></div>
+              <label style="position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block">
+                <input type="checkbox" style="opacity:0;width:0;height:0" onchange="settingToggled('notif_users',this.checked)"/>
+                <span style="position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,.1);border-radius:99px;transition:.3s" id="tog-notif_users">
+                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:3px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-notif_users"></span>
+                </span>
+              </label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">Flagged Content</div><div style="font-size:.74rem;color:var(--m)">Alert on auto-flagged listings or reels</div></div>
+              <label style="position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block">
+                <input type="checkbox" style="opacity:0;width:0;height:0" checked onchange="settingToggled('notif_flagged',this.checked)"/>
+                <span style="position:absolute;cursor:pointer;inset:0;background:var(--teal);border-radius:99px;transition:.3s" id="tog-notif_flagged">
+                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:21px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-notif_flagged"></span>
+                </span>
+              </label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+              <div><div style="font-size:.85rem;font-weight:500;margin-bottom:.12rem">Daily Digest</div><div style="font-size:.74rem;color:var(--m)">Send daily summary email to admin</div></div>
+              <label style="position:relative;width:42px;height:24px;flex-shrink:0;display:inline-block">
+                <input type="checkbox" style="opacity:0;width:0;height:0" checked onchange="settingToggled('notif_digest',this.checked)"/>
+                <span style="position:absolute;cursor:pointer;inset:0;background:var(--teal);border-radius:99px;transition:.3s" id="tog-notif_digest">
+                  <span style="position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:21px;top:3px;transition:.3s;box-shadow:0 1px 4px rgba(0,0,0,.4)" id="tog-knob-notif_digest"></span>
+                </span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -554,7 +601,7 @@
             <div>
               <div style="font-size:.72rem;color:var(--m);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.2rem">CDN / Storage</div>
               <div style="font-size:.9rem;font-weight:700;color:var(--gold)">Healthy</div>
-              <div style="font-size:.68rem;color:var(--m);margin-top:.1rem">Cloudflare + AWS S3</div>
+              <div style="font-size:.68rem;color:var(--m);margin-top:.1rem">Cloudflare R2</div>
             </div>
           </div>
         </div>
@@ -608,21 +655,48 @@
             <div><div class="card-title">Active Connections</div><div class="card-sub">Real-time platform activity</div></div>
           </div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:.75rem">
-            ${[
-              ['Online Users','onlineUsers','var(--teal)','<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'],
-              ['Active Chats','activeChats','var(--gold)','<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'],
-              ['Pending Uploads','pendingUploads','var(--purple)','<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>'],
-              ['Open Websockets','openWS','var(--blue)','<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'],
-              ['Req / min','reqMin','var(--orange)','<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>'],
-              ['Error Rate','errorRate','var(--red)','<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'],
-            ].map(([label,id,color,ico])=>`
             <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:9px">
               <div style="display:flex;align-items:center;gap:.55rem">
-                <span style="display:flex;align-items:center">${ico}</span>
-                <span style="font-size:.82rem;font-weight:500">${label}</span>
+                <span style="display:flex;align-items:center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                <span style="font-size:.82rem;font-weight:500">Online Users</span>
               </div>
-              <span style="font-family:var(--font-mono);font-size:.88rem;font-weight:700;color:${color}" id="${id}">—</span>
-            </div>`).join('')}
+              <span style="font-size:.88rem;font-weight:700;color:var(--teal)" id="onlineUsers">—</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+              <div style="display:flex;align-items:center;gap:.55rem">
+                <span style="display:flex;align-items:center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+                <span style="font-size:.82rem;font-weight:500">Active Chats</span>
+              </div>
+              <span style="font-size:.88rem;font-weight:700;color:var(--gold)" id="activeChats">—</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+              <div style="display:flex;align-items:center;gap:.55rem">
+                <span style="display:flex;align-items:center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+                <span style="font-size:.82rem;font-weight:500">Pending Uploads</span>
+              </div>
+              <span style="font-size:.88rem;font-weight:700;color:var(--purple)" id="pendingUploads">—</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+              <div style="display:flex;align-items:center;gap:.55rem">
+                <span style="display:flex;align-items:center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+                <span style="font-size:.82rem;font-weight:500">Open WebSockets</span>
+              </div>
+              <span style="font-size:.88rem;font-weight:700;color:var(--blue)" id="openWS">—</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+              <div style="display:flex;align-items:center;gap:.55rem">
+                <span style="display:flex;align-items:center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></span>
+                <span style="font-size:.82rem;font-weight:500">Req / min</span>
+              </div>
+              <span style="font-size:.88rem;font-weight:700;color:var(--orange)" id="reqMin">—</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:9px">
+              <div style="display:flex;align-items:center;gap:.55rem">
+                <span style="display:flex;align-items:center"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+                <span style="font-size:.82rem;font-weight:500">Error Rate</span>
+              </div>
+              <span style="font-size:.88rem;font-weight:700;color:var(--teal)" id="errorRate">—</span>
+            </div>
           </div>
         </div>
       </div>
@@ -669,11 +743,26 @@
         <div class="card">
           <div class="card-head"><div class="card-title">Build & Version</div></div>
           <div class="card-body" style="display:flex;flex-direction:column;gap:.6rem">
-            ${[['Version','2.4.1'],['Build Hash','a3f29d1'],['Node Environment','production'],['Last Deploy','Today, 02:14 AM'],['Uptime','99.97% (30d)'],['Region','af-south-1 (Accra)']].map(([k,v])=>`
             <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:8px">
-              <span style="font-size:.78rem;color:var(--m)">${k}</span>
-              <span style="font-family:var(--font-mono);font-size:.78rem;font-weight:600;color:var(--teal)">${v}</span>
-            </div>`).join('')}
+              <span style="font-size:.78rem;color:var(--m)">Environment</span>
+              <span style="font-size:.78rem;font-weight:600;color:var(--teal)">production</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:8px">
+              <span style="font-size:.78rem;color:var(--m)">Region</span>
+              <span style="font-size:.78rem;font-weight:600;color:var(--teal)">af-south-1 (Accra)</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:8px">
+              <span style="font-size:.78rem;color:var(--m)">Stack</span>
+              <span style="font-size:.78rem;font-weight:600;color:var(--teal)">Django + Daphne (ASGI)</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:8px">
+              <span style="font-size:.78rem;color:var(--m)">Database</span>
+              <span style="font-size:.78rem;font-weight:600;color:var(--teal)">SQLite (dual-file)</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .75rem;background:var(--card2);border:1px solid var(--border);border-radius:8px">
+              <span style="font-size:.78rem;color:var(--m)">Media Storage</span>
+              <span style="font-size:.78rem;font-weight:600;color:var(--teal)">Cloudflare R2</span>
+            </div>
           </div>
         </div>
 
@@ -895,13 +984,36 @@ async function loadStats(){
   try{
     const d = await apiFetch('/site-admin/api/stats/');
     STATE.stats = d;
-    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined&&v!==null)el.textContent=v;};
     set('kpiUsers', d.total_users.toLocaleString());
     set('kpiListings', d.active_listings.toLocaleString());
-    set('kpiReports', '0');
+    set('kpiReports', (d.open_reports||0).toLocaleString());
     set('sbUserBadge', d.total_users);
+    set('sbReportBadge', d.open_reports||0);
+    // Second row KPIs
+    if(d.total_transactions!=null) set('kpiTrades', d.total_transactions.toLocaleString());
+    if(d.total_gmv!=null) set('kpiGmv', 'GH₵ '+Number(d.total_gmv).toLocaleString());
+    if(d.total_reels!=null) set('kpiReels', d.total_reels.toLocaleString());
+    if(d.total_messages!=null) set('kpiMessages', d.total_messages.toLocaleString());
+    if(d.avg_rating!=null) set('kpiRating', Number(d.avg_rating).toFixed(2));
+    // Analytics section
+    set('anaSignups', d.total_users.toLocaleString());
+    set('anaTotalUsers', d.total_users.toLocaleString());
+    set('anaListings', d.active_listings.toLocaleString());
+    set('anaReports', (d.open_reports||0).toLocaleString());
+    // Transactions section
+    if(d.total_gmv!=null) set('txStatGmv', 'GH₵ '+Number(d.total_gmv).toLocaleString());
+    if(d.total_transactions!=null) set('txStatCompleted', d.total_transactions.toLocaleString());
+    if(d.disputed_transactions!=null) set('txStatDisputed', d.disputed_transactions.toLocaleString());
+    // Reels section
+    if(d.total_reels!=null) set('reelStatTotal', d.total_reels.toLocaleString());
+    if(d.flagged_reels!=null) set('reelStatFlagged', d.flagged_reels.toLocaleString());
     const countEl=document.getElementById('userCount');
     if(countEl)countEl.textContent=`${d.total_users} users total`;
+    // Update reports notice
+    const openCnt=d.open_reports||0;
+    const noticeEl=document.getElementById('openReportsNotice');
+    if(noticeEl)noticeEl.textContent=openCnt+' open report'+(openCnt!==1?'s':'');
   }catch(e){console.error('Stats error',e);}
 }
 
@@ -1156,6 +1268,17 @@ async function renderListings(){
 function renderReels(data){
   const all=data??getFilteredReels();
   const paged=paginate(all,PAGE.reels);
+  // Update reel stat cards from real data
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const totalViews=REELS().reduce((s,r)=>s+(r.views||0),0);
+  const totalLikes=REELS().reduce((s,r)=>s+(r.likes||0),0);
+  const flaggedCount=REELS().filter(r=>r.status==='flagged').length;
+  if(REELS().length){
+    set('reelStatTotal',REELS().length.toLocaleString());
+    set('reelStatViews',totalViews>=1000?(totalViews/1000).toFixed(1)+'k':totalViews.toLocaleString());
+    set('reelStatLikes',totalLikes>=1000?(totalLikes/1000).toFixed(1)+'k':totalLikes.toLocaleString());
+    set('reelStatFlagged',flaggedCount.toLocaleString());
+  }
   document.getElementById('reelsTable').innerHTML=paged.length?paged.map(r=>`
     <tr>
       <td><div style="display:flex;align-items:center;gap:.6rem">
@@ -1188,6 +1311,19 @@ function renderReels(data){
 function renderTransactions(data){
   const all=data??getFilteredTx();
   const paged=paginate(all,PAGE.transactions);
+  // Update transaction stat cards from real data
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const txAll=TRANSACTIONS();
+  if(txAll.length){
+    const totalGmv=txAll.reduce((s,t)=>s+(t.amount||0),0);
+    const completed=txAll.filter(t=>t.status==='completed').length;
+    const disputed=txAll.filter(t=>t.status==='disputed').length;
+    const avgVal=txAll.length?Math.round(totalGmv/txAll.length):0;
+    set('txStatGmv','GH₵ '+(totalGmv>=1000?(totalGmv/1000).toFixed(1)+'k':totalGmv.toLocaleString()));
+    set('txStatCompleted',completed.toLocaleString());
+    set('txStatAvg','GH₵ '+avgVal.toLocaleString());
+    set('txStatDisputed',disputed.toLocaleString());
+  }
   document.getElementById('txTable').innerHTML=paged.length?paged.map(tx=>`
     <tr>
       <td class="td-mono" style="color:var(--gold)">${tx.id}</td>
@@ -1331,43 +1467,69 @@ function renderActivityFeed(){
 ════════════════════════════════════════════════ */
 function renderWeeklyChart(){
   const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  // Derive from actual listing/transaction data (count by day-of-week)
   const listingsByDay=new Array(7).fill(0);
   const tradesByDay=new Array(7).fill(0);
-  LISTINGS().forEach(l=>{const d=new Date(l.posted).getDay();listingsByDay[(d+6)%7]++;});
-  TRANSACTIONS().forEach(t=>{const d=new Date(t.date).getDay();tradesByDay[(d+6)%7]++;});
-  // Pad with plausible scale
-  const scale=12;
-  const listings=listingsByDay.map((v,i)=>Math.max(v*scale,Math.floor([12,18,14,22,30,28,17][i])));
-  const trades=tradesByDay.map((v,i)=>Math.max(v*8,Math.floor([8,12,10,16,22,20,11][i])));
-  const max=Math.max(...listings,...trades);
+  LISTINGS().forEach(l=>{const d=new Date(l.posted||l.created_at).getDay();if(!isNaN(d))listingsByDay[(d+6)%7]++;});
+  TRANSACTIONS().forEach(t=>{const d=new Date(t.date).getDay();if(!isNaN(d))tradesByDay[(d+6)%7]++;});
+  const max=Math.max(...listingsByDay,...tradesByDay,1);
+  if(max<=1){
+    document.getElementById('weeklyChart').innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--m);font-size:.8rem">No data yet</div>';
+    return;
+  }
   document.getElementById('weeklyChart').innerHTML=days.map((d,i)=>`
     <div class="bar-col">
-      <div class="bar-val">${listings[i]}</div>
-      <div class="bar" style="height:${(listings[i]/max)*70}px;background:var(--gold);opacity:.85" title="${d}: ${listings[i]} listings"></div>
-      <div class="bar" style="height:${(trades[i]/max)*70}px;background:var(--teal);opacity:.75;margin-top:2px" title="${d}: ${trades[i]} trades"></div>
+      <div class="bar-val">${listingsByDay[i]}</div>
+      <div class="bar" style="height:${(listingsByDay[i]/max)*70}px;background:var(--gold);opacity:.85" title="${d}: ${listingsByDay[i]} listings"></div>
+      <div class="bar" style="height:${(tradesByDay[i]/max)*70}px;background:var(--teal);opacity:.75;margin-top:2px" title="${d}: ${tradesByDay[i]} trades"></div>
       <div class="bar-lbl">${d}</div>
     </div>`).join('');
 }
 
 function renderDauChart(){
-  const vals=[420,480,390,510,560,620,580,640,590,610,670,630,650,680,700,720,680,710,730,680,720,760,740,780,760,800,770,790,820,810];
-  const max=Math.max(...vals);
-  document.getElementById('dauChart').innerHTML=vals.map((v,i)=>`
-    <div class="bar-col" title="Day ${i+1}: ${v} DAU">
-      <div class="bar" style="height:${(v/max)*72}px;background:linear-gradient(to top,var(--gold),var(--teal))"></div>
-    </div>`).join('');
+  document.getElementById('dauChart').innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--m);font-size:.8rem">No analytics data yet</div>';
 }
 
 function renderGmvChart(){
-  // Derive base from actual transactions, scale up
-  const txTotal=TRANSACTIONS().reduce((s,t)=>s+t.amount,0);
-  const baseVals=[2800,3200,2600,3400,3800,4200,3900,4100,3700,4400,4800,4600,5000,5200,4900,5300,5100,5500,5300,5700,5500,5900,5700,6100,5800,6300,6100,6500,6200,Math.max(6800,txTotal)];
-  const max=Math.max(...baseVals);
-  document.getElementById('gmvChart').innerHTML=baseVals.map((v,i)=>`
-    <div class="bar-col" title="Day ${i+1}: GH₵ ${v.toLocaleString()}">
+  const txs=TRANSACTIONS();
+  if(!txs.length){
+    document.getElementById('gmvChart').innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--m);font-size:.8rem">No transaction data yet</div>';
+    return;
+  }
+  const byDay={};
+  txs.forEach(t=>{
+    const day=new Date(t.date).toISOString().slice(0,10);
+    byDay[day]=(byDay[day]||0)+t.amount;
+  });
+  const keys=Object.keys(byDay).sort().slice(-30);
+  const vals=keys.map(k=>byDay[k]);
+  const max=Math.max(...vals,1);
+  document.getElementById('gmvChart').innerHTML=vals.map((v,i)=>`
+    <div class="bar-col" title="${keys[i]}: GH₵ ${v.toLocaleString()}">
       <div class="bar" style="height:${(v/max)*72}px;background:linear-gradient(to top,var(--gold),var(--orange))"></div>
     </div>`).join('');
+}
+
+function renderCategoryBreakdown(){
+  const el=document.getElementById('catBreakdown');
+  if(!el)return;
+  const donutEl=document.getElementById('donutListings');
+  const cats={};
+  LISTINGS().forEach(l=>{const c=l.category||'Other';cats[c]=(cats[c]||0)+1;});
+  const total=LISTINGS().length;
+  if(donutEl)donutEl.textContent=total||'—';
+  if(!total){el.innerHTML='<div style="color:var(--m);font-size:.8rem;text-align:center;padding:.5rem 0">No listings yet</div>';return;}
+  const colors=['gold','teal','blue','purple','orange'];
+  const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  el.innerHTML=sorted.map(([k,v],i)=>{
+    const pct=Math.round((v/total)*100);
+    const c=colors[i%colors.length];
+    return `<div style="display:flex;align-items:center;gap:.5rem">
+      <div style="width:8px;height:8px;border-radius:2px;background:var(--${c});flex-shrink:0"></div>
+      <div style="font-size:.75rem;flex:1;color:var(--m)">${k}</div>
+      <div style="font-size:.73rem;color:var(--t)">${pct}%</div>
+      <div class="prog-track" style="width:60px"><div class="prog-fill" style="width:${pct}%;background:var(--${c})"></div></div>
+    </div>`;
+  }).join('');
 }
 
 /* ════════════════════════════════════════════════
@@ -1692,7 +1854,7 @@ async function refreshAll(){
   await Promise.all([loadStats(), renderUsers(), renderListings()]);
   renderReels();renderTransactions();renderReports();renderModLog();
   renderTopSellers();renderNewestUsers();renderActivityFeed();
-  renderWeeklyChart();renderDauChart();renderGmvChart();
+  renderWeeklyChart();renderDauChart();renderGmvChart();renderCategoryBreakdown();
   showToast('Data refreshed','teal');
 }
 
@@ -1734,7 +1896,7 @@ setInterval(async()=>{
   await Promise.all([loadStats(), renderUsers(), renderListings()]);
   renderReels();renderTransactions();renderReports();renderModLog();
   renderTopSellers();renderNewestUsers();renderActivityFeed();
-  renderWeeklyChart();renderDauChart();renderGmvChart();
+  renderWeeklyChart();renderDauChart();renderGmvChart();renderCategoryBreakdown();
   initSettingsUI();updateModerationCounts();
   loadPlatformConfig();
 })();
@@ -1743,14 +1905,13 @@ setInterval(async()=>{
    SYSTEM GUI — live metrics, event log, config
 ════════════════════════════════════════════════ */
 
-/* ── Live system metrics (simulated, replace with real API calls) ── */
+/* ── Live system metrics — clock only; resource metrics require a real server API ── */
 let sysInterval=null;
-const sysBase={cpu:28,mem:42,disk:61,net:3.4};
 
 function startSysMetrics(){
   if(sysInterval)return;
   updateSysMetrics();
-  sysInterval=setInterval(updateSysMetrics,3000);
+  sysInterval=setInterval(updateSysMetrics,1000);
 }
 
 function stopSysMetrics(){
@@ -1758,57 +1919,14 @@ function stopSysMetrics(){
 }
 
 function updateSysMetrics(){
-  // Simulates real metrics with realistic drift — replace body with fetch('/api/system/metrics')
-  const jitter=()=>(Math.random()-.5)*6;
-  const cpu=Math.max(2,Math.min(95,sysBase.cpu+jitter()));
-  const mem=Math.max(20,Math.min(90,sysBase.mem+jitter()*.5));
-  const disk=Math.max(50,Math.min(85,sysBase.disk+jitter()*.3));
-  const net=Math.max(.1,sysBase.net+jitter()*.8);
-  sysBase.cpu+=(cpu-sysBase.cpu)*.3;
-  sysBase.mem+=(mem-sysBase.mem)*.2;
-
-  const setBar=(id,val,max=100)=>{
-    const el=document.getElementById(id);
-    if(el){el.style.width=Math.min(100,(val/max)*100)+'%';}
-  };
-  const setText=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
-
-  setText('cpuPct',cpu.toFixed(1)+'%');
-  setBar('cpuBar',cpu);
-  if(cpu>80)document.getElementById('cpuBar').style.background='var(--red)';
-  else if(cpu>60)document.getElementById('cpuBar').style.background='var(--orange)';
-  else document.getElementById('cpuBar').style.background='var(--gold)';
-
-  setText('memPct',mem.toFixed(1)+'%');
-  setBar('memBar',mem);
-
-  setText('diskPct',disk.toFixed(1)+'%');
-  setBar('diskBar',disk);
-  if(disk>80)document.getElementById('diskBar').style.background='var(--red)';
-
-  setText('netIO',(net*1024).toFixed(0)+' KB/s');
-  setBar('netBar',net,20);
-
-  // Connection stats derived from real STATE + jitter
-  const onlineBase=Math.round(STATE.users.filter(u=>u.status==='active').length*.4);
-  setText('onlineUsers',(onlineBase+Math.round(Math.random()*8)).toLocaleString());
-  setText('activeChats',(12+Math.round(Math.random()*6)).toLocaleString());
-  setText('pendingUploads',Math.round(Math.random()*3).toLocaleString());
-  setText('openWS',(onlineBase+Math.round(Math.random()*15)).toLocaleString());
-  setText('reqMin',(280+Math.round(Math.random()*80)).toLocaleString());
-  const errRate=(Math.random()*0.3).toFixed(2);
-  const errEl=document.getElementById('errorRate');
-  if(errEl){errEl.textContent=errRate+'%';errEl.style.color=parseFloat(errRate)>0.2?'var(--red)':'var(--teal)';}
-
-  // API latency
-  setText('apiLatency',(Math.round(28+Math.random()*22))+'ms');
-  // DB connections
-  setText('dbConn',(Math.round(4+Math.random()*3))+' active');
-
   // System clock
   const now=new Date();
   const sysTimeEl=document.getElementById('sysTime');
   if(sysTimeEl)sysTimeEl.textContent=now.toLocaleTimeString('en-GH',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  // Show real user count for online users approximation
+  const setText=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  const activeUsers=STATE.users.filter(u=>u.status==='active').length;
+  if(activeUsers>0)setText('onlineUsers',activeUsers.toLocaleString());
 }
 
 /* ── Platform config save ── */
@@ -1834,8 +1952,8 @@ function savePlatformConfig(){
 /* ── System quick actions ── */
 function sysAction(type){
   const actions={
-    cache:     {msg:'Cache cleared — 847 MB freed','type':'ok',  tag:'CACHE',   log:'Platform cache flushed — 847 MB freed across 3 edge nodes'},
-    reindex:   {msg:'Re-indexing search…','type':'info',tag:'INDEX',  log:'Search index rebuild triggered — estimated 45s'},
+    cache:     {msg:'Cache cleared','type':'ok',  tag:'CACHE',   log:'Platform cache flushed'},
+    reindex:   {msg:'Re-indexing search…','type':'info',tag:'INDEX',  log:'Search index rebuild triggered'},
     backup:    {msg:'Database backup started','type':'ok',  tag:'BACKUP', log:'SQLite backup initiated — destination: /var/data/backups/'+new Date().toISOString().slice(0,10)},
     logs:      {msg:null,'type':'info',tag:'LOGS',   log:'Error log download initiated'},
     broadcast: {msg:null,'type':'info',tag:'MSG',    log:'Broadcast composer opened'},
@@ -1881,10 +1999,10 @@ function sysAction(type){
 
   // For reindex — show progress then complete
   if(type==='reindex'){
-    setTimeout(()=>addEventLog('ok','INDEX','Search index rebuild complete — 847 documents indexed'),4500);
+    setTimeout(()=>addEventLog('ok','INDEX','Search index rebuild complete'),4500);
   }
   if(type==='backup'){
-    setTimeout(()=>addEventLog('ok','BACKUP','Database backup complete — 124 MB written'),8000);
+    setTimeout(()=>addEventLog('ok','BACKUP','Database backup complete'),8000);
   }
 }
 
