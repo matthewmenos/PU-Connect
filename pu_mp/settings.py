@@ -39,6 +39,9 @@ SECURE_BROWSER_XSS_FILTER  = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_PROXY_SSL_HEADER    = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://pentvarsconnect.com,https://www.pentvarsconnect.com')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _origins.split(',') if o.strip()]
+
 SITE_ID = 1
 
 INSTALLED_APPS = [
