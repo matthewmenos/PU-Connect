@@ -16,10 +16,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install dependencies
 RUN pip install --upgrade pip
-RUN pip install pipenv
-COPY Pipfile /app/
-# We skip the lock check because Pipfile.lock might be out of sync after manual fixes
-RUN pipenv install --system --skip-lock
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY . /app/
