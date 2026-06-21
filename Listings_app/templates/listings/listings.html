@@ -42,7 +42,7 @@
   </button>
   <button class="thbtn" id="thbtn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
 </nav>
-<div class="ov" id="ov" onclick="closeSb()"></div>
+<div class="ov" id="ov" onclick="closeSidebar()"></div>
 {% include 'base/sidebar.html' with active_page='listings' %}
 <div class="wrap"><div class="inner">
   <div class="ph">
@@ -173,11 +173,11 @@ function applyTheme(d){html.setAttribute('data-theme',d?'dark':'light');const tm
 applyTheme(dark);tb.addEventListener('click',()=>applyTheme(!dark));
 
 /* ── SIDEBAR ── */
-const sbEl=document.getElementById('sb'),ovEl=document.getElementById('ov');
-document.getElementById('hbg').onclick=()=>{sbEl.classList.add('on');ovEl.classList.add('on');document.body.style.overflow='hidden'};
-function closeSb(){sbEl.classList.remove('on');ovEl.classList.remove('on');document.body.style.overflow='';}
-if(window.innerWidth>=960)sbEl.classList.add('on');
-window.addEventListener('resize',()=>{if(window.innerWidth>=960){sbEl.classList.add('on');ovEl.classList.remove('on')}else sbEl.classList.remove('on');});
+const sbEl=document.getElementById('sidebar'),ovEl=document.getElementById('ov');
+document.getElementById('hbg').onclick=()=>{sbEl.classList.add('open');ovEl.classList.add('on');document.body.style.overflow='hidden'};
+function closeSidebar(){sbEl.classList.remove('open');ovEl.classList.remove('on');document.body.style.overflow='';}
+if(window.innerWidth>=960)sbEl.classList.add('open');
+window.addEventListener('resize',()=>{if(window.innerWidth>=960){sbEl.classList.add('open');ovEl.classList.remove('on')}else sbEl.classList.remove('open');});
 /* ════════════════════════════════════
    DATA
 ════════════════════════════════════ */

@@ -36,8 +36,7 @@
   position:relative;
   display:flex;flex-direction:column;align-items:center;
   flex:1;min-width:56px;
-  /* lift the button above the bar */
-  margin-top:-22px;
+  /* stays inside nav bounds so it slides fully off-screen with .bn-hidden */
 }
 .bn-post{
   display:flex;align-items:center;justify-content:center;
@@ -47,18 +46,20 @@
   box-shadow:0 4px 18px rgba(232,201,106,.45),0 2px 6px rgba(0,0,0,.35);
   color:#1a1400;
   text-decoration:none;
+  /* visual lift purely via transform — button stays in-flow */
+  transform:translateY(-10px);
   transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s;
   border:2.5px solid rgba(255,255,255,.18);
 }
 .bn-post svg{stroke-width:2.4;transition:transform .18s;}
 .bn-post:hover{
-  transform:scale(1.1) translateY(-2px);
+  transform:translateY(-13px) scale(1.08);
   box-shadow:0 8px 28px rgba(232,201,106,.6),0 2px 8px rgba(0,0,0,.4);
 }
-.bn-post:active{transform:scale(.95);}
+.bn-post:active{transform:translateY(-10px) scale(.95);}
 .bn-post-label{
   font-size:.58rem;font-weight:500;letter-spacing:.2px;
-  color:var(--text-2,#7a7e8a);margin-top:.3rem;
+  color:var(--text-2,#7a7e8a);margin-top:-6px;
 }
 
 @media(min-width:768px){.bot-nav{display:none;}}
