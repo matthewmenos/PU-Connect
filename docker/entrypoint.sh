@@ -27,6 +27,10 @@ fi
 # Ensure staticfiles directory exists
 mkdir -p /app/staticfiles
 
+# Set the Sites framework domain (needed for Google OAuth)
+echo "Configuring site domain..."
+python manage.py setup_site
+
 # Collect static files
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear

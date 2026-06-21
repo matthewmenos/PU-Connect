@@ -240,6 +240,36 @@ def toggle_follow(request, username):
     })
 
 
+@login_required(login_url='auth:auth_view')
+@require_POST
+def report_user(request, username):
+    """POST /profile/<username>/report/ — submit a user report."""
+    target = get_object_or_404(User, username=username)
+    if target == request.user:
+        return JsonResponse({'status': 'error', 'message': 'Cannot report yourself'}, status=400)
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    reason = data.get('reason', '').strip()
+    details = data.get('details', '').strip()
+    valid_reasons = {'spam', 'scam', 'harassment', 'fake', 'inappropriate', 'other'}
+    if reason not in valid_reasons:
+        return JsonResponse({'status': 'error', 'message': 'Invalid reason'}, status=400)
+    from .models import Report
+    if Report.objects.filter(reporter=request.user, reported=target, status='open').exists():
+        return JsonResponse({'status': 'error', 'message': 'You already have an open report against this user'}, status=400)
+    priority = 'high' if reason in ('scam', 'harassment') else 'medium'
+    Report.objects.create(
+        reporter=request.user,
+        reported=target,
+        reason=reason,
+        details=details,
+        priority=priority,
+    )
+    return JsonResponse({'status': 'success', 'message': 'Report submitted. Our team will review it shortly.'})
+
+
 def logout_view(request):
     logout(request)
     return redirect('auth:auth_view') # Standard redirect works for logout

@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 #===================================================2024-06-01: Added dashboard view and template rendering
 
 
+@login_required(login_url='auth:auth_view')
 def dashboard(request):
     context = {
         'page_title': 'Your Dashboard - PU-Marketplace',
@@ -14,6 +15,7 @@ def dashboard(request):
     return render(request, 'dash/dashboard.html', context)
 
 
+@login_required(login_url='auth:auth_view')
 def dashboard_services(request):
     context = {
         'page_title': 'Services - PU-Marketplace',
@@ -21,6 +23,7 @@ def dashboard_services(request):
     return render(request, 'dash/dashboard-services.html', context)
 
 
+@login_required(login_url='auth:auth_view')
 def dashboard_products(request):
     context = {
         'page_title': 'Products - PU-Marketplace',

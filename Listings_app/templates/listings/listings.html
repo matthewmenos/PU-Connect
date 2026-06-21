@@ -61,8 +61,8 @@
   </div>
   <div class="boost-mini">
     <div class="bm-text">
-      <div class="bm-t"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Boost a listing for 10&times; more views</div>
-      <div class="bm-s">Feature your listing at the top — contact us to get started</div>
+      <div class="bm-t"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> ⚡ Feature your listing — reach 10× more buyers</div>
+      <div class="bm-s">Fee: <strong id="boostFeeBanner">GH₵ —</strong> · <span id="boostDaysBanner">—</span> days on the Featured carousel</div>
     </div>
     <button class="bm-btn" onclick="openBoost()">Boost Now</button>
   </div>
@@ -82,13 +82,31 @@
 <div id="boostOv" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center" onclick="closeBoost(event)">
   <div id="boostSheet" style="width:100%;max-width:500px;background:var(--card);border-radius:22px 22px 0 0;border-top:1px solid rgba(255,255,255,.1);padding:1.3rem 1.4rem 2.5rem;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1)">
     <div style="width:38px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:0 auto .9rem"></div>
-    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Feature Your Listing</div>
-    <div style="font-size:.82rem;color:var(--m);margin-bottom:1.1rem;line-height:1.6">Boosted listings appear at the top of the marketplace and get up to 10× more views from campus buyers.</div>
-    <div style="background:rgba(232,201,106,.08);border:1px solid rgba(232,201,106,.2);border-radius:12px;padding:.85rem 1rem;margin-bottom:1rem;font-size:.82rem;line-height:1.65">
-      <strong style="color:var(--a)">How to boost:</strong><br>
-      Open the in-app chat and message our support team with your listing title. Boosting is free during the campus beta period.
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:.25rem">⚡ Feature Your Listing</div>
+    <div style="font-size:.82rem;color:var(--m);margin-bottom:1rem;line-height:1.6">Boosted listings appear in the <strong>Featured carousel</strong> on the home screen and reach more campus buyers.</div>
+
+    <!-- Listing picker -->
+    <div style="margin-bottom:.9rem">
+      <label style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--m);display:block;margin-bottom:.4rem">Select listing to boost</label>
+      <select id="boostListingSelect" style="width:100%;background:var(--inp);border:1.5px solid rgba(255,255,255,.1);border-radius:11px;padding:.65rem .85rem;color:var(--t);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none">
+        <option value="">— Choose an active listing —</option>
+      </select>
     </div>
-    <button onclick="goBoostChat()" style="width:100%;padding:.82rem;border-radius:11px;background:var(--a);color:#0d0e11;border:none;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;margin-bottom:.5rem"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Message Support</button>
+
+    <!-- Fee summary -->
+    <div style="background:rgba(232,201,106,.08);border:1px solid rgba(232,201,106,.2);border-radius:12px;padding:.85rem 1rem;margin-bottom:1.1rem;font-size:.82rem;line-height:1.75">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--m)">Boost fee</span>
+        <strong style="color:var(--a);font-size:1rem" id="boostFeeDisplay">GH₵ —</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.3rem">
+        <span style="color:var(--m)">Duration</span>
+        <span id="boostDaysDisplay" style="font-weight:600">— days</span>
+      </div>
+      <div style="margin-top:.6rem;font-size:.75rem;color:var(--m);border-top:1px solid rgba(255,255,255,.06);padding-top:.55rem">You'll be redirected to Paystack to complete payment securely. Once confirmed, our team will activate your listing on the carousel.</div>
+    </div>
+
+    <button id="boostSubmitBtn" onclick="submitBoostRequest()" style="width:100%;padding:.82rem;border-radius:11px;background:var(--a);color:#0d0e11;border:none;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;margin-bottom:.5rem">Pay &amp; Boost →</button>
     <button onclick="closeBoost()" style="width:100%;padding:.72rem;border-radius:11px;background:rgba(255,255,255,.06);color:var(--m);border:1px solid rgba(255,255,255,.08);font-family:'DM Sans',sans-serif;font-size:.86rem;cursor:pointer">Cancel</button>
   </div>
 </div>
@@ -406,25 +424,69 @@ async function doDelete(id){
 }
 
 /* ── BOOST ── */
-function openBoost(id){
-  const l = id ? LISTINGS.find(x=>x.id===id) : null;
-  if(l) document.getElementById('boostOv').dataset.listingName = l.title;
+let _boostConfig = { boost_fee: 0, boost_duration_days: 7 };
+
+async function loadBoostConfig(){
+  try{
+    const d = await fetch('/api/config/').then(r=>r.json());
+    _boostConfig = d;
+    const fee = 'GH₵ ' + parseFloat(d.boost_fee).toFixed(2);
+    const days = d.boost_duration_days + ' days';
+    const b = document.getElementById('boostFeeBanner');
+    const bd = document.getElementById('boostDaysBanner');
+    const bfd = document.getElementById('boostFeeDisplay');
+    const bdd = document.getElementById('boostDaysDisplay');
+    if(b) b.textContent = fee;
+    if(bd) bd.textContent = days;
+    if(bfd) bfd.textContent = fee;
+    if(bdd) bdd.textContent = days;
+  }catch(e){}
+}
+
+function openBoost(preselectedId){
+  // Populate select with active listings only
+  const sel = document.getElementById('boostListingSelect');
+  const active = LISTINGS.filter(l=>l.status==='active');
+  sel.innerHTML = '<option value="">— Choose an active listing —</option>' +
+    active.map(l=>`<option value="${l.id}">${escH(l.title)}</option>`).join('');
+  if(preselectedId) sel.value = preselectedId;
+
   const ov=document.getElementById('boostOv');
   const sheet=document.getElementById('boostSheet');
   ov.style.display='flex';
   requestAnimationFrame(()=>sheet.style.transform='translateY(0)');
 }
+
 function closeBoost(e){
   if(e&&e.target!==document.getElementById('boostOv'))return;
   const sheet=document.getElementById('boostSheet');
   sheet.style.transform='translateY(100%)';
   setTimeout(()=>{document.getElementById('boostOv').style.display='none';},350);
 }
-function goBoostChat(){
-  const listingName = document.getElementById('boostOv')?.dataset?.listingName||'';
-  try{localStorage.setItem('pu-chat-open',JSON.stringify({username:'support',listing:listingName||'Boost Request',message:'Hi, I want to boost my listing: '+listingName}));}catch(e){}
-  closeBoost();
-  location.href='{% url 'chat:chat' %}';
+
+async function submitBoostRequest(){
+  const listingId = document.getElementById('boostListingSelect').value;
+  if(!listingId){ showToast('Please select a listing'); return; }
+  const btn = document.getElementById('boostSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Redirecting to payment…';
+  try{
+    const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';
+    const res = await fetch('/api/boost/initiate/', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','X-CSRFToken':csrf},
+      body: JSON.stringify({listing_id: parseInt(listingId)}),
+    });
+    const d = await res.json();
+    if(d.status === 'ok' && d.authorization_url){
+      window.location.href = d.authorization_url;
+    } else {
+      showToast(d.message || 'Could not initiate payment');
+      btn.disabled=false; btn.textContent='Pay & Boost →';
+    }
+  }catch(e){
+    showToast('Could not connect — try again');
+    btn.disabled=false; btn.textContent='Pay & Boost →';
+  }
 }
 
 /* ════════════════════════════════════
@@ -444,7 +506,17 @@ function showToast(msg){
    INIT + LIVE REFRESH
 ════════════════════════════════════ */
 fetchMyListings();
-// fetchFeaturedListings();
+loadBoostConfig();
+
+// Handle Paystack return
+(function(){
+  const p = new URLSearchParams(window.location.search);
+  const boost = p.get('boost');
+  if(boost === 'success') setTimeout(()=>showToast('Payment confirmed! Your boost request is now under review.'), 600);
+  else if(boost === 'failed') setTimeout(()=>showToast('Payment was not completed. Please try again.'), 600);
+  else if(boost === 'error') setTimeout(()=>showToast('Something went wrong with the payment. Contact support.'), 600);
+  if(boost) history.replaceState(null,'',window.location.pathname);
+})();
 
 // async function fetchFeaturedListings() {
 //   try {

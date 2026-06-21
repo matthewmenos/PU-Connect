@@ -8,6 +8,7 @@ from django.http import JsonResponse, HttpResponse, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db.models import Q, Count
 from django.conf import settings
@@ -18,7 +19,9 @@ import json
 
 
 def home(request):
-    return redirect('dashboard:dashboard')
+    if request.user.is_authenticated:
+        return redirect('dashboard:dashboard')
+    return redirect('auth:auth_view')
 
 
 def about(request):
@@ -380,6 +383,7 @@ def _user_to_dict(u):
 def admin_api_stats(request):
     from Listings_app.models import Listing
     from chat_app.models import Conversation, Message
+    from django.db.models import Sum
 
     total_users = User.objects.count()
     active_listings = Listing.objects.filter(status='active').count()
@@ -387,6 +391,11 @@ def admin_api_stats(request):
     total_conversations = Conversation.objects.count()
     total_messages = Message.objects.count()
     suspended_users = User.objects.filter(is_active=False).count()
+
+    # Sold listings as proxy for completed trades + GMV
+    sold_qs = Listing.objects.filter(status='sold')
+    total_transactions = sold_qs.count()
+    total_gmv = float(sold_qs.aggregate(s=Sum('price'))['s'] or 0)
 
     # Reels count
     try:
@@ -397,7 +406,7 @@ def admin_api_stats(request):
         total_reels = None
         flagged_reels = None
 
-    # Open reports (using Profile_app report model if it exists)
+    # Reports
     try:
         from Profile_app.models import Report
         open_reports = Report.objects.filter(status='open').count()
@@ -414,6 +423,9 @@ def admin_api_stats(request):
         'open_reports': open_reports,
         'total_reels': total_reels,
         'flagged_reels': flagged_reels,
+        'total_transactions': total_transactions,
+        'total_gmv': total_gmv,
+        'avg_rating': None,
     })
 
 
@@ -571,6 +583,409 @@ def admin_api_listing_action(request, listing_id):
             return JsonResponse({'status': 'ok', 'message': f'Listing "{title}" deleted permanently'})
         else:
             return JsonResponse({'status': 'error', 'message': 'Unknown action'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_api_reports(request):
+    from Profile_app.models import Report
+    status = request.GET.get('status', '')
+    priority = request.GET.get('priority', '')
+    page = max(1, int(request.GET.get('page', 1)))
+    page_size = 10
+
+    qs = Report.objects.select_related('reporter', 'reported').order_by('-created_at')
+    if status:
+        qs = qs.filter(status=status)
+    if priority:
+        qs = qs.filter(priority=priority)
+
+    total = qs.count()
+    reports = qs[(page - 1) * page_size: page * page_size]
+    data = []
+    for r in reports:
+        data.append({
+            'id': r.id,
+            'reporter': r.reporter.username,
+            'reported': r.reported.username,
+            'reason': r.get_reason_display(),
+            'reason_key': r.reason,
+            'details': r.details,
+            'status': r.status,
+            'priority': r.priority,
+            'admin_note': r.admin_note,
+            'submitted_at': r.created_at.isoformat(),
+        })
+    return JsonResponse({'total': total, 'page': page, 'page_size': page_size, 'reports': data})
+
+
+@staff_member_required(login_url='auth:auth_view')
+@require_POST
+def admin_api_report_action(request, report_id):
+    from Profile_app.models import Report
+    from django.utils import timezone
+    try:
+        data = json.loads(request.body)
+        action = data.get('action')
+        note = data.get('note', '').strip()
+        r = Report.objects.get(id=report_id)
+
+        if action == 'resolve':
+            r.status = 'resolved'
+            r.admin_note = note
+            r.resolved_at = timezone.now()
+            r.resolved_by = request.user
+            r.save()
+            return JsonResponse({'status': 'ok', 'message': 'Report resolved'})
+        elif action == 'investigate':
+            r.status = 'investigating'
+            r.admin_note = note
+            r.save()
+            return JsonResponse({'status': 'ok', 'message': 'Report marked as investigating'})
+        elif action == 'dismiss':
+            r.status = 'resolved'
+            r.admin_note = note or 'Dismissed'
+            r.resolved_at = timezone.now()
+            r.resolved_by = request.user
+            r.save()
+            return JsonResponse({'status': 'ok', 'message': 'Report dismissed'})
+        elif action == 'warn':
+            # Mark report resolved + note the warning
+            r.status = 'resolved'
+            r.admin_note = f'User warned. {note}'
+            r.resolved_at = timezone.now()
+            r.resolved_by = request.user
+            r.save()
+            return JsonResponse({'status': 'ok', 'message': f'@{r.reported.username} warned and report resolved'})
+        elif action == 'ban':
+            reported_user = r.reported
+            reported_user.is_active = False
+            reported_user.save()
+            r.status = 'resolved'
+            r.admin_note = f'User suspended. {note}'
+            r.resolved_at = timezone.now()
+            r.resolved_by = request.user
+            r.save()
+            return JsonResponse({'status': 'ok', 'message': f'@{reported_user.username} suspended and report resolved'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Unknown action'}, status=400)
+    except Report.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Report not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_api_transactions(request):
+    """Transactions backed by sold listings — each sold listing = a completed trade."""
+    from Listings_app.models import Listing
+    q = request.GET.get('q', '').strip()
+    status = request.GET.get('status', '')
+    page = max(1, int(request.GET.get('page', 1)))
+    page_size = 10
+
+    qs = Listing.objects.filter(status='sold').select_related('user').order_by('-created_at')
+    if q:
+        qs = qs.filter(Q(title__icontains=q) | Q(user__username__icontains=q))
+
+    total = qs.count()
+    items = qs[(page - 1) * page_size: page * page_size]
+    data = []
+    for l in items:
+        data.append({
+            'id': f'TX-{l.id}',
+            'listing_id': l.id,
+            'seller': l.user.username,
+            'buyer': '—',
+            'item': l.title,
+            'amount': float(l.price),
+            'category': l.category,
+            'spot': '—',
+            'date': l.created_at.isoformat(),
+            'status': 'completed',
+        })
+    return JsonResponse({'total': total, 'page': page, 'page_size': page_size, 'transactions': data})
+
+
+# ── Site Config ─────────────────────────────────────────────────────────────
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_api_config_get(request):
+    from .models import SiteConfig
+    cfg = SiteConfig.get()
+    return JsonResponse({
+        'boost_fee': float(cfg.boost_fee),
+        'boost_duration_days': cfg.boost_duration_days,
+        'platform_name': cfg.platform_name,
+        'admin_email': cfg.admin_email,
+        'max_listing_price': float(cfg.max_listing_price),
+        'max_video_size_mb': cfg.max_video_size_mb,
+        'report_sla_hours': cfg.report_sla_hours,
+        'max_listings_per_user': cfg.max_listings_per_user,
+    })
+
+
+@staff_member_required(login_url='auth:auth_view')
+@require_POST
+def admin_api_config_save(request):
+    from .models import SiteConfig
+    try:
+        data = json.loads(request.body)
+        cfg = SiteConfig.get()
+        if 'boost_fee' in data:
+            cfg.boost_fee = max(0, float(data['boost_fee']))
+        if 'boost_duration_days' in data:
+            cfg.boost_duration_days = max(1, int(data['boost_duration_days']))
+        if 'platform_name' in data and data['platform_name'].strip():
+            cfg.platform_name = data['platform_name'].strip()
+        if 'admin_email' in data:
+            cfg.admin_email = data['admin_email'].strip()
+        if 'max_listing_price' in data:
+            cfg.max_listing_price = max(0, float(data['max_listing_price']))
+        if 'max_video_size_mb' in data:
+            cfg.max_video_size_mb = max(1, int(data['max_video_size_mb']))
+        if 'report_sla_hours' in data:
+            cfg.report_sla_hours = max(1, int(data['report_sla_hours']))
+        if 'max_listings_per_user' in data:
+            cfg.max_listings_per_user = max(1, int(data['max_listings_per_user']))
+        cfg.save()
+        return JsonResponse({'status': 'ok', 'message': 'Configuration saved'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+# ── Public config endpoint (boost fee for the listings page) ─────────────────
+
+def public_config(request):
+    from .models import SiteConfig
+    cfg = SiteConfig.get()
+    return JsonResponse({
+        'boost_fee': float(cfg.boost_fee),
+        'boost_duration_days': cfg.boost_duration_days,
+    })
+
+
+# ── Boost / Paystack ─────────────────────────────────────────────────────────
+
+@login_required(login_url='auth:auth_view')
+@require_POST
+def initiate_boost_payment(request):
+    """Create a Paystack transaction and return the hosted checkout URL."""
+    import uuid, urllib.request as urlreq, urllib.error
+    from .models import BoostRequest, SiteConfig
+    from Listings_app.models import Listing
+
+    try:
+        data = json.loads(request.body)
+        listing_id = int(data.get('listing_id', 0))
+        listing = Listing.objects.get(id=listing_id, user=request.user)
+    except Listing.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Listing not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    if listing.status != 'active':
+        return JsonResponse({'status': 'error', 'message': 'Only active listings can be boosted'}, status=400)
+
+    if BoostRequest.objects.filter(listing=listing, status__in=['pending_payment', 'paid']).exists():
+        return JsonResponse({'status': 'error', 'message': 'A boost request for this listing is already pending'}, status=400)
+
+    cfg = SiteConfig.get()
+    secret_key = settings.PAYSTACK_SECRET_KEY
+    if not secret_key:
+        return JsonResponse({'status': 'error', 'message': 'Payment not configured — contact admin'}, status=503)
+
+    reference = f'boost-{uuid.uuid4().hex[:20]}'
+    amount_kobo = int(cfg.boost_fee * 100)  # Paystack uses pesewas (GHS smallest unit)
+    callback_url = request.build_absolute_uri(f'/api/boost/callback/?ref={reference}')
+
+    payload = json.dumps({
+        'email': request.user.email or f'{request.user.username}@pu-connect.edu.gh',
+        'amount': amount_kobo,
+        'currency': 'GHS',
+        'reference': reference,
+        'callback_url': callback_url,
+        'metadata': {
+            'listing_id': listing.id,
+            'listing_title': listing.title,
+            'user_id': request.user.id,
+            'username': request.user.username,
+        },
+    }).encode()
+
+    req = urlreq.Request(
+        'https://api.paystack.co/transaction/initialize',
+        data=payload,
+        headers={
+            'Authorization': f'Bearer {secret_key}',
+            'Content-Type': 'application/json',
+        },
+    )
+    try:
+        with urlreq.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        return JsonResponse({'status': 'error', 'message': f'Paystack error: {body}'}, status=502)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Payment init failed: {e}'}, status=502)
+
+    if not result.get('status'):
+        return JsonResponse({'status': 'error', 'message': result.get('message', 'Paystack error')}, status=502)
+
+    # Create the BoostRequest now so we can track the reference
+    BoostRequest.objects.create(
+        user=request.user,
+        listing=listing,
+        fee_paid=cfg.boost_fee,
+        paystack_reference=reference,
+        status='pending_payment',
+    )
+
+    return JsonResponse({
+        'status': 'ok',
+        'authorization_url': result['data']['authorization_url'],
+        'reference': reference,
+    })
+
+
+def paystack_callback(request):
+    """Redirect target after Paystack checkout. Verifies the transaction."""
+    import urllib.request as urlreq
+    from .models import BoostRequest
+    from django.utils import timezone
+    from django.shortcuts import redirect
+
+    reference = request.GET.get('ref', '')
+    if not reference:
+        return redirect('/listings/?boost=error')
+
+    secret_key = settings.PAYSTACK_SECRET_KEY
+    req = urlreq.Request(
+        f'https://api.paystack.co/transaction/verify/{reference}',
+        headers={'Authorization': f'Bearer {secret_key}'},
+    )
+    try:
+        with urlreq.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read())
+    except Exception:
+        return redirect('/listings/?boost=error')
+
+    if result.get('status') and result['data'].get('status') == 'success':
+        try:
+            br = BoostRequest.objects.get(paystack_reference=reference)
+            if br.status == 'pending_payment':
+                br.status = 'paid'
+                br.paid_at = timezone.now()
+                br.save()
+        except BoostRequest.DoesNotExist:
+            pass
+        return redirect('/listings/?boost=success')
+
+    return redirect('/listings/?boost=failed')
+
+
+@csrf_exempt
+def paystack_webhook(request):
+    """Server-to-server Paystack event — backup confirmation."""
+    import hashlib, hmac
+    from .models import BoostRequest
+    from django.utils import timezone
+
+    sig = request.headers.get('X-Paystack-Signature', '')
+    secret_key = settings.PAYSTACK_SECRET_KEY
+    computed = hmac.new(secret_key.encode(), request.body, hashlib.sha512).hexdigest()
+    if not hmac.compare_digest(sig, computed):
+        return HttpResponse(status=400)
+
+    try:
+        event = json.loads(request.body)
+    except Exception:
+        return HttpResponse(status=400)
+
+    if event.get('event') == 'charge.success':
+        reference = event['data'].get('reference', '')
+        if reference.startswith('boost-'):
+            try:
+                br = BoostRequest.objects.get(paystack_reference=reference)
+                if br.status == 'pending_payment':
+                    br.status = 'paid'
+                    br.paid_at = timezone.now()
+                    br.save()
+            except BoostRequest.DoesNotExist:
+                pass
+
+    return HttpResponse(status=200)
+
+
+@staff_member_required(login_url='auth:auth_view')
+def admin_api_boosts(request):
+    from .models import BoostRequest
+    status = request.GET.get('status', '')
+    page = max(1, int(request.GET.get('page', 1)))
+    page_size = 10
+
+    qs = BoostRequest.objects.select_related('user', 'listing').order_by('-created_at')
+    if status:
+        qs = qs.filter(status=status)
+    else:
+        # By default hide pending_payment (not yet paid) from admin queue
+        qs = qs.exclude(status='pending_payment')
+
+    total = qs.count()
+    items = qs[(page - 1) * page_size: page * page_size]
+    data = []
+    for b in items:
+        data.append({
+            'id': b.id,
+            'listing_id': b.listing.id,
+            'listing_title': b.listing.title,
+            'listing_image': b.listing.image_url or '',
+            'username': b.user.username,
+            'user_id': b.user.id,
+            'fee_paid': float(b.fee_paid),
+            'status': b.status,
+            'admin_note': b.admin_note,
+            'created_at': b.created_at.isoformat(),
+            'paid_at': b.paid_at.isoformat() if b.paid_at else None,
+        })
+    return JsonResponse({'total': total, 'page': page, 'page_size': page_size, 'boosts': data})
+
+
+@staff_member_required(login_url='auth:auth_view')
+@require_POST
+def admin_api_boost_action(request, boost_id):
+    from .models import BoostRequest
+    from django.utils import timezone
+    try:
+        data = json.loads(request.body)
+        action = data.get('action')
+        note = data.get('note', '').strip()
+        b = BoostRequest.objects.select_related('listing').get(id=boost_id)
+
+        if action == 'approve':
+            b.status = 'approved'
+            b.admin_note = note
+            b.reviewed_at = timezone.now()
+            b.reviewed_by = request.user
+            b.save()
+            # Activate the listing as boosted
+            b.listing.status = 'boosted'
+            b.listing.is_available = True
+            b.listing.save()
+            return JsonResponse({'status': 'ok', 'message': f'Boost approved — "{b.listing.title}" is now featured'})
+        elif action == 'reject':
+            b.status = 'rejected'
+            b.admin_note = note or 'Rejected by admin'
+            b.reviewed_at = timezone.now()
+            b.reviewed_by = request.user
+            b.save()
+            return JsonResponse({'status': 'ok', 'message': f'Boost request rejected'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Unknown action'}, status=400)
+    except BoostRequest.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Boost request not found'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 

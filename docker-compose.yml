@@ -1,11 +1,11 @@
 services:
   redis:
     image: redis:7-alpine
+    restart: always
 
   web:
     build: .
     volumes:
-      - .:/app
       - static_volume:/app/staticfiles
       - sqlite_data:/var/data
     env_file:
@@ -14,6 +14,7 @@ services:
       - DATA_DIR=/var/data
     depends_on:
       - redis
+    restart: always
     expose:
       - "8000"
 
@@ -29,6 +30,7 @@ services:
       - certbot_conf:/etc/letsencrypt:ro
     depends_on:
       - web
+    restart: always
 
   certbot:
     image: certbot/certbot:latest
@@ -40,6 +42,7 @@ services:
         certbot renew --webroot -w /var/www/certbot --quiet;
         sleep 12h & wait $${!};
       done"
+    restart: always
 
 volumes:
   static_volume:

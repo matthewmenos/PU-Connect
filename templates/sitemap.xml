@@ -9,7 +9,7 @@
         <priority>0.8</priority>
     </url>
     <url>
-        <loc>{{ request.scheme }}://{{ request.get_host }}/dashboard/dashboard/</loc>
+        <loc>{{ request.scheme }}://{{ request.get_host }}/dashboard/</loc>
         <priority>0.8</priority>
     </url>
     <url>

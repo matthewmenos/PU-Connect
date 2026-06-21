@@ -5,11 +5,12 @@ from django.contrib.auth.decorators import login_required
 
 
 
+@login_required(login_url='auth:auth_view')
 def search(request):
     """
     Search Results Page
     GET /search/
-    
+
     Displays:
     - Search results
     - Filter options

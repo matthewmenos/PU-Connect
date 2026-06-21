@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/update/', views.update_profile_api, name='update_profile'),
     path('api/user/<str:username>/', views.public_profile_api, name='public_profile_api'),
     path('api/follow/<str:username>/', views.toggle_follow, name='toggle_follow'),
+    path('api/report/<str:username>/', views.report_user, name='report_user'),
     path('<str:username>/', views.public_profile_page, name='public_profile'),
 ]
 

@@ -6,6 +6,7 @@ from django.views.decorators.cache import never_cache
 import json
 from .models import Listing
 
+@login_required(login_url='auth:auth_view')
 def listing_detail(request, pk):
     """Full detail page for a single listing."""
     listing = get_object_or_404(Listing, pk=pk)
@@ -188,8 +189,12 @@ def get_all_listings(request):
     """
     Fetches all available listings to display on the dashboard.
     """
-    # Only show active or boosted listings to the public
-    listings = Listing.objects.filter(status__in=['active', 'boosted']).order_by('-created_at')
+    # Boosted listings first, then active by most recent
+    from django.db.models import Case, When, IntegerField
+    listings = Listing.objects.filter(status__in=['active', 'boosted']).order_by(
+        Case(When(status='boosted', then=0), default=1, output_field=IntegerField()),
+        '-created_at',
+    )
     listings_data = []
     for item in listings:
         phone = ""

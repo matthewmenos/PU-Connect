@@ -1,5 +1,5 @@
 ﻿import json
-from django.contrib.auth import authenticate, login 
+from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
@@ -10,16 +10,14 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-
-
-
 from django.urls import reverse
 
+from ratelimit.decorators import ratelimit
 
 
 # API endpoint for user login
 
-
+@ratelimit(key='ip', rate='10/m', method='POST', block=True)
 @require_POST
 def login_view(request):
     try:
@@ -70,6 +68,7 @@ def login_view(request):
 
 
 
+@ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def signup_api(request):
     if request.method == 'POST':
         try:

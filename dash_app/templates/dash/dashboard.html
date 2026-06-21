@@ -190,7 +190,8 @@ async function loadListings(){
     const res=await fetch('/listings/api/all/');
     const data=await res.json();
     allListings=Array.isArray(data)?data:(data.listings||[]);
-    renderCarousel(allListings.slice(0,6));
+    const boosted=allListings.filter(l=>l.status==='boosted');
+    renderCarousel(boosted.length?boosted:allListings.slice(0,6));
     renderListings();
   }catch(e){
     document.getElementById('listingsLoader').style.display='none';
@@ -285,9 +286,11 @@ function featureCard(l){
   const price=`GH₵ ${parseFloat(l.price||0).toFixed(2)}`;
   const imgSrc=l.img||l.image_url||'';
   const bg=imgSrc?`background-image:url('${imgSrc}');background-size:cover;background-position:center`:'';
+  const boostedBadge=l.status==='boosted'?`<span style="background:var(--gold,#e8c96a);color:#000;font-size:.65rem;font-weight:700;padding:.2rem .55rem;border-radius:99px;letter-spacing:.5px;text-transform:uppercase">⚡ Featured</span>`:'';
   return `<div class="fc-slide" style="${bg}" onclick="location.href='/listings/${l.id}/'" style="cursor:pointer">
     <div class="fc-overlay">
       <div class="fc-meta">
+        ${boostedBadge}
         <div class="fc-title">${esc(l.title)}</div>
         <div class="fc-price">${esc(price)}</div>
       </div>

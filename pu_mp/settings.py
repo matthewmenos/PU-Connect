@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'Listings_app',
     'Reels_app',
     'channels',
+    'ratelimit',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -185,7 +186,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Accra'
 
 USE_I18N = True
 
@@ -227,6 +228,10 @@ _vapid_priv_b64   = os.environ.get('VAPID_PRIVATE_KEY', '')
 import base64 as _b64
 VAPID_PRIVATE_KEY = _b64.b64decode(_vapid_priv_b64).decode('utf-8') if _vapid_priv_b64 else ''
 VAPID_CLAIMS_EMAIL = os.environ.get('VAPID_CLAIMS_EMAIL', 'puconnect1@gmail.com')
+
+# Paystack
+PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
+PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
 
 # Authentication backends`
 AUTHENTICATION_BACKENDS = (

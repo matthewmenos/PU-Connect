@@ -6,15 +6,22 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
 from Base_app.views import r2_presign, r2_upload, serve_sw, serve_offline
 
 from django.views.generic import TemplateView
+
+
+def handler429(request, exception=None):
+    return JsonResponse({'status': 'error', 'message': 'Too many requests — please slow down.'}, status=429)
+
+
+handler403 = handler429
 
 urlpatterns = [
     # SEO
     path('robots.txt', TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
     path('sitemap.xml', TemplateView.as_view(template_name="sitemap.xml", content_type="application/xml")),
-    path('sw.js', TemplateView.as_view(template_name="sw.js", content_type="application/javascript")),
 
     # Admin
     path('admin/', admin.site.urls),

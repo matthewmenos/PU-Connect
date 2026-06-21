@@ -55,6 +55,10 @@
     <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
     Transactions
   </div>
+  <div class="sb-item" onclick="nav('reels',this)">
+    <svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    Reels
+  </div>
 
   <div class="sb-section">Safety</div>
   <div class="sb-item" onclick="nav('reports',this)">
@@ -304,7 +308,7 @@
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>User</th><th>Username</th><th>Faculty</th><th>Joined</th><th>Listings</th><th>Trades</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>User</th><th>Username</th><th>Faculty</th><th>Joined</th><th>Listings</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="usersTable"></tbody>
           </table>
         </div>
@@ -336,7 +340,7 @@
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Item</th><th>Seller</th><th>Category</th><th>Price</th><th>Views</th><th>Posted</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Item</th><th>Seller</th><th>Category</th><th>Price</th><th>Posted</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="listingsTable"></tbody>
           </table>
         </div>
@@ -735,7 +739,42 @@
             <label style="font-size:.7rem;color:var(--m);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:.35rem">Max Listings per User</label>
             <input type="number" id="cfg-maxlistings" value="50" style="width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:9px;padding:.6rem .85rem;color:var(--t);font-family:var(--font);font-size:.86rem;outline:none" onfocus="this.style.borderColor='rgba(232,201,106,.45)'" onblur="this.style.borderColor='var(--border)'"/>
           </div>
+          <div>
+            <label style="font-size:.7rem;color:var(--m);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:.35rem">Boost Fee (GH₵)</label>
+            <input type="number" id="cfg-boostfee" value="10" min="0" step="0.50" style="width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:9px;padding:.6rem .85rem;color:var(--t);font-family:var(--font);font-size:.86rem;outline:none" onfocus="this.style.borderColor='rgba(232,201,106,.45)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div>
+            <label style="font-size:.7rem;color:var(--m);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:.35rem">Boost Duration (days)</label>
+            <input type="number" id="cfg-boostdays" value="7" min="1" style="width:100%;background:var(--card2);border:1.5px solid var(--border);border-radius:9px;padding:.6rem .85rem;color:var(--t);font-family:var(--font);font-size:.86rem;outline:none" onfocus="this.style.borderColor='rgba(232,201,106,.45)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
         </div>
+      </div>
+
+      <!-- ── BOOST REQUESTS ── -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Boost Requests</div>
+            <div class="card-sub">Review and approve paid listing promotions</div>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <select class="filter-select" id="boostStatusFilter" onchange="loadBoosts(1)" style="min-width:140px">
+              <option value="">Paid (awaiting review)</option>
+              <option value="paid">Paid — Awaiting Approval</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="pending_payment">Pending Payment</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="loadBoosts()">↻ Refresh</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Listing</th><th>Seller</th><th>Fee Paid</th><th>Requested</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="boostsTable"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--m)">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="boostsPager"></div>
       </div>
 
       <!-- ── SYSTEM INFO + DEPLOY ── -->
@@ -1046,6 +1085,44 @@ async function loadConversations(page=1){
   }catch(e){return {conversations:[],total:0};}
 }
 
+async function loadReports(page=1, status='', priority=''){
+  try{
+    const url=`/site-admin/api/reports/?page=${page}&status=${encodeURIComponent(status)}&priority=${encodeURIComponent(priority)}`;
+    const d = await apiFetch(url);
+    STATE.reports = d.reports.map(r=>({
+      id: String(r.id),
+      reporter: r.reporter,
+      reported: r.reported,
+      reason: r.reason,
+      details: r.details,
+      status: r.status,
+      priority: r.priority,
+      submittedAt: r.submitted_at,
+    }));
+    STATE.reportTotal = d.total;
+    return d;
+  }catch(e){console.error('Reports error',e);return {reports:[],total:0,page:1,page_size:10};}
+}
+
+async function loadTransactions(page=1, q='', status=''){
+  try{
+    const url=`/site-admin/api/transactions/?page=${page}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}`;
+    const d = await apiFetch(url);
+    STATE.transactions = d.transactions.map(t=>({
+      id: t.id,
+      buyer: t.buyer,
+      seller: t.seller,
+      item: t.item,
+      amount: t.amount,
+      spot: t.spot,
+      date: t.date,
+      status: t.status,
+    }));
+    STATE.txTotal = d.total;
+    return d;
+  }catch(e){console.error('Tx error',e);return {transactions:[],total:0,page:1,page_size:10};}
+}
+
 async function userAction(userId, action){
   return apiFetch(`/site-admin/api/users/${userId}/action/`, {method:'POST', body:JSON.stringify({action})});
 }
@@ -1119,10 +1196,10 @@ function renderPager(containerId,total,page,table){
 function changePage(table,page){
   PAGE[table]=page;
   if(table==='users')renderUsers();
-  if(table==='listings')renderListings();
-  if(table==='reels')renderReels();
-  if(table==='transactions')renderTransactions();
-  if(table==='reports')renderReports();
+  else if(table==='listings')renderListings();
+  else if(table==='reels')renderReels();
+  else if(table==='transactions')renderTransactions();
+  else if(table==='reports')renderReports();
 }
 
 /* ════════════════════════════════════════════════
@@ -1185,7 +1262,7 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('op
 async function renderUsers(){
   const q=document.getElementById('userSearch')?.value||'';
   const status=document.getElementById('userStatusFilter')?.value||'';
-  document.getElementById('usersTable').innerHTML='<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--m)">Loading…</td></tr>';
+  document.getElementById('usersTable').innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--m)">Loading…</td></tr>';
   const d = await loadUsers(PAGE.users, q, status);
   const avClrs=['av-gold','av-teal','av-purple','av-orange','av-blue'];
   document.getElementById('userCount').textContent=`${d.total} users total${q?' · filtered':''}`;
@@ -1213,7 +1290,7 @@ async function renderUsers(){
         </button>
       </div></td>
     </tr>`).join('')
-    :'<tr><td colspan="9"><div class="empty-state"><div class="empty-ico"></div><div class="empty-t">No users match this filter</div></div></td></tr>';
+    :'<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"></div><div class="empty-t">No users match this filter</div></div></td></tr>';
   renderServerPager('usersPager', d.total, PAGE.users, d.page_size, 'users');
 }
 
@@ -1308,68 +1385,67 @@ function renderReels(data){
 /* ════════════════════════════════════════════════
    RENDER: TRANSACTIONS
 ════════════════════════════════════════════════ */
-function renderTransactions(data){
-  const all=data??getFilteredTx();
-  const paged=paginate(all,PAGE.transactions);
-  // Update transaction stat cards from real data
+async function renderTransactions(){
+  const q=document.getElementById('txSearch')?.value||'';
+  const stat=document.getElementById('txStatusFilter')?.value||'';
+  document.getElementById('txTable').innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--m)">Loading…</td></tr>';
+  const d = await loadTransactions(PAGE.transactions, q, stat);
+  // Update transaction stat cards from global stats
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  const txAll=TRANSACTIONS();
-  if(txAll.length){
-    const totalGmv=txAll.reduce((s,t)=>s+(t.amount||0),0);
-    const completed=txAll.filter(t=>t.status==='completed').length;
-    const disputed=txAll.filter(t=>t.status==='disputed').length;
-    const avgVal=txAll.length?Math.round(totalGmv/txAll.length):0;
-    set('txStatGmv','GH₵ '+(totalGmv>=1000?(totalGmv/1000).toFixed(1)+'k':totalGmv.toLocaleString()));
-    set('txStatCompleted',completed.toLocaleString());
-    set('txStatAvg','GH₵ '+avgVal.toLocaleString());
-    set('txStatDisputed',disputed.toLocaleString());
+  const stats=STATE.stats;
+  if(stats.total_gmv!=null){
+    const g=stats.total_gmv;
+    set('txStatGmv','GH₵ '+(g>=1000?(g/1000).toFixed(1)+'k':g.toLocaleString()));
   }
-  document.getElementById('txTable').innerHTML=paged.length?paged.map(tx=>`
+  if(stats.total_transactions!=null){
+    set('txStatCompleted',stats.total_transactions.toLocaleString());
+    const avg=stats.total_transactions>0?Math.round(stats.total_gmv/stats.total_transactions):0;
+    set('txStatAvg','GH₵ '+avg.toLocaleString());
+  }
+  set('txStatDisputed','0');
+  document.getElementById('txTable').innerHTML=d.transactions.length?d.transactions.map(tx=>`
     <tr>
       <td class="td-mono" style="color:var(--gold)">${tx.id}</td>
-      <td class="td-mono">@${tx.buyer}</td>
+      <td class="td-mono">${tx.buyer==='—'?'—':'@'+tx.buyer}</td>
       <td class="td-mono">@${tx.seller}</td>
       <td class="td-primary">${tx.item}</td>
       <td style="font-weight:700;color:var(--teal)">GH₵ ${tx.amount.toLocaleString()}</td>
       <td class="td-dim">${tx.spot}</td>
-      <td class="td-dim">${fmtDateTime(tx.date)}</td>
-      <td style="white-space:nowrap">
-        ${tx.status==='completed'?'<span class="badge badge-green">✓ Completed</span>':
-          tx.status==='disputed'?`<span class="badge badge-orange">Disputed</span>`:
-          '<span class="badge badge-gray">'+tx.status+'</span>'}
-        ${tx.status==='disputed'?`<button class="btn btn-teal btn-sm" style="margin-left:.4rem" onclick="resolveDispute('${tx.id}')">Resolve</button>`:''}
-      </td>
+      <td class="td-dim">${fmtDate(tx.date)}</td>
+      <td><span class="badge badge-green">✓ Completed</span></td>
     </tr>`).join('')
-    :'<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"></div><div class="empty-t">No transactions match this filter</div></div></td></tr>';
-  renderPager('txPager',all.length,PAGE.transactions,'transactions');
+    :'<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"></div><div class="empty-t">No sold listings yet</div></div></td></tr>';
+  renderServerPager('txPager', d.total, PAGE.transactions, d.page_size, 'transactions');
 }
 
 /* ════════════════════════════════════════════════
    RENDER: REPORTS
 ════════════════════════════════════════════════ */
-function renderReports(data){
-  const all=data??getFilteredReports();
-  const paged=paginate(all,PAGE.reports);
-  const openCount=REPORTS().filter(r=>r.status==='open').length;
-  document.getElementById('sbReportBadge').textContent=openCount;
-  document.getElementById('kpiReports').textContent=openCount;
-  document.getElementById('reportsTable').innerHTML=paged.length?paged.map(r=>`
-    <tr onclick="openReportModal('${r.id}')" class="${r.status==='resolved'?'':''}">
+async function renderReports(){
+  const stat=document.getElementById('reportStatusFilter')?.value||'';
+  const pri=document.getElementById('reportPriorityFilter')?.value||'';
+  document.getElementById('reportsTable').innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--m)">Loading…</td></tr>';
+  const d = await loadReports(PAGE.reports, stat, pri);
+  const openCount=d.reports.filter(r=>r.status==='open').length;
+  document.getElementById('sbReportBadge').textContent=STATE.stats.open_reports??openCount;
+  document.getElementById('kpiReports').textContent=STATE.stats.open_reports??openCount;
+  document.getElementById('reportsTable').innerHTML=d.reports.length?d.reports.map(r=>`
+    <tr onclick="openReportModal('${r.id}')" style="cursor:pointer">
       <td class="td-mono">@${r.reporter}</td>
       <td><span style="font-weight:700;color:var(--red)">@${r.reported}</span></td>
       <td><span class="badge badge-orange">${r.reason}</span></td>
-      <td class="td-dim" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.details}">${r.details}</td>
+      <td class="td-dim" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.details}">${r.details||'—'}</td>
       <td class="td-dim" style="white-space:nowrap">${timeAgo(r.submittedAt)}</td>
       <td>${r.priority==='high'?'<span class="badge badge-red">High</span>':r.priority==='medium'?'<span class="badge badge-orange">Medium</span>':'<span class="badge badge-gray">Low</span>'}</td>
       <td>${r.status==='open'?'<span class="badge badge-red">Open</span>':r.status==='investigating'?'<span class="badge badge-gold">Investigating</span>':'<span class="badge badge-teal">Resolved</span>'}</td>
       <td><button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openReportModal('${r.id}')">Review</button></td>
     </tr>`).join('')
     :'<tr><td colspan="8"><div class="empty-state"><div class="empty-ico"></div><div class="empty-t">No reports match this filter</div></div></td></tr>';
-  renderPager('reportsPager',all.length,PAGE.reports,'reports');
-  // Update notice banner with real count and SLA
-  const openReportsCount=REPORTS().filter(r=>r.status==='open').length;
+  renderServerPager('reportsPager', d.total, PAGE.reports, d.page_size, 'reports');
+  // Update notice banner
+  const totalOpen=STATE.stats.open_reports??0;
   const noticeEl=document.getElementById('openReportsNotice');
-  if(noticeEl)noticeEl.textContent=openReportsCount+' open report'+(openReportsCount!==1?'s':'');
+  if(noticeEl)noticeEl.textContent=totalOpen+' open report'+(totalOpen!==1?'s':'');
   const slaEl=document.getElementById('slaHours');
   if(slaEl)slaEl.textContent=STATE.settings?.platformConfig?.sla||STATE.settings?.sla||2;
 }
@@ -1378,12 +1454,14 @@ function renderReports(data){
    RENDER: MOD LOG
 ════════════════════════════════════════════════ */
 function updateModerationCounts(){
-  const banned=STATE.users.filter(u=>u.status==='banned').length;
-  const suspended=STATE.users.filter(u=>u.status==='suspended').length;
-  const flagged=STATE.listings.filter(l=>l.status==='flagged').length+STATE.reels.filter(r=>r.status==='flagged').length;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  set('modBannedCount',banned);
-  set('modSuspendedCount',suspended);
+  // Use server stats when available, fall back to local user list
+  const suspendedCount=STATE.stats.suspended_users!=null
+    ? STATE.stats.suspended_users
+    : STATE.users.filter(u=>u.status==='suspended').length;
+  const flagged=STATE.listings.filter(l=>l.status==='paused').length;
+  set('modBannedCount','0');
+  set('modSuspendedCount',suspendedCount);
   set('modFlaggedCount',flagged);
 }
 
@@ -1665,12 +1743,7 @@ function removeReel(id){
    TRANSACTION ACTIONS
 ════════════════════════════════════════════════ */
 function resolveDispute(id){
-  const tx=STATE.transactions.find(x=>x.id===id);if(!tx)return;
-  const resolution=prompt(`Resolve dispute for ${tx.id}\n\nEnter resolution (e.g. "Refund issued" / "Trade confirmed"):`);
-  if(!resolution)return;
-  tx.status='completed';persist();
-  logAction('Resolved Dispute',tx.id,resolution);
-  renderTransactions();showToast('Dispute resolved','teal');
+  showToast('Transaction disputes are handled through the Reports section','gold');
 }
 
 /* ════════════════════════════════════════════════
@@ -1678,8 +1751,8 @@ function resolveDispute(id){
 ════════════════════════════════════════════════ */
 let activeReportId=null;
 function openReportModal(id){
-  activeReportId=id;
-  const r=STATE.reports.find(x=>x.id===id);if(!r)return;
+  activeReportId=String(id);
+  const r=STATE.reports.find(x=>String(x.id)===String(id));if(!r)return;
   const reportedUser=STATE.users.find(u=>u.username===r.reported);
   document.getElementById('reportModalBody').innerHTML=`
     <div style="display:grid;gap:.75rem">
@@ -1715,19 +1788,19 @@ function openReportModal(id){
   openModal('reportModal');
 }
 
-function resolveReport(action){
-  const r=STATE.reports.find(x=>x.id===activeReportId);if(!r)return;
+async function resolveReport(action){
+  const r=STATE.reports.find(x=>String(x.id)===String(activeReportId));if(!r)return;
   const note=document.getElementById('reportNote')?.value||'';
-  const reportedUser=STATE.users.find(u=>u.username===r.reported);
-  r.status='resolved';r.resolvedAt=Date.now();r.resolvedBy='Admin';r.resolution=action;persist();
-  if(action==='ban'&&reportedUser){reportedUser.status='banned';persist();logAction('Banned','@'+reportedUser.username,'Report '+r.id+': '+r.reason+(note?' — '+note:''));}
-  else if(action==='warn'){logAction('Warned','@'+r.reported,'Report '+r.id+': '+r.reason+(note?' — '+note:''));}
-  else{logAction('Dismissed Report',r.id,'Reason: '+r.reason+(note?' — '+note:''));}
-  closeModal(null,'reportModal');
-  renderReports();renderUsers();
-  if(action==='ban')showToast('User banned and report resolved','red');
-  else if(action==='warn')showToast('User warned and report resolved','gold');
-  else showToast('Report dismissed','teal');
+  try{
+    const apiAction = action==='dismiss'?'dismiss':action==='ban'?'ban':action==='warn'?'warn':'resolve';
+    const d=await apiFetch(`/site-admin/api/reports/${r.id}/action/`,{method:'POST',body:JSON.stringify({action:apiAction,note})});
+    logAction(apiAction==='ban'?'Banned':apiAction==='warn'?'Warned':'Dismissed Report','@'+r.reported,'Report #'+r.id);
+    closeModal(null,'reportModal');
+    await Promise.all([loadStats(), renderReports()]);
+    if(action==='ban'){await renderUsers();showToast(d.message,'red');}
+    else if(action==='warn')showToast(d.message,'gold');
+    else showToast(d.message,'teal');
+  }catch(e){showToast(e.message||'Action failed','red');}
 }
 
 /* ════════════════════════════════════════════════
@@ -1851,8 +1924,8 @@ function exportData(){
    REFRESH
 ════════════════════════════════════════════════ */
 async function refreshAll(){
-  await Promise.all([loadStats(), renderUsers(), renderListings()]);
-  renderReels();renderTransactions();renderReports();renderModLog();
+  await Promise.all([loadStats(), renderUsers(), renderListings(), renderReports(), renderTransactions()]);
+  renderReels();renderModLog();
   renderTopSellers();renderNewestUsers();renderActivityFeed();
   renderWeeklyChart();renderDauChart();renderGmvChart();renderCategoryBreakdown();
   showToast('Data refreshed','teal');
@@ -1893,8 +1966,8 @@ setInterval(async()=>{
    INIT
 ════════════════════════════════════════════════ */
 (async function init(){
-  await Promise.all([loadStats(), renderUsers(), renderListings()]);
-  renderReels();renderTransactions();renderReports();renderModLog();
+  await Promise.all([loadStats(), renderUsers(), renderListings(), renderReports(), renderTransactions()]);
+  renderReels();renderModLog();
   renderTopSellers();renderNewestUsers();renderActivityFeed();
   renderWeeklyChart();renderDauChart();renderGmvChart();renderCategoryBreakdown();
   initSettingsUI();updateModerationCounts();
@@ -1929,24 +2002,26 @@ function updateSysMetrics(){
   if(activeUsers>0)setText('onlineUsers',activeUsers.toLocaleString());
 }
 
-/* ── Platform config save ── */
-function savePlatformConfig(){
+/* ── Platform config save — persists to DB via API ── */
+async function savePlatformConfig(){
   const fields={
-    name: document.getElementById('cfg-name')?.value?.trim(),
-    email: document.getElementById('cfg-email')?.value?.trim(),
-    maxPrice: document.getElementById('cfg-maxprice')?.value,
-    maxVideo: document.getElementById('cfg-maxvideo')?.value,
-    sla: document.getElementById('cfg-sla')?.value,
-    maxListings: document.getElementById('cfg-maxlistings')?.value,
+    platform_name: document.getElementById('cfg-name')?.value?.trim(),
+    admin_email: document.getElementById('cfg-email')?.value?.trim(),
+    max_listing_price: document.getElementById('cfg-maxprice')?.value,
+    max_video_size_mb: document.getElementById('cfg-maxvideo')?.value,
+    report_sla_hours: document.getElementById('cfg-sla')?.value,
+    max_listings_per_user: document.getElementById('cfg-maxlistings')?.value,
+    boost_fee: document.getElementById('cfg-boostfee')?.value,
+    boost_duration_days: document.getElementById('cfg-boostdays')?.value,
   };
-  // Validate
-  if(!fields.name){showToast('Platform name is required','red');return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)){showToast('Invalid admin email','red');return;}
-  // Save to STATE
-  STATE.settings.platformConfig=fields;
-  persist();
-  addEventLog('ok','CONFIG','Platform configuration updated — '+JSON.stringify(fields).slice(0,60)+'…');
-  showToast('Platform configuration saved','teal');
+  if(!fields.platform_name){showToast('Platform name is required','red');return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.admin_email)){showToast('Invalid admin email','red');return;}
+  try{
+    const d=await apiFetch('/site-admin/api/config/save/',{method:'POST',body:JSON.stringify(fields)});
+    STATE.settings.platformConfig=fields;
+    addEventLog('ok','CONFIG','Platform configuration saved');
+    showToast('Configuration saved','teal');
+  }catch(e){showToast(e.message||'Save failed','red');}
 }
 
 /* ── System quick actions ── */
@@ -2057,7 +2132,7 @@ function clearEventLog(){
 const _origNav=nav;
 nav=function(id,el){
   _origNav(id,el);
-  if(id==='settings'){startSysMetrics();seedEventLog();}
+  if(id==='settings'){startSysMetrics();seedEventLog();loadPlatformConfig();loadBoosts();}
   else stopSysMetrics();
 };
 
@@ -2076,20 +2151,81 @@ function seedEventLog(){
   renderEventLog();
 }
 
-/* ── Load saved platform config into fields ── */
-function loadPlatformConfig(){
-  const cfg=STATE.settings.platformConfig||{};
-  const set=(id,val)=>{const el=document.getElementById(id);if(el&&val!==undefined)el.value=val;};
-  set('cfg-name',cfg.name||'PU-Connect');
-  set('cfg-email',cfg.email||'admin@pu-connect.edu.gh');
-  set('cfg-maxprice',cfg.maxPrice||10000);
-  set('cfg-maxvideo',cfg.maxVideo||100);
-  set('cfg-sla',cfg.sla||2);
-  set('cfg-maxlistings',cfg.maxListings||50);
+/* ── Load platform config from DB ── */
+async function loadPlatformConfig(){
+  try{
+    const cfg=await apiFetch('/site-admin/api/config/');
+    const set=(id,val)=>{const el=document.getElementById(id);if(el&&val!=null)el.value=val;};
+    set('cfg-name',cfg.platform_name);
+    set('cfg-email',cfg.admin_email);
+    set('cfg-maxprice',cfg.max_listing_price);
+    set('cfg-maxvideo',cfg.max_video_size_mb);
+    set('cfg-sla',cfg.report_sla_hours);
+    set('cfg-maxlistings',cfg.max_listings_per_user);
+    set('cfg-boostfee',cfg.boost_fee);
+    set('cfg-boostdays',cfg.boost_duration_days);
+    STATE.settings.platformConfig=cfg;
+  }catch(e){/* use defaults already in the HTML */}
 }
 
-// Call on init
-loadPlatformConfig();
+/* ── Boost Requests ── */
+let _boosts=[], _boostTotal=0, _boostPage=1;
+
+async function loadBoosts(page=1){
+  _boostPage=page;
+  const stat=document.getElementById('boostStatusFilter')?.value||'';
+  try{
+    const d=await apiFetch(`/site-admin/api/boosts/?page=${page}&status=${encodeURIComponent(stat)}`);
+    _boosts=d.boosts;
+    _boostTotal=d.total;
+    renderBoosts();
+  }catch(e){console.error('Boosts error',e);}
+}
+
+function renderBoosts(){
+  const rows=_boosts;
+  const tb=document.getElementById('boostsTable');
+  if(!tb)return;
+  tb.innerHTML=rows.length?rows.map(b=>`
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          ${b.listing_image?`<img src="${b.listing_image}" style="width:36px;height:36px;border-radius:7px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`:'<div style="width:36px;height:36px;border-radius:7px;background:var(--card2);flex-shrink:0"></div>'}
+          <div><div class="td-primary">${b.listing_title}</div><div class="td-mono" style="font-size:.68rem">#${b.listing_id}</div></div>
+        </div>
+      </td>
+      <td class="td-mono">@${b.username}</td>
+      <td class="td-mono" style="color:var(--gold);font-weight:700">GH₵ ${parseFloat(b.fee_paid).toFixed(2)}</td>
+      <td class="td-dim">${fmtDate(b.created_at)}</td>
+      <td>${
+        b.status==='paid'?'<span class="badge badge-gold">Paid — Review</span>':
+        b.status==='approved'?'<span class="badge badge-green">Approved</span>':
+        b.status==='rejected'?'<span class="badge badge-red">Rejected</span>':
+        '<span class="badge" style="background:rgba(255,255,255,.08);color:var(--m)">Awaiting Payment</span>'
+      }</td>
+      <td>
+        ${b.status==='paid'?`
+          <div style="display:flex;gap:.35rem">
+            <button class="btn btn-teal btn-sm" onclick="boostAction(${b.id},'approve')">✓ Approve</button>
+            <button class="btn btn-danger btn-sm" onclick="boostAction(${b.id},'reject')">✕ Reject</button>
+          </div>`:`<span class="td-dim" style="font-size:.76rem">${b.admin_note||'—'}</span>`}
+      </td>
+    </tr>`).join('')
+    :'<tr><td colspan="6"><div class="empty-state"><div class="empty-t">No boost requests</div></div></td></tr>';
+}
+
+async function boostAction(id,action){
+  const note=action==='reject'?prompt('Reason for rejection (optional):'):'';
+  if(action==='reject'&&note===null)return;
+  try{
+    const d=await apiFetch(`/site-admin/api/boosts/${id}/action/`,{method:'POST',body:JSON.stringify({action,note:note||''})});
+    logAction(action==='approve'?'Approved Boost':'Rejected Boost','Boost #'+id,note||'');
+    addEventLog(action==='approve'?'ok':'warn','BOOST',d.message);
+    showToast(d.message,action==='approve'?'teal':'red');
+    await loadBoosts(_boostPage);
+  }catch(e){showToast(e.message||'Action failed','red');}
+}
+
 </script>
 <script>(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});})();</script>
 </body>
