@@ -16,8 +16,8 @@ python manage.py sync_db_from_r2
 echo "Applying migrations to global.db..."
 python manage.py migrate --database=default --noinput
 
-echo "Applying migrations to user.db..."
-python manage.py migrate --database=user_db --noinput
+# user_db is no longer used — all tables are in global.db (default)
+# Kept as a no-op so old deployments don't break
 
 # Create superuser if environment variables are set
 if [ "$DJANGO_SUPERUSER_USERNAME" ] && [ "$DJANGO_SUPERUSER_PASSWORD" ]; then

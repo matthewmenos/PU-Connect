@@ -73,7 +73,6 @@ def _db_files():
     data_dir = str(settings.DATA_DIR)
     return [
         ("db/global.db", os.path.join(data_dir, "global.db")),
-        ("db/user.db",   os.path.join(data_dir, "user.db")),
     ]
 
 
