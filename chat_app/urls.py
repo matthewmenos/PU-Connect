@@ -12,4 +12,6 @@ urlpatterns = [
     path('api/search-users/', views.search_users, name='search_users'),
     path('api/push-subscribe/', views.push_subscribe, name='push_subscribe'),
     path('api/push-unsubscribe/', views.push_unsubscribe, name='push_unsubscribe'),
+    path('api/notifications/', views.get_notifications, name='get_notifications'),
+    path('api/notifications/mark-read/', views.mark_notifications_read, name='mark_notifications_read'),
 ]

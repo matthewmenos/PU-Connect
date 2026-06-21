@@ -138,7 +138,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         user = User.objects.get(id=sender_id)
         conv = Conversation.objects.get(id=self.conv_id)
         conv.save()
-        return Message.objects.create(
+        msg = Message.objects.create(
             conversation=conv,
             sender=user,
             text=text,
@@ -148,3 +148,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             meetup_spot=meetup_spot,
             meetup_time=meetup_time,
         )
+        # Create an in-app notification for every other participant
+        sender_name = user.get_full_name() or user.username
+        preview = (text or ('📷 Photo' if image_url else '🎤 Voice note'))[:60]
+        for participant in conv.participants.exclude(id=sender_id):
+            Notification.objects.create(
+                user=participant,
+                type='message',
+                title=f'New message from {sender_name}',
+                content=preview,
+                link=f'/chat/',
+            )
+        return msg

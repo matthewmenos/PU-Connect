@@ -252,3 +252,153 @@ button {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; }
+
+/* ══════════════════════════════════════════
+   Notification bell dot
+══════════════════════════════════════════ */
+.notif-dot {
+  position: absolute;
+  top: 4px; right: 4px;
+  min-width: 16px; height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--danger);
+  color: #fff;
+  font-size: .6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  pointer-events: none;
+  border: 2px solid var(--surface);
+  line-height: 1;
+}
+
+/* Bell button wrapper needs relative positioning for dot */
+#notifBtn { position: relative; }
+
+/* ══════════════════════════════════════════
+   Notification panel dropdown
+══════════════════════════════════════════ */
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 1rem);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-8px) scale(.97);
+  pointer-events: none;
+  transition: opacity .18s var(--ease-out), transform .18s var(--ease-out);
+}
+.notif-panel.np-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.np-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .9rem 1rem .7rem;
+  border-bottom: 1px solid var(--border);
+}
+.np-heading {
+  font-size: .9rem;
+  font-weight: 700;
+}
+.np-mark-all {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-sans);
+}
+.np-mark-all:hover { opacity: .75; }
+
+.np-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.np-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: .85rem;
+  color: var(--text-2);
+}
+
+.np-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .8rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  transition: background .14s;
+  position: relative;
+}
+.np-item:last-child { border-bottom: none; }
+.np-item:hover { background: var(--surface-2); }
+.np-item.np-unread { background: var(--accent-dim); }
+.np-item.np-unread:hover { background: var(--surface-2); }
+
+.np-icon {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+}
+.np-icon.message { background: var(--accent-dim); color: var(--accent); border-color: transparent; }
+.np-icon.system  { background: var(--warn-dim);   color: var(--warn);   border-color: transparent; }
+
+.np-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.np-title {
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-content {
+  font-size: .78rem;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-time {
+  font-size: .7rem;
+  color: var(--text-2);
+  opacity: .7;
+}
+
+.np-badge {
+  flex-shrink: 0;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: .35rem;
+}

@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.db.models import Q
 import json
-from .models import Conversation, Message, PushSubscription
+from .models import Conversation, Message, Notification, PushSubscription
 
 
 @login_required(login_url='auth:auth_view')
@@ -162,6 +162,41 @@ def search_users(request):
             'conv_id': existing_conv.id if existing_conv else None,
         })
     return JsonResponse(data, safe=False)
+
+@login_required
+def get_notifications(request):
+    """Return the 20 most recent notifications for the current user."""
+    notifs = Notification.objects.filter(user=request.user)[:20]
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+    data = []
+    for n in notifs:
+        data.append({
+            'id': n.id,
+            'type': n.type,
+            'title': n.title,
+            'content': n.content,
+            'link': n.link or '',
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime('%d %b, %I:%M %p'),
+        })
+    return JsonResponse({'notifications': data, 'unread_count': unread_count})
+
+
+@login_required
+@require_POST
+def mark_notifications_read(request):
+    """Mark all (or one) notifications as read."""
+    try:
+        data = json.loads(request.body) if request.body else {}
+        notif_id = data.get('id')
+        if notif_id:
+            Notification.objects.filter(user=request.user, id=notif_id).update(is_read=True)
+        else:
+            Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'status': 'ok'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
 
 @login_required
 @require_POST

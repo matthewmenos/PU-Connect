@@ -1,15 +1,16 @@
 ﻿import django
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from .models import Profile 
-from django.views.decorators.http import require_POST 
+from django.contrib.auth.models import User
+from .models import Profile, Follow
+from django.views.decorators.http import require_POST
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.cache import never_cache
 
 from django.contrib import messages
-from Listings_app.models import Listing 
+from Listings_app.models import Listing
 import json
 
 
@@ -91,6 +92,8 @@ def get_my_profile(request):
         'joined': user.date_joined.strftime('%B %Y'),
         'listing_count': listing_qs.count(),
         'sold_count': listing_qs.filter(status='sold').count(),
+        'followers_count': user.followers_set.count(),
+        'following_count': user.following_set.count(),
         'active_listings': active_listings,
     })
   
@@ -166,6 +169,75 @@ def update_profile_api(request):
 
 
 # Ensure your Listing model is imported
+
+
+def public_profile_page(request, username):
+    """Renders the public profile page for any user."""
+    target = get_object_or_404(User, username=username, is_active=True)
+    return render(request, 'profile/public_profile.html', {'target_username': username})
+
+
+@never_cache
+def public_profile_api(request, username):
+    """JSON data for a public profile."""
+    target = get_object_or_404(User, username=username, is_active=True)
+    try:
+        p = target.profile
+    except Exception:
+        p = None
+
+    listing_qs = Listing.objects.filter(user=target, status__in=['active', 'boosted']).order_by('-created_at')
+    active_listings = list(
+        listing_qs[:12].values('id', 'title', 'price', 'image_url', 'listing_type', 'status', 'contact_for_price')
+    )
+    for l in active_listings:
+        l['price'] = str(l['price'])
+
+    is_following = False
+    follows_you  = False
+    is_own       = False
+    if request.user.is_authenticated:
+        is_own       = request.user == target
+        is_following = Follow.objects.filter(follower=request.user, following=target).exists()
+        follows_you  = Follow.objects.filter(follower=target, following=request.user).exists()
+
+    return JsonResponse({
+        'username':        target.username,
+        'name':            target.get_full_name() or target.username,
+        'bio':             (p.bio if p else '') or '',
+        'faculty':         (p.faculty if p else '') or '',
+        'location':        (p.location if p else '') or '',
+        'avatarSrc':       (p.avatar_url if p else '') or '',
+        'joined':          target.date_joined.strftime('%B %Y'),
+        'posts_count':     listing_qs.count(),
+        'followers_count': target.followers_set.count(),
+        'following_count': target.following_set.count(),
+        'is_following':    is_following,
+        'follows_you':     follows_you,
+        'is_own':          is_own,
+        'active_listings': active_listings,
+    })
+
+
+@login_required(login_url='auth:auth_view')
+@require_POST
+def toggle_follow(request, username):
+    """Toggle follow/unfollow. Returns new state."""
+    target = get_object_or_404(User, username=username, is_active=True)
+    if target == request.user:
+        return JsonResponse({'status': 'error', 'message': 'Cannot follow yourself'}, status=400)
+
+    follow_obj, created = Follow.objects.get_or_create(follower=request.user, following=target)
+    if not created:
+        follow_obj.delete()
+        is_following = False
+    else:
+        is_following = True
+
+    return JsonResponse({
+        'following':       is_following,
+        'followers_count': target.followers_set.count(),
+    })
 
 
 def logout_view(request):

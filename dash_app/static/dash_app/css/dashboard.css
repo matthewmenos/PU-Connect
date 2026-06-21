@@ -397,7 +397,19 @@
   .fc-slide { aspect-ratio: 16/6; }
 }
 
+@media (min-width: 1200px) {
+  .listings-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .listings-loader { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+}
+
 @media (max-width: 480px) {
   .guest-banner { flex-direction: column; align-items: flex-start; }
   .dash-tabs { display: none; }
+  .listings-grid { grid-template-columns: repeat(2, 1fr); }
+  .listings-loader { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 320px) {
+  .listings-grid { grid-template-columns: 1fr; }
+  .listings-loader { grid-template-columns: 1fr; }
 }

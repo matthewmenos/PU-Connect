@@ -505,33 +505,5 @@ def admin_api_listing_action(request, listing_id):
 
 
 def serve_offline(request):
-    """Minimal offline fallback page served by the service worker."""
-    html = """<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="theme-color" content="#0d0e11"/>
-<title>Offline — PU-Connect</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d0e11;color:#e8e6e0;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;text-align:center}
-.wrap{max-width:340px}
-.icon{margin:0 auto 1.5rem;width:64px;height:64px;opacity:.5}
-h1{font-size:1.4rem;font-weight:700;margin-bottom:.75rem}
-p{font-size:.9rem;color:#7a7e8a;line-height:1.6;margin-bottom:1.5rem}
-button{background:#e8c96a;color:#0d0e11;border:none;border-radius:10px;padding:.75rem 2rem;font-size:.9rem;font-weight:600;cursor:pointer}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
-  </svg>
-  <h1>You're offline</h1>
-  <p>No internet connection. Check your network and try again.</p>
-  <button onclick="location.reload()">Try again</button>
-</div>
-</body>
-</html>"""
-    return HttpResponse(html, content_type='text/html')
+    """Offline fallback page served by the service worker."""
+    return render(request, 'base/offline.html')

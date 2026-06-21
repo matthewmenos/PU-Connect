@@ -123,3 +123,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);overfl
 
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--b);border-radius:4px}
 @media(max-width:480px){.wrap{padding:1rem .85rem 0}}
+@supports(padding-bottom:env(safe-area-inset-bottom)){
+  body{padding-bottom:calc(var(--bh) + 24px + env(safe-area-inset-bottom))}
+  .botnav{bottom:calc(13px + env(safe-area-inset-bottom))}
+}

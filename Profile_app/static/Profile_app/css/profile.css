@@ -297,4 +297,8 @@
       .stats-row{grid-template-columns:repeat(2,1fr)}
       .quick-actions{grid-template-columns:repeat(4,1fr)}
     }
+    @supports(padding-bottom:env(safe-area-inset-bottom)){
+      body{padding-bottom:calc(var(--bh) + 20px + env(safe-area-inset-bottom))}
+      .botnav{bottom:calc(13px + env(safe-area-inset-bottom))}
+    }
     ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--b);border-radius:3px}

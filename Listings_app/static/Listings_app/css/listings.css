@@ -89,3 +89,7 @@
     .nadd:hover{transform:scale(1.1)}.nadd:active{transform:scale(.95)}
     .nadd svg{width:20px;height:20px;stroke:#0d0e11;stroke-width:2.6;fill:none;stroke-linecap:round}
     ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--b);border-radius:4px}
+    @supports(padding-bottom:env(safe-area-inset-bottom)){
+      body{padding-bottom:calc(var(--bh) + 24px + env(safe-area-inset-bottom))}
+      .botnav{bottom:calc(13px + env(safe-area-inset-bottom))}
+    }

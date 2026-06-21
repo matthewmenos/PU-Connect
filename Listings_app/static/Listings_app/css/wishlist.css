@@ -41,7 +41,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);overfl
 .slbl{display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem}
 .slbl h2{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;letter-spacing:-.2px}
 .wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.85rem;margin-bottom:2rem}
-@media(max-width:380px){.wgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.wgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:320px){.wgrid{grid-template-columns:1fr}}
+@supports(padding-bottom:env(safe-area-inset-bottom)){body{padding-bottom:calc(var(--bh) + 24px + env(safe-area-inset-bottom))}}
 .wcard{background:var(--card);border:1px solid var(--b);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .3s,border-color .3s;position:relative}
 .wcard:hover{transform:translateY(-4px);border-color:rgba(232,201,106,.25)}
 .wcimg{width:100%;aspect-ratio:1;overflow:hidden;position:relative;background:var(--inp)}

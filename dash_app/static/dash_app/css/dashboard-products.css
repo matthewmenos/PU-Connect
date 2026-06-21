@@ -182,3 +182,7 @@
       .pcpr{font-size:.82rem}
       .fsl{aspect-ratio:4/3}
     }
+    @supports(padding-bottom:env(safe-area-inset-bottom)){
+      body{padding-bottom:calc(var(--bh) + 24px + env(safe-area-inset-bottom))}
+      .botnav{bottom:calc(13px + env(safe-area-inset-bottom))}
+    }

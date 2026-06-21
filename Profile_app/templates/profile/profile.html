@@ -24,6 +24,10 @@
     Back
   </button>
   <span class="nav-title">My Profile</span>
+  <button class="thbtn" id="notifBtn" aria-label="Notifications" style="position:relative">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="notif-dot" id="notifDot" style="display:none"></span>
+  </button>
   <button class="thbtn" id="thbtn" aria-label="Toggle theme"></button>
 </nav>
 
@@ -93,19 +97,19 @@
     </div>
   </div>
 
-  <!-- STATS -->
+  <!-- STATS (Instagram-style: Posts · Followers · Following) -->
   <div class="stats-row">
     <div class="stat-box" onclick="location.href='{% url 'listings:listings' %}'">
       <span class="stat-num" id="statListings">—</span>
-      <span class="stat-lbl">Listings</span>
+      <span class="stat-lbl">Posts</span>
     </div>
-    <div class="stat-box">
-      <span class="stat-num" id="statSold">—</span>
-      <span class="stat-lbl">Sold</span>
+    <div class="stat-box" id="statFollowersBox" style="cursor:default">
+      <span class="stat-num" id="statFollowers">—</span>
+      <span class="stat-lbl">Followers</span>
     </div>
-    <div class="stat-box" onclick="location.href='{% url 'listings:wishlist' %}'">
-      <span class="stat-num" id="statSaved">—</span>
-      <span class="stat-lbl">Saved</span>
+    <div class="stat-box" id="statFollowingBox" style="cursor:default">
+      <span class="stat-num" id="statFollowing">—</span>
+      <span class="stat-lbl">Following</span>
     </div>
   </div>
 
@@ -413,8 +417,9 @@ function renderProfile(p) {
   if (p.faculty)  { document.getElementById('tagFacultyTxt').textContent = p.faculty;   tagFac.style.display = ''; }
 
   // Stats
-  document.getElementById('statListings').textContent = p.listing_count ?? '—';
-  document.getElementById('statSold').textContent     = p.sold_count ?? '—';
+  document.getElementById('statListings').textContent  = p.listing_count ?? '—';
+  document.getElementById('statFollowers').textContent = p.followers_count ?? '0';
+  document.getElementById('statFollowing').textContent = p.following_count ?? '0';
 
   // Avatar
   const img  = document.getElementById('avatarImg');
@@ -474,9 +479,6 @@ async function loadProfile() {
     if (!res.ok) throw new Error('Server error');
     const data = await res.json();
     renderProfile(data);
-    // Saved count from wishlist localStorage (approximation)
-    const saved = JSON.parse(localStorage.getItem('pu-wishlist') || '[]');
-    document.getElementById('statSaved').textContent = saved.length || '—';
   } catch (e) {
     showToast('Could not load profile');
   }
@@ -674,6 +676,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<script src="{% static 'Base_app/js/notifications.js' %}"></script>
 <script>(function(){if(!('serviceWorker' in navigator))return;navigator.serviceWorker.register('/sw.js',{scope:'/'}).then(reg=>{if(!('Notification' in window)||!('PushManager' in window))return;if(Notification.permission==='denied')return;Notification.requestPermission().then(p=>{if(p!=='granted')return;const vapidKey='{{ VAPID_PUBLIC_KEY }}';if(!vapidKey)return;reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_u8(vapidKey)}).then(sub=>{const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';fetch('/chat/api/push-subscribe/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify(sub.toJSON())});}).catch(()=>{});});}).catch(()=>{});function _u8(b64){const p=(b64+'='.repeat((4-b64.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');const r=atob(p);const o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o;}})();</script>
 </body>
 </html>

@@ -109,7 +109,7 @@
       </div>
       <div class="input-group">
         <label class="input-label">Confirm Password</label>
-        <div class="input-wrap"><span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><input type="password" id="su-confirm" /></div>
+        <div class="input-wrap"><span class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><input type="password" id="su-confirm" /><button class="pw-toggle" type="button" onclick="togglePw('su-confirm', this)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
       </div>
       <div class="check-group">
         <input type="checkbox" id="su-terms" /><label for="su-terms">I agree to the <a href="{% url 'base:terms' %}" target="_blank">Terms</a> and <a href="{% url 'base:privacy' %}" target="_blank">Privacy</a>.</label>

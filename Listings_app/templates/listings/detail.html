@@ -115,7 +115,7 @@
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  padding: 0 0 5rem;
+  padding: 0 0 calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* ── Image ── */
@@ -224,6 +224,30 @@
 /* ── Divider ── */
 .dtp-divider { height: 1px; background: var(--border); margin: 1.1rem 0; }
 
+/* ── Follow button ── */
+.dtp-follow-btn {
+  flex-shrink: 0;
+  padding: .38rem .9rem;
+  border-radius: var(--radius-full);
+  font-size: .8rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: 1.5px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  transition: all .18s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.dtp-follow-btn.following {
+  background: transparent;
+  color: var(--text-2);
+  border-color: var(--border-2);
+}
+.dtp-follow-btn:hover { opacity: .85; }
+
 /* ── Seller row ── */
 .dtp-seller {
   display: flex;
@@ -270,13 +294,18 @@
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding: .85rem 1rem;
+  padding-bottom: calc(.85rem + env(safe-area-inset-bottom, 0px));
   display: flex;
   gap: .6rem;
-  max-width: 640px;
-  margin: 0 auto;
-  left: 50%;
-  transform: translateX(-50%);
   width: 100%;
+}
+@media (min-width: 641px) {
+  .dtp-cta {
+    max-width: 640px;
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+  }
 }
 .dtp-cta-msg {
   flex: 1;
@@ -329,6 +358,18 @@
 }
 .dtp-cta-share:hover { color: var(--text); background: var(--border); }
 
+/* ── Responsive ── */
+@media (min-width: 768px) {
+  .dtp-body { max-width: 768px; }
+  .dtp-img-wrap { aspect-ratio: 16/9; }
+}
+@media (max-width: 360px) {
+  .dtp-title { font-size: 1.1rem; }
+  .dtp-price { font-size: 1.25rem; }
+  .dtp-card { margin: .75rem; padding: 1rem; }
+  .dtp-cta-msg { padding: .65rem .75rem; font-size: .84rem; }
+}
+
 /* ── Sold overlay ── */
 .dtp-sold-banner {
   background: var(--danger-dim);
@@ -371,6 +412,12 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
   </button>
   <span class="dtp-bar-title">{{ listing.title }}</span>
+  {% if user.is_authenticated %}
+  <button class="dtp-theme-btn" id="notifBtn" aria-label="Notifications" style="position:relative">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span class="notif-dot" id="notifDot" style="display:none"></span>
+  </button>
+  {% endif %}
   <button class="dtp-theme-btn" id="themeBtn" aria-label="Toggle theme">
     <svg class="theme-sun"  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     <svg class="theme-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -443,22 +490,30 @@
     <div class="dtp-divider"></div>
 
     <!-- Seller -->
-    <div class="dtp-seller">
-      <div class="dtp-seller-avatar" id="sellerAvatar">
+    <a href="/profile/{{ seller.username }}/" class="dtp-seller" style="text-decoration:none;color:inherit">
+      <div class="dtp-seller-avatar">
         {% if seller_avatar %}
         <img src="{{ seller_avatar }}" alt="{{ seller.get_full_name }}">
         {% else %}
         {{ seller.get_full_name|first|upper }}{% if not seller.get_full_name %}{{ seller.username|first|upper }}{% endif %}
         {% endif %}
       </div>
-      <div>
+      <div style="flex:1;min-width:0">
         <div class="dtp-seller-name">{{ seller.get_full_name|default:seller.username }}</div>
         <div class="dtp-seller-sub">
           @{{ seller.username }}
           {% if seller_faculty %} &middot; {{ seller_faculty }}{% endif %}
         </div>
+        <div class="dtp-seller-sub" id="sellerFollowers" style="margin-top:.15rem"></div>
       </div>
-    </div>
+      {% if not is_owner %}
+      {% if user.is_authenticated %}
+      <button class="dtp-follow-btn" id="followBtn" onclick="event.preventDefault();toggleFollow()" data-username="{{ seller.username }}">Follow</button>
+      {% else %}
+      <a href="{% url 'auth:auth_view' %}" class="dtp-follow-btn" onclick="event.stopPropagation()">Follow</a>
+      {% endif %}
+      {% endif %}
+    </a>
 
   </div><!-- /dtp-card -->
 </main>
@@ -567,6 +622,67 @@ if(shareBtn){
   });
 }
 
+/* ── Follow seller ── */
+const SELLER_USERNAME = '{{ seller.username|escapejs }}';
+
+async function loadSellerFollowState(){
+  try {
+    const res  = await fetch(`/profile/api/user/${SELLER_USERNAME}/`);
+    const data = await res.json();
+    const fc   = document.getElementById('sellerFollowers');
+    if(fc) fc.textContent = data.followers_count + ' follower' + (data.followers_count !== 1 ? 's' : '');
+    const btn = document.getElementById('followBtn');
+    if(!btn) return;
+    updateFollowBtn(btn, data.is_following, data.follows_you);
+  } catch(e){}
+}
+
+function updateFollowBtn(btn, isFollowing, followsYou){
+  if(isFollowing){
+    btn.textContent = 'Following';
+    btn.classList.add('following');
+  } else if(followsYou){
+    btn.textContent = 'Follow Back';
+    btn.classList.remove('following');
+  } else {
+    btn.textContent = 'Follow';
+    btn.classList.remove('following');
+  }
+  btn._isFollowing = isFollowing;
+  btn._followsYou  = followsYou;
+}
+
+async function toggleFollow(){
+  const btn = document.getElementById('followBtn');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true;
+  try {
+    const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1] || '';
+    const res  = await fetch(`/profile/api/follow/${SELLER_USERNAME}/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf }
+    });
+    const d = await res.json();
+    const fc = document.getElementById('sellerFollowers');
+    if(fc) fc.textContent = d.followers_count + ' follower' + (d.followers_count !== 1 ? 's' : '');
+    updateFollowBtn(btn, d.following, btn._followsYou && !d.following ? true : false);
+    showToast(d.following ? 'Following ' + SELLER_USERNAME : 'Unfollowed');
+  } catch(e){ showToast('Could not update follow'); }
+  btn.disabled = false;
+}
+
+{% if not is_owner and user.is_authenticated %}
+loadSellerFollowState();
+{% else %}
+(function(){
+  const fc = document.getElementById('sellerFollowers');
+  if(fc) fetch(`/profile/api/user/${SELLER_USERNAME}/`)
+    .then(r=>r.json())
+    .then(d=>{ fc.textContent = d.followers_count + ' follower' + (d.followers_count !== 1 ? 's' : ''); })
+    .catch(()=>{});
+})();
+{% endif %}
+
 /* ── Message seller ── */
 const msgBtn = document.getElementById('msgBtn');
 if(msgBtn){
@@ -598,5 +714,8 @@ if(msgBtn){
   });
 }
 </script>
+{% if user.is_authenticated %}
+<script src="{% static 'Base_app/js/notifications.js' %}"></script>
+{% endif %}
 </body>
 </html>

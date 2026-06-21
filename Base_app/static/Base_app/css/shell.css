@@ -252,4 +252,20 @@
   .sidebar { position: fixed; }
 }
 
+/* ── Safe-area inset (iOS home bar) ── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bot-nav {
+    padding-bottom: calc(.5rem + env(safe-area-inset-bottom));
+    height: auto;
+    min-height: var(--bot-h);
+  }
+}
+
+/* ── Extra small screens (< 360px) ── */
+@media (max-width: 360px) {
+  .top-bar { gap: .4rem; padding: 0 .65rem; }
+  .top-bar-logo { font-size: .95rem; }
+  .page-inner { padding: 1rem .75rem 0; }
+}
+
 /* ── Sidebar toggle script ── */
