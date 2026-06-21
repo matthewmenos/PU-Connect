@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
-from .models import Conversation, Message, Notification
+from .models import Conversation, Message
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -148,15 +148,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
             meetup_spot=meetup_spot,
             meetup_time=meetup_time,
         )
-        # Create an in-app notification for every other participant
-        sender_name = user.get_full_name() or user.username
-        preview = (text or ('📷 Photo' if image_url else '🎤 Voice note'))[:60]
-        for participant in conv.participants.exclude(id=sender_id):
-            Notification.objects.create(
-                user=participant,
-                type='message',
-                title=f'New message from {sender_name}',
-                content=preview,
-                link=f'/chat/',
-            )
         return msg

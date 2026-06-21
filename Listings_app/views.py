@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.views.decorators.cache import never_cache
 import json
+import re
 from .models import Listing
 
 @login_required(login_url='auth:auth_view')
@@ -26,6 +27,14 @@ def listing_detail(request, pk):
         seller_phone   = ''
         seller_faculty = ''
 
+    # Format phone for WhatsApp: digits only, leading 0 → Ghana code 233
+    _digits = re.sub(r'\D', '', seller_phone)
+    if _digits.startswith('0'):
+        _digits = '233' + _digits[1:]
+    elif _digits and not _digits.startswith('233'):
+        _digits = '233' + _digits
+    seller_whatsapp = _digits  # empty string if no phone
+
     context = {
         'listing':        listing,
         'image_url':      image_url,
@@ -35,6 +44,7 @@ def listing_detail(request, pk):
         'seller':         seller,
         'seller_avatar':  seller_avatar,
         'seller_phone':   seller_phone,
+        'seller_whatsapp': seller_whatsapp,
         'seller_faculty': seller_faculty,
         'is_owner':       request.user.is_authenticated and request.user == seller,
     }

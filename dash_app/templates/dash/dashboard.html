@@ -37,13 +37,6 @@
       <a href="{% url 'base:home' %}" class="top-bar-logo">PU<span>Connect</span></a>
       <div class="top-bar-spacer"></div>
 
-      <!-- Filter tabs -->
-      <div class="dash-tabs" id="dashTabs">
-        <button class="dash-tab active" data-filter="all"      onclick="setFilter('all',this)">All</button>
-        <button class="dash-tab"        data-filter="products" onclick="setFilter('products',this)">Products</button>
-        <button class="dash-tab"        data-filter="services" onclick="setFilter('services',this)">Services</button>
-      </div>
-
       <div class="top-bar-spacer"></div>
 
       <button class="btn-icon" id="dashThemeBtn" aria-label="Toggle theme" title="Toggle dark / light mode">
@@ -75,6 +68,13 @@
         <a href="{% url 'auth:auth_view' %}" class="btn btn-primary">Get started</a>
       </div>
       {% endif %}
+
+      <!-- Filter tabs -->
+      <div class="dash-tabs" id="dashTabs">
+        <button class="dash-tab active" data-filter="all"      onclick="setFilter('all',this)">All</button>
+        <button class="dash-tab"        data-filter="products" onclick="setFilter('products',this)">Products</button>
+        <button class="dash-tab"        data-filter="services" onclick="setFilter('services',this)">Services</button>
+      </div>
 
       <!-- Search -->
       <div class="dash-search">

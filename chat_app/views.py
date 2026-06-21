@@ -93,9 +93,9 @@ def start_conversation(request):
         if seller == request.user:
             return JsonResponse({'status': 'error', 'message': 'You cannot start a chat with yourself'}, status=400)
         
-        # Check if conversation already exists for this buyer, seller, and listing
-        conv = Conversation.objects.filter(participants=request.user).filter(participants=seller).filter(listing=listing).first()
-        
+        # One conversation per buyer-seller pair, regardless of which listing triggered it
+        conv = Conversation.objects.filter(participants=request.user).filter(participants=seller).first()
+
         if not conv:
             conv = Conversation.objects.create(listing=listing)
             conv.participants.add(request.user, seller)
