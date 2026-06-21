@@ -72,16 +72,24 @@ INSTALLED_APPS = [
 # Channels / ASGI config
 ASGI_APPLICATION = 'pu_mp.asgi.application'
 
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://redis:6379')
+REDIS_URL = os.environ.get('REDIS_URL', '')
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [REDIS_URL],
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [REDIS_URL],
+            },
         },
-    },
-}
+    }
+else:
+    # No Redis configured — use in-process layer (single worker only, no cross-process pub/sub)
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

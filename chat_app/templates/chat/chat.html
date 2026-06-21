@@ -689,8 +689,13 @@ function connectWebSocket(cid){
     fetchConversations();
   };
 
+  chatSocket.onerror = function(e) {
+    console.warn('Chat socket error', e);
+  };
+
   chatSocket.onclose = function(e) {
-    console.warn('Chat socket closed');
+    console.warn('Chat socket closed — reconnecting in 3s...');
+    setTimeout(()=>{ if(activeConv) connectWebSocket(activeConv.id); }, 3000);
   };
 }
 
