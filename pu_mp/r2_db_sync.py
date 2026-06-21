@@ -1,6 +1,6 @@
 """
-R2 database sync — download global.db and user.db from Cloudflare R2 on startup,
-flush them back every 30 seconds and on shutdown.
+R2 database sync — download global.db from Cloudflare R2 on startup,
+flush it back every 30 seconds AND after every mutating HTTP request.
 
 The DB bucket (puconnect-db) is separate from the media bucket (puconnect-media)
 but uses the same R2 account credentials.
@@ -134,3 +134,30 @@ def start_flush_thread(interval: int = 30) -> None:
     t = threading.Thread(target=_loop, daemon=True, name="r2-db-flush")
     t.start()
     logger.info("R2 DB sync: background flush thread started (interval=%ds)", interval)
+
+
+def flush_async() -> None:
+    """Fire-and-forget flush — uploads in a daemon thread so the HTTP response
+    is not delayed. Used by the middleware after every mutating request."""
+    if not _r2_enabled():
+        return
+    t = threading.Thread(target=flush_all, daemon=True, name="r2-db-flush-async")
+    t.start()
+
+
+# ── Middleware ────────────────────────────────────────────────────────────────
+
+class R2DbSyncMiddleware:
+    """Flush global.db to R2 after every POST/PUT/PATCH/DELETE request.
+    The upload runs in a background thread so response latency is unaffected."""
+
+    MUTATING = frozenset(('POST', 'PUT', 'PATCH', 'DELETE'))
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if request.method in self.MUTATING and response.status_code < 500:
+            flush_async()
+        return response
