@@ -466,15 +466,19 @@
 async function uploadToR2(file, resourceType) {
   resourceType = resourceType || 'image';
   const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1];
-  const presign = await fetch('/api/r2-presign/', {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('resource_type', resourceType);
+  const res = await fetch('/api/r2-upload/', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
-    body: JSON.stringify({filename: file.name, content_type: file.type, resource_type: resourceType}),
+    headers: {'X-CSRFToken': csrf},
+    body: fd,
   });
-  if (!presign.ok) throw new Error('Could not get upload URL');
-  const {upload_url, public_url} = await presign.json();
-  const put = await fetch(upload_url, {method: 'PUT', headers: {'Content-Type': file.type}, body: file});
-  if (!put.ok) throw new Error('Upload failed (' + put.status + ')');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Upload failed');
+  }
+  const {public_url} = await res.json();
   return public_url;
 }
 
@@ -495,12 +499,16 @@ const onlineStatus={};
 async function init(){
   await fetchConversations();
 
-  // Opened from "Message Seller" on dashboard — conv_id stored in sessionStorage
+  // Opened from "Message Seller" on detail page — conv_id stored in sessionStorage
   const openConvId = sessionStorage.getItem('pu-open-conv');
   if(openConvId){
     sessionStorage.removeItem('pu-open-conv');
     const conv = CONVS.find(c=>String(c.id)===String(openConvId));
-    if(conv){openConv(conv);return;}
+    if(conv){openConv(conv);connectPresence();return;}
+    // Fallback: refetch then try again (handles race where conv was just created)
+    await fetchConversations();
+    const conv2 = CONVS.find(c=>String(c.id)===String(openConvId));
+    if(conv2){openConv(conv2);connectPresence();return;}
   }
 
   // Opened from reels / other pages via localStorage username redirect
@@ -508,7 +516,8 @@ async function init(){
   if(pendingChat){
     localStorage.removeItem('pu-chat-open');
     try{
-      const {username} = JSON.parse(pendingChat);
+      const parsed = JSON.parse(pendingChat);
+      const {username} = parsed;
       if(username){
         const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1]||'';
         const res = await fetch('/chat/api/start-direct/',{
@@ -516,11 +525,33 @@ async function init(){
           headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
           body:JSON.stringify({username})
         });
-        const d = await res.json();
-        if(d.status==='success'){
-          await fetchConversations();
-          const conv = CONVS.find(c=>String(c.id)===String(d.conv_id));
-          if(conv){openConv(conv);return;}
+        if(res.ok){
+          const d = await res.json();
+          if(d.status==='success'){
+            await fetchConversations();
+            const conv = CONVS.find(c=>String(c.id)===String(d.conv_id));
+            if(conv){openConv(conv);connectPresence();return;}
+            // Fallback: build stub and open
+            const stub={
+              id: d.conv_id,
+              name: parsed.listing || username,
+              username: username,
+              avatar_url: '',
+              listing: parsed.listing || 'General',
+              listingEmoji: '💬',
+              price: '',
+              time: 'Now',
+              badge: 0,
+              type: 'direct',
+              status: 'away',
+              _other_user_id: null,
+              blocked: false,
+            };
+            CONVS.unshift(stub);
+            openConv(stub);
+            connectPresence();
+            return;
+          }
         }
       }
     }catch(e){console.error('pu-chat-open error',e);}
@@ -1205,7 +1236,7 @@ function userRowHTML(u){
 
 async function startChat(user){
   document.getElementById('newChatModal').classList.remove('open');
-  // If existing conv, open it directly
+  // If existing conv is already loaded, open it directly
   if(user.convId){
     const existing=CONVS.find(x=>String(x.id)===String(user.convId));
     if(existing){openConv(existing);return;}
@@ -1218,14 +1249,40 @@ async function startChat(user){
       headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
       body:JSON.stringify({username:user.username})
     });
+    if(!res.ok){
+      showToast('Could not open conversation — try again');
+      return;
+    }
     const d=await res.json();
     if(d.status==='success'){
       await fetchConversations();
       const conv=CONVS.find(c=>String(c.id)===String(d.conv_id));
       if(conv){openConv(conv);return;}
+      // Fallback: open with a minimal stub so the chat still works
+      const stub={
+        id: d.conv_id,
+        name: user.name || user.username,
+        username: user.username,
+        avatar_url: user.avatar_url || '',
+        listing: 'General',
+        listingEmoji: '💬',
+        price: '',
+        time: 'Now',
+        badge: 0,
+        type: 'direct',
+        status: 'away',
+        _other_user_id: user.id,
+        blocked: false,
+      };
+      CONVS.unshift(stub);
+      openConv(stub);
+      return;
     }
-  }catch(e){console.error('startChat error',e);}
-  showToast('Could not open conversation — try again');
+    showToast(d.message || 'Could not open conversation — try again');
+  }catch(e){
+    console.error('startChat error',e);
+    showToast('Could not open conversation — try again');
+  }
 }
 
 /* ══════════════════════════════════════

@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from Base_app.views import r2_presign, serve_sw, serve_offline
+from Base_app.views import r2_presign, r2_upload, serve_sw, serve_offline
 
 from django.views.generic import TemplateView
 
@@ -38,6 +38,7 @@ urlpatterns = [
     path('reels/', include('Reels_app.urls')),
     path("accounts/", include("allauth.urls")),
     path('api/r2-presign/', r2_presign, name='r2_presign'),
+    path('api/r2-upload/', r2_upload, name='r2_upload'),
 
 ]
 # Media & Static files

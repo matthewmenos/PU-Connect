@@ -179,21 +179,23 @@ function onInput(e){
   runSearch(q);
 }
 
-function runSearch(q){
+let _searchUserTimer = null;
+
+async function runSearch(q){
   if(!q) return;
-  q = q.toLowerCase();
+  const qLow = q.toLowerCase();
 
   state.loading = true;
   showResultsSection();
 
-  // Client-side filtering logic
+  // Client-side filtering of listings
   const score = l => {
     const t  = (l.title||'').toLowerCase();
     const d  = (l.description||'').toLowerCase();
     const c  = (l.category||'').toLowerCase();
-    if(t.includes(q)) return 3;
-    if(c.includes(q)) return 2;
-    if(d.includes(q)) return 1;
+    if(t.includes(qLow)) return 3;
+    if(c.includes(qLow)) return 2;
+    if(d.includes(qLow)) return 1;
     return 0;
   };
 
@@ -205,20 +207,56 @@ function runSearch(q){
   const products = matches.filter(l => (l.listing_type||l.type) === 'product' || !l.type);
   const services = matches.filter(l => (l.listing_type||l.type) === 'service');
 
+  // Server-side user search (debounced, only when People tab or All)
+  let users = [];
+  if(type === 'all' || type === 'users'){
+    try{
+      const r = await fetch(`/chat/api/search-users/?q=${encodeURIComponent(q.replace('@',''))}`);
+      if(r.ok) users = await r.json();
+    }catch(e){}
+  }
+
   state.results = {
     products: (type==='all'||type==='products') ? products : [],
     services: (type==='all'||type==='services') ? services : [],
-    users: [], // User search could be added later
-    total: products.length + services.length
+    users: (type==='all'||type==='users') ? users : [],
+    total: products.length + services.length + users.length
   };
 
   state.loading = false;
   renderResults();
-  updateTabCounts(products.length, services.length);
+  updateTabCounts(products.length, services.length, users.length);
 }
 
+function userCardHTML(u){
+  const av = u.avatar_url
+    ? `<img src="${u.avatar_url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`
+    : `<span style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:#0d0e11">${escH((u.name||u.username||'?')[0].toUpperCase())}</span>`;
+  const chatHref = '{% url "chat:chat" %}';
+  return `<div class="ucard" onclick="openUserChat('${escH(u.username)}','${escH(u.name||u.username)}')">
+    <div class="ucard-av">${av}</div>
+    <div class="ucard-body">
+      <div class="ucard-name">${escH(u.name||u.username)}</div>
+      <div class="ucard-username">@${escH(u.username)}</div>
+      ${u.faculty?`<div class="ucard-faculty">${escH(u.faculty)}</div>`:''}
+    </div>
+    <span style="font-size:.72rem;color:var(--a);background:rgba(232,201,106,.12);padding:.25rem .65rem;border-radius:7px;white-space:nowrap;flex-shrink:0">Message</span>
+  </div>`;
+}
+
+{% if user.is_authenticated %}
+function openUserChat(username, name){
+  try{ localStorage.setItem('pu-chat-open', JSON.stringify({username, listing: name})); }catch(e){}
+  location.href = '{% url "chat:chat" %}';
+}
+{% else %}
+function openUserChat(){
+  location.href = '{% url "auth:auth_view" %}';
+}
+{% endif %}
+
 function renderResults(){
-  const {products, services, total} = state.results;
+  const {products, services, users, total} = state.results;
   const container = document.getElementById('resultsContainer');
   const meta = document.getElementById('resultMeta');
 
@@ -234,6 +272,9 @@ function renderResults(){
   }
 
   let html = '';
+  if(users.length > 0){
+    html += `<div class="sec-head"><h2>People</h2></div><div class="user-grid">${users.map(userCardHTML).join('')}</div>`;
+  }
   if(products.length > 0){
     html += `<div class="sec-head"><h2>Products</h2></div><div class="grid">${products.map(listingCardHTML).join('')}</div>`;
   }
@@ -243,9 +284,11 @@ function renderResults(){
   container.innerHTML = html;
 }
 
-function updateTabCounts(p, s){
+function updateTabCounts(p, s, u){
   document.getElementById('cnt-products').textContent = p;
   document.getElementById('cnt-services').textContent = s;
+  const uel = document.getElementById('cnt-users');
+  if(uel) uel.textContent = u || 0;
 }
 
 function switchType(type, btn){

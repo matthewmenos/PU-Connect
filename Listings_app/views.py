@@ -81,11 +81,12 @@ def wishlist(request):
 
 
 @login_required(login_url='auth:auth_view')
+@login_required(login_url='auth:auth_view')
 def create_listing(request):
     """
     Create Listing Page
     GET /listings/create/
-    
+
     Displays:
     - Listing creation form
     - Product/service details form

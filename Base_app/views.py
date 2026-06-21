@@ -280,6 +280,58 @@ def r2_presign(request):
     return JsonResponse({'upload_url': upload_url, 'public_url': public_url})
 
 
+@login_required(login_url='auth:auth_view')
+def r2_upload(request):
+    """
+    POST /api/r2-upload/
+    Multipart: file field named "file", optional field "resource_type" (default "image").
+
+    Uploads the file server-side to R2, bypassing browser CORS restrictions on
+    presigned PUTs.  Returns { "public_url": "..." }.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    uploaded = request.FILES.get('file')
+    if not uploaded:
+        return JsonResponse({'error': 'No file provided'}, status=400)
+
+    resource_type = request.POST.get('resource_type', 'image')
+    if resource_type not in ALLOWED_CONTENT_TYPES:
+        return JsonResponse({'error': 'Invalid resource type'}, status=400)
+
+    content_type = uploaded.content_type or 'application/octet-stream'
+    if content_type not in ALLOWED_CONTENT_TYPES[resource_type]:
+        return JsonResponse({'error': 'File type not allowed'}, status=400)
+
+    if uploaded.size > MAX_FILE_SIZES[resource_type]:
+        return JsonResponse({'error': 'File too large'}, status=400)
+
+    ext = os.path.splitext(uploaded.name)[1].lower() or '.bin'
+    key = f"media/{resource_type}s/{uuid.uuid4().hex}{ext}"
+
+    s3 = boto3.client(
+        's3',
+        endpoint_url=f"https://{settings.CF_R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+        aws_access_key_id=settings.CF_R2_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.CF_R2_SECRET_ACCESS_KEY,
+        region_name='auto',
+    )
+
+    try:
+        s3.upload_fileobj(
+            uploaded,
+            settings.CF_R2_BUCKET_NAME,
+            key,
+            ExtraArgs={'ContentType': content_type},
+        )
+    except Exception as e:
+        return JsonResponse({'error': f'Upload failed: {e}'}, status=500)
+
+    public_url = f"{settings.CF_R2_PUBLIC_URL.rstrip('/')}/{key}"
+    return JsonResponse({'public_url': public_url})
+
+
 def serve_sw(request):
     """Serve sw.js from /sw.js so the service worker scope covers the whole origin."""
     sw_path = os.path.join(settings.BASE_DIR, 'static', 'sw.js')

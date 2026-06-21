@@ -598,15 +598,19 @@ async function commitUsernameChange() {
 
 /* ── AVATAR UPLOAD ── */
 async function uploadToR2(file) {
-  const presign = await fetch('/api/r2-presign/', {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('resource_type', 'image');
+  const res = await fetch('/api/r2-upload/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
-    body: JSON.stringify({ filename: file.name, content_type: file.type, resource_type: 'image' }),
+    headers: { 'X-CSRFToken': getCSRF() },
+    body: fd,
   });
-  if (!presign.ok) throw new Error('Could not get upload URL');
-  const { upload_url, public_url } = await presign.json();
-  const put = await fetch(upload_url, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
-  if (!put.ok) throw new Error('Upload failed');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Upload failed');
+  }
+  const { public_url } = await res.json();
   return public_url;
 }
 

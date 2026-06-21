@@ -270,15 +270,19 @@ function getCookie(name) {
 async function uploadToR2(file, resourceType) {
   resourceType = resourceType || 'image';
   const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1];
-  const presign = await fetch('/api/r2-presign/', {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('resource_type', resourceType);
+  const res = await fetch('/api/r2-upload/', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
-    body: JSON.stringify({filename: file.name, content_type: file.type, resource_type: resourceType}),
+    headers: {'X-CSRFToken': csrf},
+    body: fd,
   });
-  if (!presign.ok) throw new Error('Could not get upload URL');
-  const {upload_url, public_url} = await presign.json();
-  const put = await fetch(upload_url, {method: 'PUT', headers: {'Content-Type': file.type}, body: file});
-  if (!put.ok) throw new Error('Upload failed');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Upload failed');
+  }
+  const {public_url} = await res.json();
   return public_url;
 }
 
@@ -819,13 +823,14 @@ async function publish(){
   // Prepare payload for backend
   const payload = {
     title: title,
-    price: parseFloat(priceRaw) || 0,
+    price: ctaV ? 0 : (parseFloat(priceRaw) || 0),
     description: desc,
     listing_type: cgV.toLowerCase().slice(0, -1), // 'Products' -> 'product', 'Services' -> 'service'
     category: catV,
     subcategory: subcatVal,
     condition: condV,
     image_url: imgs.length ? imgs[0].src : '',
+    contact_for_price: ctaV,
     phone: ph
   };
 
