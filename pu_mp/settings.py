@@ -212,12 +212,15 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Cloudflare R2
+# Cloudflare R2 — media (images, avatars, voice notes)
 CF_R2_ACCOUNT_ID = os.environ.get('CF_R2_ACCOUNT_ID', '')
 CF_R2_ACCESS_KEY_ID = os.environ.get('CF_R2_ACCESS_KEY_ID', '')
 CF_R2_SECRET_ACCESS_KEY = os.environ.get('CF_R2_SECRET_ACCESS_KEY', '')
 CF_R2_BUCKET_NAME = os.environ.get('CF_R2_BUCKET_NAME', 'puconnect-media')
 CF_R2_PUBLIC_URL = os.environ.get('CF_R2_PUBLIC_URL', '')
+
+# Cloudflare R2 — database backup (separate private bucket, same account credentials)
+CF_R2_DB_BUCKET = os.environ.get('CF_R2_DB_BUCKET', 'puconnect-db')
 
 # Web Push (VAPID)
 # VAPID_PUBLIC_KEY: raw base64url-encoded uncompressed EC point (no padding)

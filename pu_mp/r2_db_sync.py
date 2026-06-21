@@ -1,0 +1,132 @@
+"""
+R2 database sync — download global.db and user.db from Cloudflare R2 on startup,
+flush them back every 30 seconds and on shutdown.
+
+The DB bucket (puconnect-db) is separate from the media bucket (puconnect-media)
+but uses the same R2 account credentials.
+"""
+
+import os
+import logging
+import threading
+import time
+
+import boto3
+from botocore.exceptions import ClientError
+
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+# ── R2 client ────────────────────────────────────────────────────────────────
+
+def _client():
+    return boto3.client(
+        "s3",
+        endpoint_url=f"https://{settings.CF_R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+        aws_access_key_id=settings.CF_R2_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.CF_R2_SECRET_ACCESS_KEY,
+        region_name="auto",
+    )
+
+
+def _r2_enabled():
+    return bool(
+        settings.CF_R2_ACCOUNT_ID
+        and settings.CF_R2_ACCESS_KEY_ID
+        and settings.CF_R2_SECRET_ACCESS_KEY
+        and settings.CF_R2_DB_BUCKET
+    )
+
+
+# ── Core operations ───────────────────────────────────────────────────────────
+
+def _download_if_missing(key: str, local_path: str) -> None:
+    """Download key from R2 to local_path only if local_path doesn't exist."""
+    if os.path.exists(local_path):
+        return
+    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+    try:
+        _client().download_file(settings.CF_R2_DB_BUCKET, key, local_path)
+        logger.info("R2 DB sync: downloaded %s → %s", key, local_path)
+    except ClientError as e:
+        code = e.response["Error"]["Code"]
+        if code in ("NoSuchKey", "404"):
+            # First run — DB doesn't exist in R2 yet; will be uploaded after first flush
+            logger.info("R2 DB sync: %s not found in R2 — will be created on first flush", key)
+        else:
+            raise
+
+
+def _upload(key: str, local_path: str) -> None:
+    """Upload local_path to R2 under key."""
+    if not os.path.exists(local_path):
+        return
+    _client().upload_file(local_path, settings.CF_R2_DB_BUCKET, key)
+    logger.info("R2 DB sync: uploaded %s → %s", local_path, key)
+
+
+# ── DB file paths (mirrors settings.DATABASES) ───────────────────────────────
+
+def _db_files():
+    """Return list of (r2_key, local_path) for each database."""
+    data_dir = str(settings.DATA_DIR)
+    return [
+        ("db/global.db", os.path.join(data_dir, "global.db")),
+        ("db/user.db",   os.path.join(data_dir, "user.db")),
+    ]
+
+
+# ── Public API ────────────────────────────────────────────────────────────────
+
+def sync_on_startup() -> None:
+    """
+    Called once at boot (from entrypoint before migrations).
+    Downloads any DB file from R2 that is missing locally.
+    """
+    if not _r2_enabled():
+        logger.info("R2 DB sync: disabled (CF_R2_DB_BUCKET not set) — using local files only")
+        return
+    for key, local_path in _db_files():
+        try:
+            _download_if_missing(key, local_path)
+        except Exception:
+            logger.exception("R2 DB sync: failed to download %s — continuing with local file", key)
+
+
+def flush_all() -> None:
+    """Upload both DB files to R2. Safe to call at any time."""
+    if not _r2_enabled():
+        return
+    for key, local_path in _db_files():
+        try:
+            _upload(key, local_path)
+        except Exception:
+            logger.exception("R2 DB sync: failed to upload %s", key)
+
+
+# ── Background flush thread ───────────────────────────────────────────────────
+
+_flush_thread_started = False
+_flush_lock = threading.Lock()
+
+
+def start_flush_thread(interval: int = 30) -> None:
+    """Start a daemon thread that flushes both DBs to R2 every `interval` seconds.
+    Safe to call multiple times — only starts one thread."""
+    global _flush_thread_started
+    with _flush_lock:
+        if _flush_thread_started:
+            return
+        if not _r2_enabled():
+            return
+        _flush_thread_started = True
+
+    def _loop():
+        while True:
+            time.sleep(interval)
+            flush_all()
+
+    t = threading.Thread(target=_loop, daemon=True, name="r2-db-flush")
+    t.start()
+    logger.info("R2 DB sync: background flush thread started (interval=%ds)", interval)
