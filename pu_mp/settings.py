@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     'Listings_app',
     'Reels_app',
     'channels',
-    'ratelimit',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
