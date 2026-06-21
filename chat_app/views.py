@@ -64,6 +64,7 @@ def get_messages(request, conv_id):
         data = []
         for m in messages:
             data.append({
+                'id': m.id,
                 'from': 'out' if m.sender == request.user else 'in',
                 'text': m.text,
                 'image_url': m.image_url,
@@ -72,6 +73,7 @@ def get_messages(request, conv_id):
                 'meetup_spot': m.meetup_spot,
                 'meetup_time': m.meetup_time if m.meetup_time else None,
                 'time': m.timestamp.strftime("%I:%M %p"),
+                'is_read': m.is_read,
             })
         return JsonResponse(data, safe=False)
     except Conversation.DoesNotExist:

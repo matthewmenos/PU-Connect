@@ -338,5 +338,6 @@ function highlightQuery(text){
 {% if user.is_authenticated %}
 <script src="{% static 'Base_app/js/notifications.js' %}"></script>
 {% endif %}
+{% include 'dash/bot_nav.html' with active_page='search' %}
 </body>
 </html>

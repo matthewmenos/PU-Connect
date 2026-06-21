@@ -71,6 +71,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
                 return
 
+            # ── Read receipt ──
+            if msg_type == 'read_receipt':
+                message_ids = data.get('message_ids', [])
+                if message_ids:
+                    await self.mark_messages_read(message_ids, user.id)
+                    await self.channel_layer.group_send(
+                        self.room_group_name,
+                        {
+                            'type': 'read_receipt',
+                            'message_ids': message_ids,
+                            'reader_id': user.id,
+                        }
+                    )
+                return
+
             # ── Normal message ──
             saved_msg = await self.save_message(
                 user.id,
@@ -86,6 +101,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {
                     'type': 'chat_message',
+                    'msg_id': saved_msg.id,
                     'message': data.get('message'),
                     'image_url': data.get('image_url'),
                     'voice_url': data.get('voice_url'),
@@ -104,6 +120,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
             'type': 'message',
+            'msg_id': event.get('msg_id'),
             'message': event['message'],
             'image_url': event.get('image_url'),
             'voice_url': event.get('voice_url'),
@@ -113,6 +130,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'sender_id': event['sender_id'],
             'sender_username': event['sender_username'],
             'timestamp': event['timestamp'],
+        }))
+
+    async def read_receipt(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'read_receipt',
+            'message_ids': event['message_ids'],
+            'reader_id': event['reader_id'],
         }))
 
     async def typing_signal(self, event):
@@ -132,6 +156,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'sender_id': event['sender_id'],
             'is_recording': event['is_recording'],
         }))
+
+    @database_sync_to_async
+    def mark_messages_read(self, message_ids, reader_id):
+        Message.objects.filter(
+            id__in=message_ids,
+            conversation_id=self.conv_id
+        ).exclude(sender_id=reader_id).update(is_read=True)
 
     @database_sync_to_async
     def save_message(self, sender_id, text, image_url, voice_url, voice_duration, meetup_spot, meetup_time):

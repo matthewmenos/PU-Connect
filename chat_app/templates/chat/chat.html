@@ -630,6 +630,15 @@ async function fetchMessages(cid){
   }catch(e){console.error('Failed to fetch messages', e);}
 }
 
+function sendReadReceipts(cid){
+  if(!chatSocket||chatSocket.readyState!==WebSocket.OPEN)return;
+  const unread=(msgs[cid]||[]).filter(m=>m.from==='in'&&m.id&&!m.is_read).map(m=>m.id);
+  if(!unread.length)return;
+  chatSocket.send(JSON.stringify({type:'read_receipt',message_ids:unread}));
+  // Mark locally as read so re-renders don't re-send
+  unread.forEach(id=>{const msg=(msgs[cid]||[]).find(m=>m.id===id);if(msg)msg.is_read=true;});
+}
+
 function connectWebSocket(cid){
   if(chatSocket){
     chatSocket.onclose = null; // Prevent triggering the old handler when we manually close
@@ -658,8 +667,19 @@ function connectWebSocket(cid){
       return;
     }
 
+    // ── Read receipt ──
+    if(data.type === 'read_receipt'){
+      const ids = new Set(data.message_ids);
+      if(msgs[cid]){
+        msgs[cid].forEach(m=>{if(m.id&&ids.has(m.id))m.is_read=true;});
+        if(activeConv?.id===cid)renderMsgs(cid);
+      }
+      return;
+    }
+
     // ── Normal chat message ──
     const m = {
+      id: data.msg_id || null,
       from: data.sender_id === currentUserId ? 'out' : 'in',
       text: data.message,
       image_url: data.image_url,
@@ -668,10 +688,11 @@ function connectWebSocket(cid){
       meetup_spot: data.meetup_spot,
       meetup_time: data.meetup_time,
       time: data.timestamp,
+      is_read: false,
     };
     if(!msgs[cid]) msgs[cid]=[];
 
-    // Resolve optimistic pending message
+    // Resolve optimistic pending message (upgrade it with server id + tick)
     if(m.from === 'out' && m.text){
       const pendingIdx = msgs[cid].findIndex(msg => msg.pending && msg.text === m.text);
       if(pendingIdx !== -1){
@@ -682,10 +703,16 @@ function connectWebSocket(cid){
       }
     }
 
-    // Incoming message — remove any typing/recording indicator first
+    // Incoming message — remove typing/recording indicator first
     removeTyping();
     msgs[cid].push(m);
-    if(activeConv?.id === cid) renderMsgs(cid);
+    if(activeConv?.id === cid){
+      renderMsgs(cid);
+      // Immediately send read receipt if this conv is open
+      if(m.from === 'in' && m.id){
+        sendReadReceipts(cid);
+      }
+    }
     fetchConversations();
   };
 
@@ -780,7 +807,17 @@ function openConv(c){
   document.getElementById('lbPrice').textContent=c.price;
 
   // Render messages & Connect
-  fetchMessages(c.id);
+  fetchMessages(c.id).then(()=>{
+    // Send read receipts once socket is connected (wait up to 1.5s)
+    const _tryReadReceipt=(attempt)=>{
+      if(chatSocket&&chatSocket.readyState===WebSocket.OPEN){
+        sendReadReceipts(c.id);
+      } else if(attempt<10){
+        setTimeout(()=>_tryReadReceipt(attempt+1),150);
+      }
+    };
+    setTimeout(()=>_tryReadReceipt(0),200);
+  });
   connectWebSocket(c.id);
 
   // Restore input state based on blocked status
@@ -798,10 +835,11 @@ function openConv(c){
   cv.classList.remove('dn');
   cv.style.display='flex';
 
-  // Mobile: slide right panel in
+  // Mobile: slide right panel in, hide bottom nav
   if(window.innerWidth < 768){
     document.getElementById('leftPanel').classList.add('hidden');
     document.getElementById('rightPanel').classList.add('visible');
+    const bn=document.getElementById('botNav');if(bn)bn.classList.add('bn-hidden');
   }
 
   // Scroll to bottom
@@ -811,7 +849,7 @@ function openConv(c){
 function showLeft(){
   document.getElementById('leftPanel').classList.remove('hidden');
   document.getElementById('rightPanel').classList.remove('visible');
-  // document.getElementById('bn').classList.remove('hide');
+  const bn=document.getElementById('botNav');if(bn)bn.classList.remove('bn-hidden');
   lastConvY=0;
 }
 
@@ -955,7 +993,21 @@ function renderMsgs(cid){
       inner=`${actionBtn}<div class="bubble" id="msg-${cid}-${idx}">${replyQuote}${meetupHTML}${m.image_url?`<div class="img-bubble" onclick="previewFullImg('${m.image_url}')"><img src="${m.image_url}" alt="photo"/></div>`:''}${m.voice_url?`<div class="msg-voice">Voice Note</div>`:''}${escHtml(m.text||'')}${editedTag}</div>`;
     }
 
-    inner+=`${pinnedTag}<div class="msg-meta"><span class="msg-time">${m.time}</span>${m.from==='out'?(m.pending?'<span class="msg-tick pending">✓</span>':'<span class="msg-tick">✓✓</span>'):''}</div>`;
+    // WhatsApp-style ticks: single grey=pending, double grey=delivered, double blue=read
+    let tickHTML = '';
+    if (m.from === 'out') {
+      if (m.pending) {
+        // Single grey tick — not yet confirmed by server
+        tickHTML = `<span class="msg-tick pending"><svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 5.5L4.5 8.5L10.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+      } else if (m.is_read) {
+        // Double blue tick — read by recipient
+        tickHTML = `<span class="msg-tick read"><svg width="16" height="11" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 5.5L4 8.5L10 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5.5L8 8.5L14 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+      } else {
+        // Double grey tick — delivered to server
+        tickHTML = `<span class="msg-tick delivered"><svg width="16" height="11" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 5.5L4 8.5L10 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5.5L8 8.5L14 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+      }
+    }
+    inner+=`${pinnedTag}<div class="msg-meta"><span class="msg-time">${m.time}</span>${tickHTML}</div>`;
     wrap.innerHTML=inner;
     area.appendChild(wrap);
   });
@@ -2219,5 +2271,6 @@ init();
   function _u8(b64){const p=(b64+'='.repeat((4-b64.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/');const r=atob(p);const o=new Uint8Array(r.length);for(let i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o;}
 })();</script>
 <script src="{% static 'Base_app/js/notifications.js' %}"></script>
+{% include 'dash/bot_nav.html' with active_page='chat' %}
 </body>
 </html>
