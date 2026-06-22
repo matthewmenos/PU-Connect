@@ -390,6 +390,44 @@ textarea{resize:vertical;min-height:80px;line-height:1.6}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── STAT BUTTONS ── */
+.stat-btn{
+  background:none;border:none;padding:0;
+  cursor:pointer;color:inherit;
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:.15rem;
+  transition:opacity .15s;
+}
+.stat-btn:hover .stat-num{color:var(--accent)}
+.stat-btn:active{opacity:.7}
+
+/* ── FOLLOW SHEET ── */
+.follow-list{display:flex;flex-direction:column;gap:0;max-height:60dvh;overflow-y:auto}
+.follow-loading{
+  display:flex;justify-content:center;padding:2.5rem 0;
+  color:var(--text-2);animation:spin .9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.follow-loading svg{animation:spin .9s linear infinite}
+.follow-empty{
+  text-align:center;color:var(--text-2);font-size:.85rem;padding:2.5rem 1rem;
+}
+.follow-row{
+  display:flex;align-items:center;gap:.85rem;
+  padding:.75rem 0;border-bottom:1px solid var(--border);
+  text-decoration:none;color:inherit;
+  transition:background .15s;
+  border-radius:8px;margin:0 -.25rem;padding-left:.25rem;padding-right:.25rem;
+}
+.follow-row:last-child{border-bottom:none}
+.follow-row:hover{background:var(--surface2)}
+.follow-av{
+  width:44px;height:44px;border-radius:50%;
+  overflow:hidden;background:var(--surface2);flex-shrink:0;
+}
+.follow-info{flex:1;min-width:0}
+.follow-name{font-size:.88rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.follow-username{font-size:.75rem;color:var(--text-2);margin-top:.05rem}
+
 /* ── VERIFY BADGE ── */
 .prof-username-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.15rem}
 .verify-badge{

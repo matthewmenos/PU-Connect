@@ -396,6 +396,54 @@ def verification_submit_docs(request):
     return JsonResponse({'status': 'ok', 'message': 'Documents submitted — under review within 24 h'})
 
 
+@login_required(login_url='auth:auth_view')
+def followers_list(request):
+    """GET /profile/api/followers/ — list of users who follow the logged-in user."""
+    user = request.user
+    rows = (
+        Follow.objects.filter(following=user)
+        .select_related('follower', 'follower__profile')
+        .order_by('-created_at')
+    )
+    data = []
+    for f in rows:
+        u = f.follower
+        try:
+            avatar = u.profile.avatar_url or ''
+        except Exception:
+            avatar = ''
+        data.append({
+            'username': u.username,
+            'name': u.get_full_name() or u.username,
+            'avatar': avatar,
+        })
+    return JsonResponse({'results': data})
+
+
+@login_required(login_url='auth:auth_view')
+def following_list(request):
+    """GET /profile/api/following/ — list of users the logged-in user follows."""
+    user = request.user
+    rows = (
+        Follow.objects.filter(follower=user)
+        .select_related('following', 'following__profile')
+        .order_by('-created_at')
+    )
+    data = []
+    for f in rows:
+        u = f.following
+        try:
+            avatar = u.profile.avatar_url or ''
+        except Exception:
+            avatar = ''
+        data.append({
+            'username': u.username,
+            'name': u.get_full_name() or u.username,
+            'avatar': avatar,
+        })
+    return JsonResponse({'results': data})
+
+
 def logout_view(request):
     logout(request)
     return redirect('auth:auth_view') # Standard redirect works for logout
