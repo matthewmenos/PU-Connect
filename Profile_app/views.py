@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 from django.views.decorators.cache import never_cache
+from django.utils import timezone
 
 from django.contrib import messages
 from Listings_app.models import Listing
@@ -61,6 +62,19 @@ def settings(request):
 
 
 
+def _get_verified_status(user):
+    try:
+        return user.verification_request.status == 'approved'
+    except Exception:
+        return False
+
+def _get_verification_status(user):
+    try:
+        return user.verification_request.status
+    except Exception:
+        return None
+
+
 @login_required(login_url='auth:auth_view')
 @never_cache
 def get_my_profile(request):
@@ -91,6 +105,8 @@ def get_my_profile(request):
         'avatarSrc': profile.avatar_url or "",
         'bannerSrc': profile.banner_url or "",
         'joined': user.date_joined.strftime('%B %Y'),
+        'is_verified': _get_verified_status(user),
+        'verification_status': _get_verification_status(user),
         'listing_count': listing_qs.count(),
         'sold_count': listing_qs.filter(status='sold').count(),
         'followers_count': user.followers_set.count(),
@@ -271,6 +287,113 @@ def report_user(request, username):
         priority=priority,
     )
     return JsonResponse({'status': 'success', 'message': 'Report submitted. Our team will review it shortly.'})
+
+
+@login_required(login_url='auth:auth_view')
+@never_cache
+def verification_page(request):
+    """Dedicated full-page student verification flow."""
+    from Base_app.models import SiteConfig
+    config = SiteConfig.get()
+    status = _get_verification_status(request.user)
+    return render(request, 'profile/verify.html', {
+        'verification_fee': config.verification_fee,
+        'verification_status': status,
+    })
+
+
+@login_required(login_url='auth:auth_view')
+def verification_info(request):
+    """GET — returns fee and current status for the logged-in user."""
+    from Base_app.models import SiteConfig
+    config = SiteConfig.get()
+    status = _get_verification_status(request.user)
+    return JsonResponse({
+        'fee': str(config.verification_fee),
+        'status': status,
+        'is_verified': status == 'approved',
+    })
+
+
+@login_required(login_url='auth:auth_view')
+@require_POST
+def verification_apply(request):
+    """POST — create or update a pending verification request (before payment)."""
+    from Base_app.models import SiteConfig, VerificationRequest
+    config = SiteConfig.get()
+    vr, created = VerificationRequest.objects.get_or_create(
+        user=request.user,
+        defaults={'fee_paid': config.verification_fee, 'status': 'pending_payment'},
+    )
+    if not created and vr.status == 'approved':
+        return JsonResponse({'status': 'error', 'message': 'Already verified'}, status=400)
+    if not created and vr.status in ('pending_payment', 'rejected'):
+        vr.fee_paid = config.verification_fee
+        vr.status = 'pending_payment'
+        vr.save(update_fields=['fee_paid', 'status'])
+    return JsonResponse({'status': 'ok', 'fee': str(config.verification_fee), 'vr_id': vr.pk})
+
+
+@login_required(login_url='auth:auth_view')
+@require_POST
+def verification_paid(request):
+    """POST — called after Paystack confirms payment; marks as paid, awaiting documents."""
+    from Base_app.models import VerificationRequest
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    ref = data.get('reference', '').strip()
+    if not ref:
+        return JsonResponse({'status': 'error', 'message': 'No reference'}, status=400)
+    try:
+        vr = VerificationRequest.objects.get(user=request.user)
+    except VerificationRequest.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'No pending request'}, status=400)
+    if vr.status == 'approved':
+        return JsonResponse({'status': 'already_verified'})
+    vr.status = 'paid'
+    vr.paystack_reference = ref
+    vr.paid_at = timezone.now()
+    vr.save(update_fields=['status', 'paystack_reference', 'paid_at'])
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required(login_url='auth:auth_view')
+@require_POST
+def verification_submit_docs(request):
+    """POST — receives R2 URLs for ID photo + selfie, sets status to docs_submitted."""
+    from Base_app.models import VerificationRequest
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+    student_id_number = data.get('id_number', '').strip()
+    id_photo_url      = data.get('id_photo_url', '').strip()
+    selfie_url        = data.get('selfie_url', '').strip()
+    liveness_passed   = bool(data.get('liveness_passed', False))
+
+    if not student_id_number or not id_photo_url or not selfie_url:
+        return JsonResponse({'status': 'error', 'message': 'Student ID number, ID photo and selfie are all required'}, status=400)
+
+    try:
+        vr = VerificationRequest.objects.get(user=request.user)
+    except VerificationRequest.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'No verification request found'}, status=400)
+
+    if vr.status not in ('paid', 'rejected'):
+        return JsonResponse({'status': 'error', 'message': f'Cannot submit docs in state: {vr.status}'}, status=400)
+
+    vr.student_id_number = student_id_number
+    vr.id_photo_url      = id_photo_url
+    vr.selfie_url        = selfie_url
+    vr.liveness_passed   = liveness_passed
+    vr.status            = 'docs_submitted'
+    vr.docs_submitted_at = timezone.now()
+    vr.save(update_fields=['student_id_number', 'id_photo_url', 'selfie_url',
+                            'liveness_passed', 'status', 'docs_submitted_at'])
+    return JsonResponse({'status': 'ok', 'message': 'Documents submitted — under review within 24 h'})
 
 
 def logout_view(request):

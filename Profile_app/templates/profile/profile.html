@@ -90,7 +90,13 @@
     </button>
   </div>
 
-  <div class="prof-username" id="dispUsername"></div>
+  <div class="prof-username-row">
+    <div class="prof-username" id="dispUsername"></div>
+    <span class="verify-badge" id="verifyBadge" style="display:none" title="Verified Student">
+      <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 2l2.4 4.8L20 8l-4 3.9.9 5.5L12 15l-4.9 2.4.9-5.5L4 8l5.6-1.2z" fill="#e8c96a" stroke="#c9a93a" stroke-width="1"/><path d="M9 12l2 2 4-4" stroke="#1a1400" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Verified
+    </span>
+  </div>
   <div class="prof-bio" id="dispBio"></div>
 
   <!-- Pills -->
@@ -214,6 +220,19 @@
         <div class="settings-sub">Customize your profile cover photo</div>
       </div>
       <button class="settings-action-btn" onclick="triggerBannerUpload()">Change</button>
+    </div>
+    <div class="settings-row" style="border-bottom:none" id="verifySettingsRow">
+      <div class="settings-left">
+        <div class="settings-title">
+          Student Verification
+          <span class="verify-badge-inline" id="verifyBadgeSettings" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" width="13" height="13"><path d="M12 2l2.4 4.8L20 8l-4 3.9.9 5.5L12 15l-4.9 2.4.9-5.5L4 8l5.6-1.2z" fill="#e8c96a" stroke="#c9a93a" stroke-width="1"/><path d="M9 12l2 2 4-4" stroke="#1a1400" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Verified
+          </span>
+        </div>
+        <div class="settings-sub" id="verifySettingsSub">Get a badge confirming you're a PU student</div>
+      </div>
+      <button class="settings-action-btn" id="verifyActionBtn" onclick="goToVerifyPage()">Apply</button>
     </div>
   </div>
 
@@ -351,6 +370,7 @@
   </div>
 </div>
 
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -389,7 +409,10 @@ const showToast = msg => {
 
 /* ── MODALS ── */
 function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow='';
+}
 document.querySelectorAll('.modal-ov').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
 });
@@ -435,6 +458,15 @@ function renderProfile(p) {
     const bImg = document.getElementById('bannerImg');
     bImg.src = p.bannerSrc; bImg.style.display = 'block';
     document.getElementById('bannerEl').classList.add('has-photo');
+  }
+
+  // Verification badge
+  if (p.is_verified) {
+    const vb = document.getElementById('verifyBadge');
+    if (vb) vb.style.display = 'inline-flex';
+  }
+  if (p.verification_status) {
+    updateVerifyUI(p.verification_status, _verifyFee);
   }
 
   // Listings
@@ -640,10 +672,80 @@ function scrollToSettings(e) {
   document.getElementById('settings')?.scrollIntoView({ behavior: 'smooth' });
 }
 
+/* ── VERIFICATION ── */
+let _verifyFee = '5.00';
+
+async function loadVerificationInfo() {
+  try {
+    const res = await fetch('/profile/api/verification/info/');
+    if (!res.ok) return;
+    const d = await res.json();
+    _verifyFee = d.fee;
+    updateVerifyUI(d.status, d.fee);
+  } catch {}
+}
+
+function updateVerifyUI(status, fee) {
+  const badge      = document.getElementById('verifyBadge');
+  const badgeSet   = document.getElementById('verifyBadgeSettings');
+  const sub        = document.getElementById('verifySettingsSub');
+  const btn        = document.getElementById('verifyActionBtn');
+  const f = parseFloat(fee || _verifyFee).toFixed(2);
+
+  if (status === 'approved') {
+    if (badge)    badge.style.display = 'inline-flex';
+    if (badgeSet) badgeSet.style.display = 'inline-flex';
+    if (sub) sub.textContent = 'Your student status is verified ✓';
+    if (btn) { btn.textContent = 'Verified'; btn.disabled = true; btn.classList.add('btn-verified'); }
+  } else if (status === 'docs_submitted') {
+    if (sub) sub.textContent = 'Documents submitted — awaiting admin review';
+    if (btn) { btn.textContent = 'Under Review'; btn.disabled = true; }
+  } else if (status === 'paid') {
+    if (sub) sub.textContent = 'Payment done — complete your document upload';
+    if (btn) { btn.textContent = 'Continue'; btn.disabled = false; }
+  } else if (status === 'rejected') {
+    if (sub) sub.textContent = 'Request rejected — tap to reapply';
+    if (btn) { btn.textContent = 'Reapply'; btn.disabled = false; }
+  } else {
+    if (sub) sub.textContent = `Get a badge confirming you're a PU student — GH₵ ${f}`;
+    if (btn) { btn.textContent = 'Apply'; btn.disabled = false; }
+  }
+}
+
+function goToVerifyPage() {
+  const status = _profile.verification_status;
+  if (status === 'approved') { showToast('You are already verified ✓'); return; }
+  if (status === 'docs_submitted') { showToast('Documents submitted — under review'); return; }
+  location.href = '{% url "profile:verification_page" %}';
+}
+
+/* ── KEYBOARD / RESPONSIVE ── */
+(function() {
+  // When virtual keyboard opens on mobile, shrink body so modals stay visible
+  if (typeof visualViewport !== 'undefined') {
+    visualViewport.addEventListener('resize', () => {
+      const openModal = document.querySelector('.modal-ov.open .modal-sheet');
+      if (!openModal) return;
+      const vh = visualViewport.height;
+      openModal.style.maxHeight = (vh * 0.95) + 'px';
+    });
+  }
+
+  // Scroll focused input into view inside modals
+  document.addEventListener('focusin', e => {
+    const el = e.target;
+    if (!el.matches('input,textarea,select')) return;
+    const sheet = el.closest('.modal-sheet');
+    if (!sheet) return;
+    setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120);
+  });
+})();
+
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', () => {
   applyTheme(isDark);
   loadProfile();
+  loadVerificationInfo();
 });
 </script>
 

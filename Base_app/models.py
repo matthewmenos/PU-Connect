@@ -22,8 +22,49 @@ class SiteConfig(models.Model):
         obj, _ = cls.objects.get_or_create(id=1)
         return obj
 
+    verification_fee = models.DecimalField(max_digits=8, decimal_places=2, default=5.00,
+        help_text='Fee (GH₵) a user must pay to apply for a Verified Student badge')
+
     def __str__(self):
         return f'Site Config (boost fee: GH₵{self.boost_fee})'
+
+
+class VerificationRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending_payment', 'Pending Payment'),
+        ('paid',            'Paid — Awaiting Documents'),
+        ('docs_submitted',  'Documents Submitted — Awaiting Review'),
+        ('approved',        'Approved'),
+        ('rejected',        'Rejected'),
+    ]
+    user               = models.OneToOneField(User, on_delete=models.CASCADE, related_name='verification_request')
+    fee_paid           = models.DecimalField(max_digits=8, decimal_places=2)
+    status             = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_payment')
+    paystack_reference = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    paid_at            = models.DateTimeField(null=True, blank=True)
+    # Documents
+    student_id_number  = models.CharField(max_length=50, blank=True)
+    id_photo_url       = models.URLField(max_length=500, blank=True)
+    selfie_url         = models.URLField(max_length=500, blank=True)
+    liveness_passed    = models.BooleanField(default=False)
+    docs_submitted_at  = models.DateTimeField(null=True, blank=True)
+    # Review
+    admin_note         = models.TextField(blank=True)
+    created_at         = models.DateTimeField(auto_now_add=True)
+    reviewed_at        = models.DateTimeField(null=True, blank=True)
+    reviewed_by        = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name='verification_reviews')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Verification Request'
+
+    def __str__(self):
+        return f'Verify @{self.user.username} ({self.status})'
+
+    @property
+    def is_verified(self):
+        return self.status == 'approved'
 
 
 class BoostRequest(models.Model):
