@@ -21,173 +21,169 @@
 <nav class="tnav">
   <button class="nav-back" onclick="history.back()">
     <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
-    Back
   </button>
-  <span class="nav-title">My Profile</span>
-  <button class="thbtn" id="notifBtn" aria-label="Notifications" style="position:relative">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-    <span class="notif-dot" id="notifDot" style="display:none"></span>
-  </button>
-  <button class="thbtn" id="thbtn" aria-label="Toggle theme"></button>
+  <span class="nav-title">Profile</span>
+  <div style="display:flex;gap:.35rem">
+    <button class="nav-icon-btn" id="notifBtn" aria-label="Notifications" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span class="notif-dot" id="notifDot" style="display:none"></span>
+    </button>
+    <button class="nav-icon-btn" id="thbtn" aria-label="Toggle theme"></button>
+  </div>
 </nav>
 
-<!-- COVER -->
-<div class="cover">
-  <div class="cover-pattern"></div>
-  <div class="cover-glow"></div>
-  <div class="cover-glow2"></div>
-  <button class="cover-edit" onclick="openEditModal()">
-    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-    Edit Profile
+<!-- BANNER -->
+<div class="banner" id="bannerEl">
+  <img id="bannerImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover"/>
+  <div class="banner-overlay"></div>
+  <button class="banner-edit-btn" onclick="triggerBannerUpload()" title="Change banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    Edit Banner
   </button>
+  <input type="file" id="bannerFileInput" accept="image/*" style="display:none" onchange="handleBannerUpload(this)"/>
 </div>
 
-<div class="main">
+<!-- PROFILE HEADER CARD -->
+<div class="profile-card">
 
-  <!-- AVATAR ROW -->
+  <!-- Avatar + actions row -->
   <div class="avatar-row">
     <div class="avatar-wrap">
       <div class="avatar" id="avatarEl">
         <span id="avatarInitials">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" style="width:100%;height:100%;border-radius:50%;display:block"><circle cx="20" cy="20" r="20" fill="#e4e6ea"/><circle cx="20" cy="16" r="7.5" fill="#bcc0c4"/><path d="M5 36.5C5 29 11.7 23 20 23s15 6 15 13.5" fill="#bcc0c4"/></svg>
         </span>
-        <img id="avatarImg" src="" alt="" style="display:none"/>
+        <img id="avatarImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
       </div>
-      <label class="avatar-badge" for="avatarFileInput" title="Change profile photo">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
-          <circle cx="12" cy="13" r="4"/>
-        </svg>
+      <label class="avatar-cam" for="avatarFileInput" title="Change photo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
       </label>
       <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleDirectAvatarUpload(this)"/>
     </div>
-    <div class="avatar-actions">
-      <a href="{% url 'listings:create' %}" class="btn-primary">+ New Listing</a>
+
+    <div class="profile-actions">
+      <a href="{% url 'listings:create' %}" class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Listing
+      </a>
       <button class="btn-ghost" onclick="openEditModal()">
-        <svg viewBox="0 0 24 24" width="14" height="14"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Edit
       </button>
     </div>
   </div>
 
-  <!-- PROFILE INFO -->
-  <div id="profileInfo">
-    <div class="name-row">
-      <h2 id="dispName" class="prof-name">—</h2>
-      <button class="name-edit-btn" id="nameEditBtn" onclick="toggleNameEdit()" title="Edit name">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
-    </div>
-    <div class="name-edit-row" id="nameEditRow" style="display:none">
-      <input type="text" id="inlineNameInput" class="inline-name-input" placeholder="Your full name" maxlength="50"/>
-      <button class="name-save-btn" onclick="saveInlineName()">✓</button>
-      <button class="name-cancel-btn" onclick="cancelNameEdit()">✕</button>
-    </div>
-    <div class="prof-username" id="dispUsername"></div>
-    <div class="prof-bio" id="dispBio"></div>
-    <div class="prof-tags" id="dispTags">
-      <span class="prof-tag" id="tagLocation" style="display:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        <span id="tagLocationTxt"></span>
-      </span>
-      <span class="prof-tag" id="tagFaculty" style="display:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-        <span id="tagFacultyTxt"></span>
-      </span>
-    </div>
+  <!-- Name -->
+  <div class="name-row">
+    <h1 class="prof-name" id="dispName">—</h1>
+    <button class="name-pencil" onclick="toggleNameEdit()" title="Edit name">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>
+  </div>
+  <div class="name-edit-row" id="nameEditRow" style="display:none">
+    <input type="text" id="inlineNameInput" class="inline-name-input" placeholder="Your full name" maxlength="50"/>
+    <button class="name-save-btn" onclick="saveInlineName()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+    </button>
+    <button class="name-cancel-btn" onclick="cancelNameEdit()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
 
-  <!-- STATS (Instagram-style: Posts · Followers · Following) -->
+  <div class="prof-username" id="dispUsername"></div>
+  <div class="prof-bio" id="dispBio"></div>
+
+  <!-- Pills -->
+  <div class="prof-pills" id="profPills"></div>
+
+  <!-- Stats -->
   <div class="stats-row">
-    <div class="stat-box" onclick="location.href='{% url 'listings:listings' %}'">
+    <a class="stat-box" href="{% url 'listings:listings' %}">
       <span class="stat-num" id="statListings">—</span>
       <span class="stat-lbl">Posts</span>
-    </div>
-    <div class="stat-box" id="statFollowersBox" style="cursor:default">
+    </a>
+    <div class="stat-sep"></div>
+    <div class="stat-box">
       <span class="stat-num" id="statFollowers">—</span>
       <span class="stat-lbl">Followers</span>
     </div>
-    <div class="stat-box" id="statFollowingBox" style="cursor:default">
+    <div class="stat-sep"></div>
+    <div class="stat-box">
       <span class="stat-num" id="statFollowing">—</span>
       <span class="stat-lbl">Following</span>
     </div>
   </div>
 
-  <!-- QUICK ACTIONS -->
-  <div class="quick-actions">
-    <a class="qa-btn" href="{% url 'listings:listings' %}">
-      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
-      <span class="qa-lbl">Listings</span>
+</div><!-- /profile-card -->
+
+<!-- QUICK LINKS -->
+<div class="page-body">
+
+  <div class="quick-grid">
+    <a class="quick-tile" href="{% url 'listings:listings' %}">
+      <span class="qt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span>
+      <span class="qt-lbl">Listings</span>
     </a>
-    <a class="qa-btn" href="{% url 'listings:wishlist' %}">
-      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-      <span class="qa-lbl">Saved</span>
+    <a class="quick-tile" href="{% url 'listings:wishlist' %}">
+      <span class="qt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
+      <span class="qt-lbl">Saved</span>
     </a>
-    <a class="qa-btn" href="{% url 'chat:chat' %}">
-      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-      <span class="qa-lbl">Messages</span>
+    <a class="quick-tile" href="{% url 'chat:chat' %}">
+      <span class="qt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span>
+      <span class="qt-lbl">Messages</span>
     </a>
-    <a class="qa-btn" href="#settings" onclick="smoothToSettings(event)">
-      <span class="qa-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-      <span class="qa-lbl">Settings</span>
+    <a class="quick-tile" href="#settings" onclick="scrollToSettings(event)">
+      <span class="qt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+      <span class="qt-lbl">Settings</span>
     </a>
   </div>
 
   <!-- ACTIVE LISTINGS -->
-  <div class="slbl">
+  <div class="section-head">
     <h2>Active Listings</h2>
     <a href="{% url 'listings:listings' %}">View all →</a>
   </div>
   <div id="listingsScrollWrap">
     <div class="listings-scroll" id="listingsScroll"></div>
-    <p id="listingsEmpty" style="display:none;font-size:.84rem;color:var(--m);padding:.5rem 0">No active listings yet. <a href="{% url 'listings:create' %}" style="color:var(--a)">Post one now →</a></p>
+    <p id="listingsEmpty" style="display:none;font-size:.84rem;color:var(--m);padding:.5rem 0">
+      No active listings yet. <a href="{% url 'listings:create' %}" style="color:var(--a)">Post one now →</a>
+    </p>
   </div>
 
-  <div class="div"></div>
+  <div class="divider"></div>
 
   <!-- ABOUT -->
-  <div class="slbl"><h2>About</h2></div>
-  <div class="info-grid">
-    <div class="info-card">
-      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
-      <div>
-        <div class="info-label">Faculty</div>
-        <div class="info-val" id="infoFaculty">—</div>
-      </div>
+  <div class="section-head"><h2>About</h2></div>
+  <div class="about-grid">
+    <div class="about-row">
+      <span class="about-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
+      <div><div class="about-lbl">Faculty</div><div class="about-val" id="infoFaculty">—</div></div>
     </div>
-    <div class="info-card">
-      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
-      <div>
-        <div class="info-label">Location</div>
-        <div class="info-val" id="infoLocation">—</div>
-      </div>
+    <div class="about-row">
+      <span class="about-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+      <div><div class="about-lbl">Location</div><div class="about-val" id="infoLocation">—</div></div>
     </div>
-    <div class="info-card">
-      <span class="info-icon">📞</span>
-      <div>
-        <div class="info-label">Phone</div>
-        <div class="info-val" id="infoPhone">—</div>
-      </div>
+    <div class="about-row">
+      <span class="about-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.06 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/></svg></span>
+      <div><div class="about-lbl">Phone</div><div class="about-val" id="infoPhone">—</div></div>
     </div>
-    <div class="info-card">
-      <span class="info-icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
-      <div>
-        <div class="info-label">Member Since</div>
-        <div class="info-val" id="infoJoined">—</div>
-      </div>
+    <div class="about-row">
+      <span class="about-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <div><div class="about-lbl">Member Since</div><div class="about-val" id="infoJoined">—</div></div>
     </div>
   </div>
 
-  <!-- SETTINGS -->
-  <div class="div" id="settings"></div>
-  <div class="slbl"><h2>Settings</h2></div>
+  <div class="divider" id="settings"></div>
 
-  <div class="set-group">
-    <div class="set-head">Appearance</div>
-    <div class="set-row">
-      <div class="set-left">
-        <div class="set-lbl">Dark Mode</div>
-        <div class="set-desc">Switch between light and dark interface</div>
+  <!-- SETTINGS -->
+  <div class="section-head"><h2>Settings</h2></div>
+
+  <div class="settings-card">
+    <div class="settings-group-label">Appearance</div>
+    <div class="settings-row">
+      <div class="settings-left">
+        <div class="settings-title">Dark Mode</div>
+        <div class="settings-sub">Switch between light and dark interface</div>
       </div>
       <label class="toggle">
         <input type="checkbox" id="darkToggle" onchange="applyTheme(!isDark)"/>
@@ -196,62 +192,73 @@
     </div>
   </div>
 
-  <div class="set-group">
-    <div class="set-head">Account</div>
-    <div class="set-row">
-      <div class="set-left">
-        <div class="set-lbl">Edit Profile</div>
-        <div class="set-desc">Update your name, bio, faculty, and photo</div>
+  <div class="settings-card">
+    <div class="settings-group-label">Account</div>
+    <div class="settings-row">
+      <div class="settings-left">
+        <div class="settings-title">Edit Profile</div>
+        <div class="settings-sub">Update name, bio, faculty and photo</div>
       </div>
-      <button class="edit-btn-sm" onclick="openEditModal()">Edit</button>
+      <button class="settings-action-btn" onclick="openEditModal()">Edit</button>
     </div>
-    <div class="set-row">
-      <div class="set-left">
-        <div class="set-lbl">Change Username</div>
-        <div class="set-desc">Allowed once every 30 days</div>
+    <div class="settings-row">
+      <div class="settings-left">
+        <div class="settings-title">Change Username</div>
+        <div class="settings-sub">Allowed once every 30 days</div>
       </div>
-      <button class="edit-btn-sm" onclick="openUsernameModal()">Change</button>
+      <button class="settings-action-btn" onclick="openUsernameModal()">Change</button>
+    </div>
+    <div class="settings-row">
+      <div class="settings-left">
+        <div class="settings-title">Banner Image</div>
+        <div class="settings-sub">Customize your profile cover photo</div>
+      </div>
+      <button class="settings-action-btn" onclick="triggerBannerUpload()">Change</button>
     </div>
   </div>
 
-  <div class="set-group">
-    <div class="set-head">Danger Zone</div>
-    <div class="danger-zone" style="margin:0;border-radius:0;border:none;border-top:1px solid rgba(255,107,107,.15)">
-      <div class="dz-title">Deactivate Account</div>
-      <div class="dz-desc">Hides your profile and listings from other users. You can reactivate anytime.</div>
-      <button class="dz-btn" onclick="confirmDeactivate()">Deactivate</button>
+  <div class="settings-card danger-card">
+    <div class="settings-group-label" style="color:var(--red)">Danger Zone</div>
+    <div class="settings-row">
+      <div class="settings-left">
+        <div class="settings-title" style="color:var(--red)">Deactivate Account</div>
+        <div class="settings-sub">Hides your profile until you log back in</div>
+      </div>
+      <button class="settings-action-btn danger-btn" onclick="openModal('deactivateModal')">Deactivate</button>
     </div>
-    <div class="danger-zone" style="margin:0;border-radius:0;border:none;border-top:1px solid rgba(255,107,107,.15)">
-      <div class="dz-title">Delete Account</div>
-      <div class="dz-desc">Permanently deletes your account and all listings. This cannot be undone.</div>
-      <button class="dz-btn" onclick="confirmDelete()">Delete Account</button>
+    <div class="settings-row" style="border-bottom:none">
+      <div class="settings-left">
+        <div class="settings-title" style="color:var(--red)">Delete Account</div>
+        <div class="settings-sub">Permanently deletes everything. Cannot be undone.</div>
+      </div>
+      <button class="settings-action-btn danger-btn" onclick="openModal('deleteModal')">Delete</button>
     </div>
   </div>
 
-  <!-- LOG OUT -->
-  <div class="div"></div>
-  <a href="{% url 'auth:logout' %}" style="display:block;width:100%;padding:.82rem;border-radius:12px;background:rgba(255,107,107,.08);color:var(--red);border:1.5px solid rgba(255,107,107,.2);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;margin-bottom:1rem;text-align:center;text-decoration:none">
+  <a href="{% url 'auth:logout' %}" class="logout-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     Log Out
   </a>
 
-</div><!-- /main -->
+</div><!-- /page-body -->
 
-<!-- EDIT PROFILE MODAL -->
-<div class="modal-overlay" id="editModal">
+<!-- ── EDIT PROFILE MODAL ── -->
+<div class="modal-ov" id="editModal">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title">Edit Profile</div>
 
-    <div class="avatar-upload-row">
+    <div class="av-upload-row">
       <div class="av-preview" id="modalAvatarPreview">
         <span id="modalAvatarInitials">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:50%;height:50%;opacity:.7"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" style="width:100%;height:100%;border-radius:50%;display:block"><circle cx="20" cy="20" r="20" fill="#e4e6ea"/><circle cx="20" cy="16" r="7.5" fill="#bcc0c4"/><path d="M5 36.5C5 29 11.7 23 20 23s15 6 15 13.5" fill="#bcc0c4"/></svg>
         </span>
-        <img id="modalAvatarImg" src="" alt="" style="display:none"/>
+        <img id="modalAvatarImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%"/>
       </div>
-      <label class="av-upload-btn">
+      <label class="av-upload-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
         Change Photo
-        <input type="file" accept="image/*" onchange="handleAvatarUpload(this)"/>
+        <input type="file" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)"/>
       </label>
     </div>
 
@@ -264,19 +271,20 @@
       <input type="text" id="editPhone" placeholder="e.g. 0241234567" maxlength="15"/>
     </div>
     <div class="field">
-      <label class="field-lbl">Bio <span class="opt">(optional)</span></label>
-      <textarea id="editBio" maxlength="200" placeholder="Tell buyers about yourself…" oninput="document.getElementById('bioCount').textContent=this.value.length+' / 200'"></textarea>
-      <div style="text-align:right;font-size:.68rem;color:var(--m);margin-top:.2rem" id="bioCount">0 / 200</div>
+      <label class="field-lbl">Bio <span class="opt">optional</span></label>
+      <textarea id="editBio" maxlength="200" placeholder="Tell buyers about yourself…"
+        oninput="document.getElementById('bioCount').textContent=this.value.length+' / 200'"></textarea>
+      <div class="char-count" id="bioCount">0 / 200</div>
     </div>
     <div class="field">
       <label class="field-lbl">Faculty</label>
       <select id="editFaculty">
         <option value="">— Select faculty —</option>
-        <option value="FESAC">FESAC — Faculty of Engineering Science &amp; Computing</option>
-        <option value="FBA">FBA — Faculty of Business Administration</option>
-        <option value="FHAS">FHAS — Faculty of Health and Allied Sciences</option>
-        <option value="FEDU">FEDU — Faculty of Education</option>
-        <option value="LLB">LLB — Faculty of Law</option>
+        <option value="FESAC">FESAC — Engineering, Science &amp; Computing</option>
+        <option value="FBA">FBA — Business Administration</option>
+        <option value="FHAS">FHAS — Health and Allied Sciences</option>
+        <option value="FEDU">FEDU — Education</option>
+        <option value="LLB">LLB — Law</option>
       </select>
     </div>
     <div class="field">
@@ -289,53 +297,57 @@
         <option>Other</option>
       </select>
     </div>
-    <button class="save-btn" onclick="saveProfile()">Save Changes</button>
-    <button class="cancel-btn" onclick="closeModal('editModal')">Cancel</button>
+    <button class="btn-save" onclick="saveProfile()">Save Changes</button>
+    <button class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
   </div>
 </div>
 
-<!-- USERNAME CHANGE MODAL -->
-<div class="modal-overlay" id="usernameModal">
+<!-- ── CHANGE USERNAME MODAL ── -->
+<div class="modal-ov" id="usernameModal">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="un-confirm-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    </div>
     <div class="modal-title">Change Username</div>
-    <div class="modal-sub">You can change your username once every 30 days.</div>
+    <p class="modal-sub">You can change your username once every 30 days.</p>
     <div class="field">
       <label class="field-lbl">New Username</label>
-      <input type="text" id="newUsernameInput" placeholder="@newusername" maxlength="30" oninput="this.value=this.value.replace(/[^a-zA-Z0-9._]/g,'')"/>
+      <input type="text" id="newUsernameInput" placeholder="@newusername" maxlength="30"
+        oninput="this.value=this.value.replace(/[^a-zA-Z0-9._]/g,'')"/>
       <div id="usernameNotice" class="username-notice" style="display:none"></div>
     </div>
-    <button class="save-btn" id="usernameConfirmBtn" onclick="commitUsernameChange()">Confirm Change</button>
-    <button class="cancel-btn" onclick="closeModal('usernameModal')">Cancel</button>
+    <button class="btn-save" onclick="commitUsernameChange()">Confirm Change</button>
+    <button class="btn-cancel" onclick="closeModal('usernameModal')">Cancel</button>
   </div>
 </div>
 
-<!-- CONFIRM DEACTIVATE MODAL -->
-<div class="modal-overlay" id="deactivateModal">
+<!-- ── DEACTIVATE MODAL ── -->
+<div class="modal-ov" id="deactivateModal">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title" style="color:var(--red)">Deactivate Account?</div>
-    <div class="modal-sub">Your profile and listings will be hidden until you log back in and reactivate.</div>
-    <button class="save-btn" style="background:var(--red)" onclick="doDeactivate()">Yes, Deactivate</button>
-    <button class="cancel-btn" onclick="closeModal('deactivateModal')">Cancel</button>
+    <div class="modal-icon" style="color:var(--red)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="36" height="36"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="modal-title">Deactivate Account?</div>
+    <p class="modal-sub">Your profile and listings will be hidden until you log back in and reactivate.</p>
+    <button class="btn-save" style="background:var(--red);color:#fff" onclick="doDeactivate()">Yes, Deactivate</button>
+    <button class="btn-cancel" onclick="closeModal('deactivateModal')">Cancel</button>
   </div>
 </div>
 
-<!-- CONFIRM DELETE MODAL -->
-<div class="modal-overlay" id="deleteModal">
+<!-- ── DELETE MODAL ── -->
+<div class="modal-ov" id="deleteModal">
   <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
+    <div class="modal-icon" style="color:var(--red)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="36" height="36"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+    </div>
     <div class="modal-title" style="color:var(--red)">Delete Account?</div>
-    <div class="modal-sub">This will permanently delete your account and all your listings. <strong>This cannot be undone.</strong></div>
+    <p class="modal-sub">This permanently deletes your account and all listings. <strong>This cannot be undone.</strong></p>
     <div class="field" style="margin-top:.5rem">
       <label class="field-lbl">Type <strong>DELETE</strong> to confirm</label>
       <input type="text" id="deleteConfirmInput" placeholder="DELETE"/>
     </div>
-    <button class="save-btn" style="background:var(--red)" onclick="doDelete()">Delete My Account</button>
-    <button class="cancel-btn" onclick="closeModal('deleteModal')">Cancel</button>
+    <button class="btn-save" style="background:var(--red);color:#fff" onclick="doDelete()">Delete My Account</button>
+    <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
   </div>
 </div>
 
@@ -370,72 +382,62 @@ document.getElementById('thbtn').addEventListener('click', () => applyTheme(!isD
 const getCSRF = () => document.cookie.split('; ').find(r => r.startsWith('csrftoken='))?.split('=')[1] || '';
 const showToast = msg => {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   clearTimeout(window._tt);
   window._tt = setTimeout(() => t.classList.remove('show'), 2800);
 };
-const initials = n => {
-  const p = String(n || '').trim().split(' ').filter(Boolean);
-  return ((p[0]?.[0] || '') + (p[1]?.[0] || '')).toUpperCase() || '?';
-};
 
-/* ── MODAL HELPERS ── */
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-// Close on backdrop click
-document.querySelectorAll('.modal-overlay').forEach(el => {
+/* ── MODALS ── */
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+document.querySelectorAll('.modal-ov').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
 });
 
-/* ── APPLY PROFILE DATA TO PAGE ── */
+/* ── RENDER PROFILE ── */
 function renderProfile(p) {
   _profile = p;
 
-  // Name
-  const name = p.name || p.username || '—';
-  document.getElementById('dispName').textContent = name;
-
-  // Username + joined
-  const joined = p.joined ? ` · Member since ${p.joined}` : '';
-  document.getElementById('dispUsername').textContent = `@${p.username || ''}${joined}`;
-
-  // Bio
-  document.getElementById('dispBio').textContent = p.bio || 'No bio yet.';
-
-  // Info cards
+  document.getElementById('dispName').textContent = p.name || p.username || '—';
+  document.getElementById('dispUsername').textContent = `@${p.username || ''}`;
+  document.getElementById('dispBio').textContent = p.bio || '';
   document.getElementById('infoFaculty').textContent = p.faculty || '—';
   document.getElementById('infoLocation').textContent = p.location || '—';
   document.getElementById('infoPhone').textContent = p.phone || '—';
   document.getElementById('infoJoined').textContent = p.joined || '—';
-
-  // Tags
-  const tagLoc = document.getElementById('tagLocation');
-  const tagFac = document.getElementById('tagFaculty');
-  if (p.location) { document.getElementById('tagLocationTxt').textContent = p.location; tagLoc.style.display = ''; }
-  if (p.faculty)  { document.getElementById('tagFacultyTxt').textContent = p.faculty;   tagFac.style.display = ''; }
-
-  // Stats
-  document.getElementById('statListings').textContent  = p.listing_count ?? '—';
+  document.getElementById('statListings').textContent  = p.listing_count ?? '0';
   document.getElementById('statFollowers').textContent = p.followers_count ?? '0';
   document.getElementById('statFollowing').textContent = p.following_count ?? '0';
+
+  // Pills
+  const pills = [];
+  if (p.faculty)  pills.push(`<span class="prof-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>${p.faculty}</span>`);
+  if (p.location) pills.push(`<span class="prof-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${p.location}</span>`);
+  document.getElementById('profPills').innerHTML = pills.join('');
 
   // Avatar
   const img  = document.getElementById('avatarImg');
   const init = document.getElementById('avatarInitials');
-  const mImg  = document.getElementById('modalAvatarImg');
-  const mInit = document.getElementById('modalAvatarInitials');
-  const _fbAv = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" style="width:100%;height:100%;border-radius:50%;display:block"><circle cx="20" cy="20" r="20" fill="#e4e6ea"/><circle cx="20" cy="16" r="7.5" fill="#bcc0c4"/><path d="M5 36.5C5 29 11.7 23 20 23s15 6 15 13.5" fill="#bcc0c4"/></svg>';
+  const mImg = document.getElementById('modalAvatarImg');
+  const mInit= document.getElementById('modalAvatarInitials');
+  const fbAv = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" style="width:100%;height:100%;border-radius:50%;display:block"><circle cx="20" cy="20" r="20" fill="#e4e6ea"/><circle cx="20" cy="16" r="7.5" fill="#bcc0c4"/><path d="M5 36.5C5 29 11.7 23 20 23s15 6 15 13.5" fill="#bcc0c4"/></svg>';
   if (p.avatarSrc) {
     img.src = p.avatarSrc; img.style.display = 'block'; init.style.display = 'none';
     mImg.src = p.avatarSrc; mImg.style.display = 'block'; mInit.style.display = 'none';
   } else {
-    init.innerHTML = _fbAv; init.style.display = '';
-    mInit.innerHTML = _fbAv; mInit.style.display = '';
+    init.innerHTML = fbAv; init.style.display = '';
+    mInit.innerHTML = fbAv; mInit.style.display = '';
     img.style.display = 'none'; mImg.style.display = 'none';
   }
 
-  // Active listings
+  // Banner
+  if (p.bannerSrc) {
+    const bImg = document.getElementById('bannerImg');
+    bImg.src = p.bannerSrc; bImg.style.display = 'block';
+    document.getElementById('bannerEl').classList.add('has-photo');
+  }
+
+  // Listings
   renderListings(p.active_listings || []);
 }
 
@@ -443,127 +445,92 @@ function renderListings(items) {
   const scroll = document.getElementById('listingsScroll');
   const empty  = document.getElementById('listingsEmpty');
   if (!items.length) {
-    scroll.style.display = 'none';
-    empty.style.display  = '';
-    return;
+    scroll.style.display = 'none'; empty.style.display = ''; return;
   }
-  scroll.style.display = '';
-  empty.style.display  = 'none';
+  scroll.style.display = ''; empty.style.display = 'none';
   scroll.innerHTML = items.map(l => {
     const price = l.contact_for_price ? 'Negotiate' : `GH₵ ${parseFloat(l.price).toLocaleString()}`;
     const img   = l.image_url
       ? `<img src="${l.image_url}" alt="${l.title}" style="width:100%;height:100%;object-fit:cover">`
-      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.2rem">🏷️</div>`;
-    const badge = l.status === 'sold'
-      ? `<span class="lcard-badge badge-sold">SOLD</span>`
-      : l.status === 'boosted'
-      ? `<span class="lcard-badge badge-active">BOOSTED</span>`
-      : `<span class="lcard-badge badge-active">ACTIVE</span>`;
-    return `
-      <div class="lcard" onclick="location.href='/listings/${l.id}/'" style="cursor:pointer">
-        <div class="lcard-img">${img}${badge}</div>
-        <div class="lcard-body">
-          <div class="lcard-name">${l.title}</div>
-          <div class="lcard-price">${price}</div>
-        </div>
-      </div>`;
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">🏷️</div>`;
+    const badgeCls = l.status === 'sold' ? 'badge-sold' : 'badge-active';
+    const badgeTxt = l.status === 'sold' ? 'SOLD' : l.status === 'boosted' ? 'BOOSTED' : 'ACTIVE';
+    return `<div class="lcard" onclick="location.href='/listings/${l.id}/'" style="cursor:pointer">
+      <div class="lcard-img">${img}<span class="lcard-badge ${badgeCls}">${badgeTxt}</span></div>
+      <div class="lcard-body"><div class="lcard-name">${l.title}</div><div class="lcard-price">${price}</div></div>
+    </div>`;
   }).join('');
 }
 
-/* ── LOAD FROM SERVER ── */
+/* ── LOAD ── */
 async function loadProfile() {
   try {
     const res = await fetch('/profile/api/me/');
     if (res.status === 403 || res.status === 401) { location.href = '{% url "auth:auth_view" %}'; return; }
-    if (!res.ok) throw new Error('Server error');
-    const data = await res.json();
-    renderProfile(data);
-  } catch (e) {
-    showToast('Could not load profile');
-  }
+    if (!res.ok) throw new Error();
+    renderProfile(await res.json());
+  } catch { showToast('Could not load profile'); }
 }
 
-/* ── EDIT PROFILE ── */
+/* ── EDIT MODAL ── */
 function openEditModal() {
-  document.getElementById('editName').value    = _profile.name || '';
-  document.getElementById('editPhone').value   = _profile.phone || '';
-  document.getElementById('editBio').value     = _profile.bio || '';
+  document.getElementById('editName').value     = _profile.name || '';
+  document.getElementById('editPhone').value    = _profile.phone || '';
+  document.getElementById('editBio').value      = _profile.bio || '';
   document.getElementById('bioCount').textContent = (_profile.bio || '').length + ' / 200';
-  document.getElementById('editFaculty').value = _profile.faculty || '';
+  document.getElementById('editFaculty').value  = _profile.faculty || '';
   document.getElementById('editLocation').value = _profile.location || '';
   window._pendingAvatar = null;
   openModal('editModal');
 }
 
 async function saveProfile() {
-  const name  = document.getElementById('editName').value.trim();
-  const phone = document.getElementById('editPhone').value.trim();
+  const name = document.getElementById('editName').value.trim();
   if (!name) { showToast('Name is required'); return; }
-
   const payload = {
-    name,
-    phone,
+    name, phone: document.getElementById('editPhone').value.trim(),
     bio:      document.getElementById('editBio').value.trim(),
     faculty:  document.getElementById('editFaculty').value,
     location: document.getElementById('editLocation').value,
     avatarSrc: window._pendingAvatar || _profile.avatarSrc || '',
   };
-
   try {
     const res = await fetch('/profile/api/update/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
       body: JSON.stringify(payload),
     });
-    const json = await res.json();
     if (res.ok) {
-      closeModal('editModal');
-      showToast('Profile updated ✓');
-      window._pendingAvatar = null;
-      await loadProfile();
-    } else {
-      showToast(json.message || 'Update failed');
-    }
-  } catch (e) {
-    showToast('Connection error');
-  }
+      closeModal('editModal'); showToast('Profile updated ✓');
+      window._pendingAvatar = null; await loadProfile();
+    } else { const j = await res.json().catch(()=>({})); showToast(j.message || 'Update failed'); }
+  } catch { showToast('Connection error'); }
 }
 
-/* ── INLINE NAME EDIT ── */
+/* ── INLINE NAME ── */
 function toggleNameEdit() {
   const row = document.getElementById('nameEditRow');
-  const showing = row.style.display !== 'none';
-  if (!showing) {
+  if (row.style.display === 'none' || !row.style.display) {
     document.getElementById('inlineNameInput').value = _profile.name || '';
-    row.style.display = '';
-    document.getElementById('inlineNameInput').focus();
-  } else {
-    cancelNameEdit();
-  }
+    row.style.display = 'flex'; document.getElementById('inlineNameInput').focus();
+  } else { cancelNameEdit(); }
 }
 function cancelNameEdit() { document.getElementById('nameEditRow').style.display = 'none'; }
 async function saveInlineName() {
   const name = document.getElementById('inlineNameInput').value.trim();
   if (!name) { showToast('Name cannot be empty'); return; }
-  const payload = { ..._profile, name };
   try {
     const res = await fetch('/profile/api/update/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ..._profile, name }),
     });
-    if (res.ok) {
-      cancelNameEdit();
-      showToast('Name updated ✓');
-      await loadProfile();
-    } else {
-      const j = await res.json().catch(() => ({}));
-      showToast(j.message || 'Update failed');
-    }
+    if (res.ok) { cancelNameEdit(); showToast('Name updated ✓'); await loadProfile(); }
+    else { const j = await res.json().catch(()=>({})); showToast(j.message || 'Update failed'); }
   } catch { showToast('Connection error'); }
 }
 
-/* ── USERNAME CHANGE ── */
+/* ── USERNAME ── */
 function openUsernameModal() {
   document.getElementById('newUsernameInput').value = '';
   document.getElementById('usernameNotice').style.display = 'none';
@@ -573,24 +540,18 @@ async function commitUsernameChange() {
   const newUn = document.getElementById('newUsernameInput').value.trim().replace(/^@/, '');
   if (!newUn) { showToast('Enter a username'); return; }
   if (newUn === _profile.username) { showToast('Same as current username'); return; }
-  const notice = document.getElementById('usernameNotice');
-
-  const payload = { ..._profile, username: newUn };
   try {
     const res = await fetch('/profile/api/update/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ..._profile, username: newUn }),
     });
     const json = await res.json();
-    if (res.ok) {
-      closeModal('usernameModal');
-      showToast('Username changed ✓');
-      await loadProfile();
-    } else {
-      notice.textContent = json.message || 'Username already taken';
-      notice.className = 'username-notice locked';
-      notice.style.display = '';
+    if (res.ok) { closeModal('usernameModal'); showToast('Username changed ✓'); await loadProfile(); }
+    else {
+      const n = document.getElementById('usernameNotice');
+      n.textContent = json.message || 'Username already taken';
+      n.className = 'username-notice locked'; n.style.display = '';
     }
   } catch { showToast('Connection error'); }
 }
@@ -598,17 +559,9 @@ async function commitUsernameChange() {
 /* ── AVATAR UPLOAD ── */
 async function uploadToR2(file) {
   const fd = new FormData();
-  fd.append('file', file);
-  fd.append('resource_type', 'image');
-  const res = await fetch('/api/r2-upload/', {
-    method: 'POST',
-    headers: { 'X-CSRFToken': getCSRF() },
-    body: fd,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || 'Upload failed');
-  }
+  fd.append('file', file); fd.append('resource_type', 'image');
+  const res = await fetch('/api/r2-upload/', { method: 'POST', headers: { 'X-CSRFToken': getCSRF() }, body: fd });
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'Upload failed'); }
   const { public_url } = await res.json();
   return public_url;
 }
@@ -617,11 +570,10 @@ function handleDirectAvatarUpload(input) {
   const f = input.files[0]; if (!f) return;
   showToast('Uploading…');
   uploadToR2(f).then(async url => {
-    const payload = { ..._profile, avatarSrc: url };
     const res = await fetch('/profile/api/update/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ..._profile, avatarSrc: url }),
     });
     if (res.ok) { showToast('Photo updated ✓'); await loadProfile(); }
     else showToast('Save failed');
@@ -633,15 +585,38 @@ function handleAvatarUpload(input) {
   showToast('Uploading…');
   uploadToR2(f).then(url => {
     window._pendingAvatar = url;
-    const mImg  = document.getElementById('modalAvatarImg');
-    const mInit = document.getElementById('modalAvatarInitials');
+    const mImg = document.getElementById('modalAvatarImg');
+    const mInit= document.getElementById('modalAvatarInitials');
     mImg.src = url; mImg.style.display = 'block'; mInit.style.display = 'none';
     showToast('Photo ready — save to apply');
   }).catch(() => showToast('Upload failed'));
 }
 
+/* ── BANNER UPLOAD ── */
+function triggerBannerUpload() {
+  document.getElementById('bannerFileInput').click();
+}
+
+function handleBannerUpload(input) {
+  const f = input.files[0]; if (!f) return;
+  showToast('Uploading banner…');
+  uploadToR2(f).then(async url => {
+    const res = await fetch('/profile/api/update/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRF() },
+      body: JSON.stringify({ ..._profile, bannerSrc: url }),
+    });
+    if (res.ok) {
+      const bImg = document.getElementById('bannerImg');
+      bImg.src = url; bImg.style.display = 'block';
+      document.getElementById('bannerEl').classList.add('has-photo');
+      _profile.bannerSrc = url;
+      showToast('Banner updated ✓');
+    } else showToast('Save failed');
+  }).catch(() => showToast('Upload failed'));
+}
+
 /* ── DEACTIVATE / DELETE ── */
-function confirmDeactivate() { openModal('deactivateModal'); }
 async function doDeactivate() {
   try {
     const res = await fetch('/auth/deactivate/', { method: 'POST', headers: { 'X-CSRFToken': getCSRF() } });
@@ -649,15 +624,9 @@ async function doDeactivate() {
     else showToast('Could not deactivate');
   } catch { showToast('Connection error'); }
 }
-
-function confirmDelete() {
-  document.getElementById('deleteConfirmInput').value = '';
-  openModal('deleteModal');
-}
 async function doDelete() {
   if (document.getElementById('deleteConfirmInput').value !== 'DELETE') {
-    showToast('Type DELETE to confirm');
-    return;
+    showToast('Type DELETE to confirm'); return;
   }
   try {
     const res = await fetch('/auth/delete-account/', { method: 'POST', headers: { 'X-CSRFToken': getCSRF() } });
@@ -666,9 +635,8 @@ async function doDelete() {
   } catch { showToast('Connection error'); }
 }
 
-/* ── SCROLL TO SETTINGS ── */
-function smoothToSettings(e) {
-  if (e) e.preventDefault();
+function scrollToSettings(e) {
+  e.preventDefault();
   document.getElementById('settings')?.scrollIntoView({ behavior: 'smooth' });
 }
 

@@ -89,6 +89,7 @@ def get_my_profile(request):
         'location': profile.location or "",
         'phone': profile.phone or "",
         'avatarSrc': profile.avatar_url or "",
+        'bannerSrc': profile.banner_url or "",
         'joined': user.date_joined.strftime('%B %Y'),
         'listing_count': listing_qs.count(),
         'sold_count': listing_qs.filter(status='sold').count(),
@@ -161,6 +162,8 @@ def update_profile_api(request):
         p.phone = data.get('phone', '')
         if data.get('avatarSrc'):
             p.avatar_url = data.get('avatarSrc')
+        if data.get('bannerSrc'):
+            p.banner_url = data.get('bannerSrc')
         p.save()
         
         return JsonResponse({'status': 'success', 'username': user.username})
